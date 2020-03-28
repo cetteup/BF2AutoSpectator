@@ -22,6 +22,10 @@ SendInput = ctypes.windll.user32.SendInput
 
 # C struct redefinitions
 PUL = ctypes.POINTER(ctypes.c_ulong)
+FREECAM_SERVERS = [
+    '185.107.96.105',
+    '185.107.96.106'
+]
 HISTOGRAMS = {
     'teams': {
         'usmc': {
@@ -710,6 +714,9 @@ while True:
     if onRoundFinishScreen or mapIsLoading:
         # Reset state
         gameInstanceState.round_end_reset()
+        # Reset spawn flag every round on non-freecam servers
+        if gameInstanceState.get_server_ip() not in FREECAM_SERVERS:
+            gameInstanceState.set_rotation_spawned(False)
         # If map is loading, reset spawn flag
         if mapIsLoading:
             gameInstanceState.map_rotation_reset()
