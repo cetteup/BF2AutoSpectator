@@ -16,6 +16,8 @@ import win32con
 from PIL import ImageOps
 from bs4 import BeautifulSoup
 
+from gameinstancestate import GameInstanceState
+
 SendInput = ctypes.windll.user32.SendInput
 
 # C struct redefinitions
@@ -566,10 +568,17 @@ if not os.path.isfile(pytesseract.pytesseract.tesseract_cmd):
 elif not os.path.isfile(os.path.join(args.game_path, 'BF2.exe')):
     sys.exit(f'Could not find BF2.exe in given game install folder: {args.game_path}')
 
+# Init game instance state store
+gameInstanceState = GameInstanceState()
+
 # Init game instance if requested
 if args.start_game:
     print_log('Initializing spectator game instance')
     init_game_instance(args.game_path, args.player_name, args.player_pass, args.server_ip, args.server_port)
+
+# Update state
+gameInstanceState.set_server_ip(args.server_ip)
+gameInstanceState.set_server_port(args.server_port)
 
 # Find BF2 window
 print_log('Finding BF2 window')
@@ -583,27 +592,21 @@ while not joined:
     joined = get_player_team(args.server_ip, args.server_port) is not None
     time.sleep(5)
 
-currentTeam = 0
-spawnedOnce = False
-hudHidden = False
-startedSpectation = False
-restartRequired = False
-playerExpectedOnServer = False
 while True:
     # Try to bring BF2 window to foreground
-    if not restartRequired:
+    if not gameInstanceState.error_restart_required():
         try:
             win32gui.ShowWindow(bf2Window['handle'], win32con.SW_SHOW)
             win32gui.SetForegroundWindow(bf2Window['handle'])
         except Exception as e:
             print_log('BF2 window is gone, restart required')
             print_log(str(e))
-            restartRequired = True
+            gameInstanceState.set_error_restart_required(True)
 
     # Check for "Not responding" in title of BF2 window (added on game freeze)
-    if not restartRequired and not is_responding_pid(int(bf2Window['pid'])):
+    if not gameInstanceState.error_restart_required() and not is_responding_pid(int(bf2Window['pid'])):
         print_log('BF2 froze, restart required')
-        restartRequired = True
+        gameInstanceState.set_error_restart_required(True)
         # Kill frozen instance by pid
         killed = taskkill_pid(int(bf2Window['pid']))
         print_log(f'Frozen window killed: {killed}')
@@ -612,17 +615,19 @@ while True:
         continue
 
     # Start a new game instance if required
-    if restartRequired:
+    if gameInstanceState.error_restart_required():
         # Init game new game instance
-        init_game_instance(args.game_path, args.player_name, args.player_pass, args.server_ip, args.server_port)
+        init_game_instance(
+            args.game_path,
+            args.player_name,
+            args.player_pass,
+            gameInstanceState.get_server_ip(),
+            gameInstanceState.get_server_port()
+        )
         # Update window dict
         bf2Window = find_window_by_title('BF2 (v1.5.3153-802.0, pid:')
-        # Unset restart flag
-        restartRequired = False
-        # Reset other flags
-        spawnedOnce = False
-        hudHidden = False
-        startedSpectation = False
+        # Reset state
+        gameInstanceState.restart_reset()
         continue
 
     # Make sure we are still in the game
@@ -639,11 +644,11 @@ while True:
             print_log('Server full, trying to rejoin in 30 seconds')
             connect_to_server(bf2Window['rect'][0], bf2Window['rect'][1], args.server_ip, args.server_port)
             time.sleep(20)
-            playerExpectedOnServer= True
+            gameInstanceState.set_spectator_on_server(True)
         elif 'kicked' in gameMessage:
             print_log('Got kicked, trying to rejoin')
             connect_to_server(bf2Window['rect'][0], bf2Window['rect'][1], args.server_ip, args.server_port)
-            playerExpectedOnServer = True
+            gameInstanceState.set_spectator_on_server(True)
         elif 'banned' in gameMessage:
             print_log('Got banned, contact server admin')
             break
@@ -651,11 +656,11 @@ while True:
                 'failed to connect' in gameMessage:
             print_log('Connection lost, trying to reconnect')
             connect_to_server(bf2Window['rect'][0], bf2Window['rect'][1], args.server_ip, args.server_port)
-            playerExpectedOnServer = True
+            gameInstanceState.set_spectator_on_server(True)
         elif 'modified content' in gameMessage:
             print_log('Got kicked for modified content, trying to rejoin')
             connect_to_server(bf2Window['rect'][0], bf2Window['rect'][1], args.server_ip, args.server_port)
-            playerExpectedOnServer = True
+            gameInstanceState.set_spectator_on_server(True)
         else:
             print_log(gameMessage)
             break
@@ -664,38 +669,42 @@ while True:
         continue
 
     # Player is not on server, check if rejoining is possible and makes sense
-    if not playerExpectedOnServer:
+    if not gameInstanceState.spectator_on_server():
         # Check number of free slots
         # TODO
         connect_to_server(bf2Window['rect'][0], bf2Window['rect'][1], args.server_ip, args.server_port)
-        playerExpectedOnServer = True
+        gameInstanceState.set_spectator_on_server(True)
 
     onRoundFinishScreen = check_if_round_ended(bf2Window['rect'][0], bf2Window['rect'][1])
     print_log(f'onRoundFinishScreen: {onRoundFinishScreen}')
     mapIsLoading = check_if_map_is_loading(bf2Window['rect'][0], bf2Window['rect'][1])
     print_log(f'mapIsLoading: {mapIsLoading}')
     if onRoundFinishScreen or mapIsLoading:
-        startedSpectation = False
+        # Reset state
+        gameInstanceState.round_end_reset()
+        # If map is loading, reset spawn flag
+        if mapIsLoading:
+            gameInstanceState.map_rotation_reset()
         time.sleep(10)
-    elif not spawnedOnce:
+    elif not gameInstanceState.rotation_spawned():
         print_log('Determining team')
-        currentTeam = get_player_team_histogram(bf2Window['rect'][0], bf2Window['rect'][1])
-        print_log(f'Current team: {"USMC" if currentTeam == 0 else "MEC/CHINA"}')
+        gameInstanceState.set_round_team(get_player_team_histogram(bf2Window['rect'][0], bf2Window['rect'][1]))
+        print_log(f'Current team: {"USMC" if gameInstanceState.get_round_team() == 0 else "MEC/CHINA"}')
         print_log('Spawning once')
-        spawn_suicide(currentTeam)
-        spawnedOnce = True
-    elif not hudHidden:
+        spawn_suicide(gameInstanceState.get_round_team())
+        gameInstanceState.set_rotation_spawned(True)
+    elif not gameInstanceState.hud_hidden():
         print_log('Hiding hud')
         hide_hud()
-        hudHidden = True
+        gameInstanceState.set_hud_hidden(True)
         # Enable free cam
         print_log('Enabling free cam')
         auto_press_key(0x39)
-    elif not startedSpectation:
+    elif not gameInstanceState.round_started_spectation():
         # Disable free cam
         print_log('Disabling free cam')
         auto_press_key(0x39)
-        startedSpectation = True
+        gameInstanceState.set_round_started_spectation(True)
         # time.sleep(20)
     else:
         auto_press_key(0x2e)
@@ -703,7 +712,7 @@ while True:
 
     serverIsFull = get_sever_player_count(bf2Window['rect'][0], bf2Window['rect'][1]) == 64
     print_log(f'Server is full {serverIsFull}')
-    if serverIsFull and playerExpectedOnServer:
+    if serverIsFull and gameInstanceState.spectator_on_server():
         disconnect_from_server(bf2Window['rect'][0], bf2Window['rect'][1])
-        playerExpectedOnServer = False
+        gameInstanceState.set_spectator_on_server(False)
         time.sleep(30)
