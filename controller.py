@@ -749,6 +749,8 @@ while True:
         print_log('Disabling free cam')
         auto_press_key(0x39)
         gameInstanceState.set_round_started_spectation(True)
+        # Increase round number/counter
+        gameInstanceState.increase_round_num()
         # time.sleep(20)
     else:
         auto_press_key(0x2e)

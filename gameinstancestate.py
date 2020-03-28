@@ -2,6 +2,7 @@ class GameInstanceState:
     # Global details
     __spectator_on_server: bool = False
     __hud_hidden: str = ''
+    __round_num = 0
 
     # Server details
     __server_ip: str = ''
@@ -32,6 +33,12 @@ class GameInstanceState:
 
     def hud_hidden(self) -> bool:
         return self.__hud_hidden
+
+    def increase_round_num(self):
+        self.__round_num += 1
+
+    def get_round_num(self) -> int:
+        return self.__round_num
 
     # Server getter/setter functions
     def set_server_ip(self, server_ip: str):
@@ -104,6 +111,7 @@ class GameInstanceState:
     def restart_reset(self):
         self.__spectator_on_server = False
         self.__hud_hidden = False
+        self.__round_num = 0
         self.__rotation_map_name = ''
         self.__rotation_spawned = False
         self.__round_team = -1
