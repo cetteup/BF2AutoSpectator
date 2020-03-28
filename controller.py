@@ -277,59 +277,44 @@ def disconnect_from_server(left: int, top: int) -> None:
 def connect_to_server(left: int, top: int, server_ip: str, server_port: str) -> None:
     # Move cursor onto bfhq menu item and click
     # Required to reset multiplayer menu
-    ctypes.windll.user32.SetCursorPos(left + 111, top + 50)
-    time.sleep(.1)
-    ctypes.windll.user32.mouse_event(2, 0, 0, 0, 0)
-    ctypes.windll.user32.mouse_event(4, 0, 0, 0, 0)
+    pyautogui.click(left + 111, top + 50)
 
     time.sleep(3)
 
     # Move cursor onto multiplayer menu item and click
-    ctypes.windll.user32.SetCursorPos(left + 331, top + 50)
+    pyautogui.moveTo(left + 331, top + 50)
     time.sleep(.1)
-    ctypes.windll.user32.mouse_event(2, 0, 0, 0, 0)
-    ctypes.windll.user32.mouse_event(4, 0, 0, 0, 0)
+    pyautogui.click()
 
     time.sleep(4)
 
     # Move cursor onto connect to ip button and click
-    ctypes.windll.user32.SetCursorPos(left + 111, top + 452)
-    time.sleep(.1)
-    ctypes.windll.user32.mouse_event(2, 0, 0, 0, 0)
-    ctypes.windll.user32.mouse_event(4, 0, 0, 0, 0)
+    pyautogui.click(left + 111, top + 452)
 
+    # Give field popup time to appear
     time.sleep(.3)
-
-    # Init shell
-    shell = win32com.client.Dispatch("WScript.Shell")
 
     # Clear out ip field
     for i in range(0, 20):
-        shell.SendKeys('{BKSP}', 0)
-        time.sleep(.08)
+        pyautogui.press('backspace')
 
-    # Type ip address
-    for i in range(0, len(server_ip)):
-        shell.SendKeys(server_ip[i], 0)
-        time.sleep(.08)
+    # Write ip
+    pyautogui.write(server_ip)
 
-    # Hit tab to enter port if required
-    if server_port != '16567':
-        for i in range(0, 4):
-            shell.SendKeys('{BKSP}', 0)
-            time.sleep(.08)
+    # Hit tab to enter port
+    pyautogui.press('tab')
 
-        for i in range(0, len(server_port)):
-            shell.SendKeys(server_port[i], 0)
-            time.sleep(.08)
+    # Clear out port field
+    for i in range(0, 10):
+        pyautogui.press('backspace')
+
+    # Write port
+    pyautogui.write(server_port)
 
     time.sleep(.3)
 
     # Move cursor onto ok button and click
-    ctypes.windll.user32.SetCursorPos(left + 777, top + 362)
-    time.sleep(.1)
-    ctypes.windll.user32.mouse_event(2, 0, 0, 0, 0)
-    ctypes.windll.user32.mouse_event(4, 0, 0, 0, 0)
+    pyautogui.click(left + 777, top + 362)
 
 
 def close_game_message(left: int, top: int) -> None:
