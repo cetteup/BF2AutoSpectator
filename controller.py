@@ -357,7 +357,7 @@ def ocr_player_name(left: int, top: int) -> str:
     return orcResults[-1]
 
 
-def get_sever_player_count(left: int, top:int) -> int:
+def get_sever_player_count(left: int, top: int) -> int:
     # Press/hold tab
     PressKey(0x0f)
     time.sleep(.5)
@@ -669,8 +669,7 @@ while True:
             connect_to_server(bf2Window['rect'][0], bf2Window['rect'][1], args.server_ip, args.server_port)
             gameInstanceState.set_spectator_on_server(True)
         elif 'banned' in gameMessage:
-            print_log('Got banned, contact server admin')
-            break
+            sys.exit('Got banned, contact server admin')
         elif 'connection' in gameMessage and 'lost' in gameMessage or \
                 'failed to connect' in gameMessage:
             print_log('Connection lost, trying to reconnect')
@@ -681,8 +680,7 @@ while True:
             connect_to_server(bf2Window['rect'][0], bf2Window['rect'][1], args.server_ip, args.server_port)
             gameInstanceState.set_spectator_on_server(True)
         else:
-            print_log(gameMessage)
-            break
+            sys.exit(gameMessage)
 
         time.sleep(10)
         continue
