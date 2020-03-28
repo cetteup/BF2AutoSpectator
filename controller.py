@@ -343,7 +343,7 @@ def ocr_player_scoreboard(left: int, top: int, right: int, bottom: int) -> list:
     # OCR USMC players
     players.append([])
     for i in range(0, 21):
-        cropped = ImageOps.crop(screenshot, (708, 114 + i * 24, 290, 101 + (20 - i) * 24))
+        cropped = ImageOps.crop(screenshot, (84, 114 + i * 24, 920, 101 + (20 - i) * 24))
         custom_config = r'--oem 3 --psm 7'
         ocr_result = pytesseract.image_to_string(cropped, config=custom_config)
         print(ocr_result)
@@ -352,7 +352,7 @@ def ocr_player_scoreboard(left: int, top: int, right: int, bottom: int) -> list:
     # OCR MEC players
     players.append([])
     for i in range(0, 21):
-        cropped = ImageOps.crop(screenshot, (84, 114 + i * 24, 920, 101 + (20 - i) * 24))
+        cropped = ImageOps.crop(screenshot, (708, 114 + i * 24, 290, 101 + (20 - i) * 24))
         custom_config = r'--oem 3 --psm 7'
         ocr_result = pytesseract.image_to_string(cropped, config=custom_config)
         print(ocr_result)
