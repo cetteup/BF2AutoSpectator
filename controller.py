@@ -293,6 +293,38 @@ def ocr_player_name(left: int, top: int) -> str:
     return orcResults[-1]
 
 
+def get_sever_player_count(left: int, top:int) -> int:
+    # Press/hold tab
+    PressKey(0x0f)
+    time.sleep(.5)
+
+    # Take screenshot
+    screenshot = pyautogui.screenshot(region=(left + 180, top + 656, 647, 17))
+    # Invert
+    screenshot = ImageOps.invert(screenshot)
+
+    # Release tab
+    ReleaseKey(0x0f)
+
+    # Crop team totals from screenshot
+    team_count_crops = [
+        ImageOps.crop(screenshot, (0, 0, 625, 0)),
+        ImageOps.crop(screenshot, (625, 0, 0, 0))
+    ]
+
+    player_count = 0
+    for team_count_crop in team_count_crops:
+        # OCR team count
+        custom_config = r'--oem 3 --psm 8'
+        ocr_result = pytesseract.image_to_string(team_count_crop, config=custom_config)
+
+        # If we only have numbers, parse to int and add to total
+        if re.match(r'^[0-9]+$', ocr_result):
+            player_count += int(ocr_result)
+
+    return player_count
+
+
 def ocr_player_scoreboard(left: int, top: int, right: int, bottom: int) -> list:
     # Init list
     players = []
@@ -598,7 +630,7 @@ while True:
         auto_press_key(0x2e)
         time.sleep(22)
 
-    serverIsFull = check_if_server_full(args.server_ip, args.server_port)
+    serverIsFull = get_sever_player_count(bf2Window['rect'][0], bf2Window['rect'][1]) == 64
     print_log(f'Server is full {serverIsFull}')
     if serverIsFull and playerExpectedOnServer:
         disconnect_from_server(bf2Window['rect'][0], bf2Window['rect'][1])
