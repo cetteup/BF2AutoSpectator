@@ -274,22 +274,20 @@ def disconnect_from_server(left: int, top: int) -> None:
     ctypes.windll.user32.mouse_event(4, 0, 0, 0, 0)
 
 
-def connect_to_server(left: int, top: int, server_ip: str, server_port: str) -> None:
+def connect_to_server(left: int, top: int, server_ip: str, server_port: str, server_pass: str = None) -> None:
     # Move cursor onto bfhq menu item and click
     # Required to reset multiplayer menu
-    pyautogui.click(left + 111, top + 50)
+    pyautogui.click(left + 111, top + 50, duration=.2)
 
     time.sleep(3)
 
     # Move cursor onto multiplayer menu item and click
-    pyautogui.moveTo(left + 331, top + 50)
-    time.sleep(.1)
-    pyautogui.click()
+    pyautogui.click(left + 331, top + 50, duration=.2)
 
     time.sleep(4)
 
     # Move cursor onto connect to ip button and click
-    pyautogui.click(left + 111, top + 452)
+    pyautogui.click(left + 111, top + 452, duration=.2)
 
     # Give field popup time to appear
     time.sleep(.3)
@@ -313,8 +311,17 @@ def connect_to_server(left: int, top: int, server_ip: str, server_port: str) -> 
 
     time.sleep(.3)
 
+    # Write password if required
+    # Field clears itself, so need to clear manually
+    if server_pass is not None:
+        pyautogui.press('tab')
+
+        pyautogui.write(server_pass)
+
+        time.sleep(.3)
+
     # Move cursor onto ok button and click
-    pyautogui.click(left + 777, top + 362)
+    pyautogui.click(left + 777, top + 362, duration=.2)
 
 
 def close_game_message(left: int, top: int) -> None:
@@ -535,6 +542,7 @@ parser.add_argument('--player-name', help='Account name of spectating player', t
 parser.add_argument('--player-pass', help='Account password of spectating player', type=str, required=True)
 parser.add_argument('--server-ip', help='IP of sever to join for spectating', type=str, required=True)
 parser.add_argument('--server-port', help='Port of sever to join for spectating', type=str, default='16567')
+parser.add_argument('--server-pass', help='Password of sever to join for spectating', type=str)
 parser.add_argument('--game-path', help='Path to BF2 install folder',
                     type=str, default='C:\\Program Files (x86)\\EA Games\\Battlefield 2\\')
 parser.add_argument('--tesseract-path', help='Path to Tesseract install folder',
