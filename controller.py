@@ -555,7 +555,8 @@ parser.add_argument('--game-path', help='Path to BF2 install folder',
 parser.add_argument('--tesseract-path', help='Path to Tesseract install folder',
                     type=str, default='C:\\Program Files\\Tesseract-OCR\\')
 parser.add_argument('--no-start', dest='start_game', action='store_false')
-parser.set_defaults(start_game=True)
+parser.add_argument('--no-connect', dest='connect', action='store_false')
+parser.set_defaults(start_game=True, connect=True)
 args = parser.parse_args()
 
 # Init global vars/settings
@@ -584,6 +585,24 @@ gameInstanceState.set_server_port(args.server_port)
 print_log('Finding BF2 window')
 bf2Window = find_window_by_title('BF2 (v1.5.3153-802.0, pid:')
 print_log(f'Found window: {bf2Window}')
+
+# Connect to server if requested
+if not args.start_game and args.connect:
+    try:
+        win32gui.ShowWindow(bf2Window['handle'], win32con.SW_SHOW)
+        win32gui.SetForegroundWindow(bf2Window['handle'])
+
+        # Connect to server
+        connect_to_server(
+            bf2Window['rect'][0],
+            bf2Window['rect'][1],
+            gameInstanceState.get_server_ip(),
+            gameInstanceState.get_server_port()
+        )
+    except Exception as e:
+        print_log('BF2 window is gone, restart required')
+        print_log(str(e))
+        gameInstanceState.set_error_restart_required(True)
 
 # Make sure we successfully joined the server
 print_log('Making sure spectator successfully joined server')
