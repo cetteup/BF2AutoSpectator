@@ -457,32 +457,22 @@ def spawn_suicide(team: int):
     time.sleep(.5)
 
 
-def hide_hud():
-    # X / toggle console
+def toggle_hud(direction: int):
+    # Open/toggle console
     auto_press_key(0x1d)
-    # Type "renderer.drawHud 0"
-    auto_press_key(0x13)
-    auto_press_key(0x12)
-    auto_press_key(0x31)
-    auto_press_key(0x20)
-    auto_press_key(0x12)
-    auto_press_key(0x13)
-    auto_press_key(0x12)
-    auto_press_key(0x13)
-    auto_press_key(0x34)
-    auto_press_key(0x20)
-    auto_press_key(0x13)
-    auto_press_key(0x1e)
-    auto_press_key(0x11)
-    auto_press_key(0x23)
-    auto_press_key(0x16)
-    auto_press_key(0x20)
-    auto_press_key(0x39)
-    auto_press_key(0x0b)
+    time.sleep(.1)
+
+    # Write command
+    pyautogui.write(f'renderer.drawHud {str(direction)}')
+    time.sleep(.1)
+
     # Hit enter
-    auto_press_key(0x1c)
+    pyautogui.press('enter')
+    time.sleep(.1)
+
     # X / toggle console
     auto_press_key(0x1d)
+    time.sleep(.1)
 
 
 # Move mouse using old mouse_event method (relative, by "mickeys)
@@ -725,6 +715,14 @@ while True:
             gameInstanceState.map_rotation_reset()
         time.sleep(10)
     elif not gameInstanceState.rotation_spawned():
+        # Re-enable hud if required
+        if gameInstanceState.hud_hidden():
+            print_log('Enabling hud')
+            toggle_hud(1)
+            # Update state
+            gameInstanceState.set_hud_hidden(False)
+            # Give game time to swap teams
+            time.sleep(3)
         print_log('Determining team')
         gameInstanceState.set_round_team(get_player_team_histogram(bf2Window['rect'][0], bf2Window['rect'][1]))
         print_log(f'Current team: {"USMC" if gameInstanceState.get_round_team() == 0 else "MEC/CHINA"}')
@@ -733,7 +731,7 @@ while True:
         gameInstanceState.set_rotation_spawned(True)
     elif not gameInstanceState.hud_hidden():
         print_log('Hiding hud')
-        hide_hud()
+        toggle_hud(0)
         gameInstanceState.set_hud_hidden(True)
         # Enable free cam
         print_log('Enabling free cam')
