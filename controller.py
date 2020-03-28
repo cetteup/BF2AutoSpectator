@@ -613,6 +613,7 @@ if not args.start_game and args.connect or args.start_game and args.server_pass 
             gameInstanceState.get_server_port(),
             gameInstanceState.get_server_password()
         )
+        time.sleep(10)
         gameInstanceState.set_spectator_on_server(True)
     except Exception as e:
         print_log('BF2 window is gone, restart required')
