@@ -1,4 +1,5 @@
 import ctypes
+import os
 import re
 import subprocess
 import time
@@ -486,19 +487,28 @@ parser.add_argument('--player-name', help='Account name of spectating player', t
 parser.add_argument('--player-pass', help='Account password of spectating player', type=str, required=True)
 parser.add_argument('--server-ip', help='IP of sever to join for spectating', type=str, required=True)
 parser.add_argument('--server-port', help='Port of sever to join for spectating', type=str, default='16567')
-parser.add_argument('--bf2-path', help='Path to BF2 install folder',
+parser.add_argument('--game-path', help='Path to BF2 install folder',
                     type=str, default='C:\\Program Files (x86)\\EA Games\\Battlefield 2\\')
 parser.add_argument('--tesseract-path', help='Path to Tesseract install folder',
                     type=str, default='C:\\Program Files\\Tesseract-OCR\\')
+parser.add_argument('--no-start', dest='start_game', action='store_false')
+parser.set_defaults(start_game=True)
 args = parser.parse_args()
 
 # Init global vars/settings
-pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
+pytesseract.pytesseract.tesseract_cmd = os.path.join(args.tesseract_path, 'tesseract.exe')
 top_windows = []
 
-# Init game instance
-# print_log('Initializing spectator game instance')
-init_game_instance(args.bf2_path, args.player_name, args.player_pass, args.server_ip, args.server_port)
+# Make sure provided paths are valid
+if not os.path.isfile(pytesseract.pytesseract.tesseract_cmd):
+    sys.exit(f'Could not find tesseract.exe in given install folder: {args.tesseract_path}')
+elif not os.path.isfile(os.path.join(args.game_path, 'BF2.exe')):
+    sys.exit(f'Could not find BF2.exe in given game install folder: {args.game_path}')
+
+# Init game instance if requested
+if args.start_game:
+    print_log('Initializing spectator game instance')
+    init_game_instance(args.game_path, args.player_name, args.player_pass, args.server_ip, args.server_port)
 
 # Find BF2 window
 print_log('Finding BF2 window')
@@ -543,7 +553,7 @@ while True:
     # Start a new game instance if required
     if restartRequired:
         # Init game new game instance
-        init_game_instance(args.bf2_path, args.player_name, args.player_pass, args.server_ip, args.server_port)
+        init_game_instance(args.game_path, args.player_name, args.player_pass, args.server_ip, args.server_port)
         # Update window dict
         bf2Window = find_window_by_title('BF2 (v1.5.3153-802.0, pid:')
         # Unset restart flag
