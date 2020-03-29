@@ -937,9 +937,9 @@ while True:
         auto_press_key(0x2e)
         time.sleep(22)
 
-    serverIsFull = get_sever_player_count(bf2Window['rect'][0], bf2Window['rect'][1]) == 64
-    print_log(f'Server is full {serverIsFull}')
-    if serverIsFull and gameInstanceState.spectator_on_server():
-        disconnect_from_server(bf2Window['rect'][0], bf2Window['rect'][1])
-        gameInstanceState.set_spectator_on_server(False)
-        time.sleep(30)
+    # serverIsFull = get_sever_player_count(bf2Window['rect'][0], bf2Window['rect'][1]) == 64
+    # print_log(f'Server is full {serverIsFull}')
+    # if serverIsFull and gameInstanceState.spectator_on_server():
+    #     disconnect_from_server(bf2Window['rect'][0], bf2Window['rect'][1])
+    #     gameInstanceState.set_spectator_on_server(False)
+    #     time.sleep(30)
