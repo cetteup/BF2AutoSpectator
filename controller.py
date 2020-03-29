@@ -781,13 +781,6 @@ if not args.start_game and args.connect or args.start_game and args.server_pass 
         print_log(str(e))
         gameInstanceState.set_error_restart_required(True)
 
-# Make sure we successfully joined the server
-print_log('Making sure spectator successfully joined server')
-joined = False
-while not joined:
-    joined = get_player_team(args.server_ip, args.server_port) is not None
-    time.sleep(5)
-
 while True:
     # Try to bring BF2 window to foreground
     if not gameInstanceState.error_restart_required():
