@@ -241,7 +241,7 @@ class Input(ctypes.Structure):
 
 # Actuals Functions
 
-def PressKey(hexKeyCode):
+def press_key(hexKeyCode):
     extra = ctypes.c_ulong(0)
     ii_ = Input_I()
     ii_.ki = KeyBdInput(0, hexKeyCode, 0x0008, 0, ctypes.pointer(extra))
@@ -249,7 +249,7 @@ def PressKey(hexKeyCode):
     ctypes.windll.user32.SendInput(1, ctypes.pointer(x), ctypes.sizeof(x))
 
 
-def ReleaseKey(hexKeyCode):
+def release_key(hexKeyCode):
     extra = ctypes.c_ulong(0)
     ii_ = Input_I()
     ii_.ki = KeyBdInput(0, hexKeyCode, 0x0008 | 0x0002, 0, ctypes.pointer(extra))
@@ -258,9 +258,27 @@ def ReleaseKey(hexKeyCode):
 
 
 def auto_press_key(hexKeyCode):
-    PressKey(hexKeyCode)
+    press_key(hexKeyCode)
     time.sleep(.08)
-    ReleaseKey(hexKeyCode)
+    release_key(hexKeyCode)
+
+
+# Move mouse using old mouse_event method (relative, by "mickeys)
+def mouse_move_legacy(dx: int, dy: int) -> None:
+    win32api.mouse_event(win32con.MOUSEEVENTF_MOVE, dx, dy)
+    time.sleep(.08)
+
+
+# Mouse click using old mouse_event method
+def mouse_click_legacy() -> None:
+    win32api.mouse_event(win32con.MOUSEEVENTF_LEFTDOWN, 0, 0, 0, 0)
+    time.sleep(.08)
+    win32api.mouse_event(win32con.MOUSEEVENTF_LEFTUP, 0, 0, 0, 0)
+
+
+def mouse_reset_legacy() -> None:
+    win32api.mouse_event(win32con.MOUSEEVENTF_MOVE, -10000, -10000)
+    time.sleep(.5)
 
 
 def window_enumeration_handler(hwnd, top_windows):
@@ -271,6 +289,69 @@ def window_enumeration_handler(hwnd, top_windows):
         'rect': win32gui.GetWindowRect(hwnd),
         'pid': re.sub(r'^.*pid\: ([0-9]+)\)$', '\\1', win32gui.GetWindowText(hwnd))
     })
+
+
+def find_window_by_title(search_title: str) -> dict:
+    # Call window enumeration handler
+    win32gui.EnumWindows(window_enumeration_handler, top_windows)
+    found_window = None
+    for window in top_windows:
+        if search_title in window['title']:
+            found_window = window
+
+    return found_window
+
+
+def is_responding_pid(pid: int) -> bool:
+    """Check if a program (based on its PID) is responding"""
+    cmd = 'tasklist /FI "PID eq %d" /FI "STATUS eq running"' % pid
+    status = subprocess.Popen(cmd, stdout=subprocess.PIPE).stdout.read()
+    return str(pid) in str(status)
+
+
+def taskkill_pid(pid: int) -> bool:
+    cmd = 'taskkill /F /PID %d' % pid
+    output = subprocess.Popen(cmd, stdout=subprocess.PIPE).stdout.read()
+    return 'has been terminated' in str(output)
+
+
+# Take a screenshot of the given region and run the result through OCR
+def ocr_screenshot_region(x: int, y: int, w: int, h: int, invert: bool = False, show: bool = False,
+                          config: str = r'--oem 3 --psm 7') -> str:
+    screenshot = pyautogui.screenshot(region=(x, y, w, h))
+    if invert:
+        screenshot = ImageOps.invert(screenshot)
+    if show:
+        screenshot.show()
+    ocr_result = pytesseract.image_to_string(screenshot, config=config)
+    # print_log(f'OCR result: {ocr_result}')
+    return ocr_result.lower()
+
+
+def check_for_game_message(left: int, top: int) -> bool:
+    # Get ocr result of game message area
+    ocr_result = ocr_screenshot_region(
+        left + 400,
+        top + 223,
+        130,
+        25,
+        True
+    )
+
+    return 'game message' in ocr_result
+
+
+def ocr_game_message(left: int, top: int) -> bool:
+    # Get ocr result of game message content region
+    ocr_result = ocr_screenshot_region(
+        left + 400,
+        top + 246,
+        470,
+        16,
+        True
+    )
+
+    return ocr_result
 
 
 def check_if_round_ended(left: int, top: int) -> bool:
@@ -288,8 +369,10 @@ def check_if_round_ended(left: int, top: int) -> bool:
 
 
 def check_if_map_is_loading(left: int, top: int) -> bool:
+    # Check if game is on round end screen
     on_round_end_screen = check_if_round_ended(left, top)
 
+    # Get ocr result of bottom left corner where "join game"-button would be
     join_game_button_present = 'join game' in ocr_screenshot_region(
         left + 1163,
         top + 725,
@@ -299,63 +382,6 @@ def check_if_map_is_loading(left: int, top: int) -> bool:
     )
 
     return on_round_end_screen and not join_game_button_present
-
-
-def check_for_game_message(left: int, top: int) -> bool:
-    screenshot = pyautogui.screenshot(region=(left + 400, top + 223, 130, 25))
-    inverted = ImageOps.invert(screenshot)
-    ocr_result = pytesseract.image_to_string(inverted)
-    print_log(f'Game message check ocr: {ocr_result}')
-    return 'game message' in ocr_result.lower()
-
-
-def ocr_game_message(left: int, top: int) -> bool:
-    screenshot = pyautogui.screenshot(region=(left + 400, top + 246, 470, 16))
-    inverted = ImageOps.invert(screenshot)
-    custom_config = r'--oem 3 --psm 7'
-    ocr_result = pytesseract.image_to_string(inverted, config=custom_config)
-    print_log(f'Game message ocr: {ocr_result}')
-    return ocr_result.lower()
-
-
-def get_player_team(server_ip: str, server_port: str) -> int:
-    response = requests.get(f'https://www.bf2hub.com/server/{server_ip}:{server_port}/')
-    soup = BeautifulSoup(response.text, 'html.parser')
-    player_link = soup.select_one('a[href="/stats/500310001"]')
-    team = None
-    if player_link is not None:
-        td_class = player_link.find_parents('td')[-1].get('class')[-1]
-        # Player's are added to USMC team by default
-        # Thus, consider USMC team to be team 0, MEC to be team 1
-        team = 0 if td_class == 'pl_team_2' else 1
-
-    return team
-
-
-def get_player_team_histogram(left: int, top: int) -> int:
-    # Take team selection screenshots
-    team_selection_screenshots = [
-        pyautogui.screenshot(region=(left + 68, top + 69, 41, 13)),
-        pyautogui.screenshot(region=(left + 209, top + 69, 41, 13))
-    ]
-
-    # Get histograms of screenshots (removing zeroes)
-    team_selection_histograms = []
-    for team_selection_screenshot in team_selection_screenshots:
-        team_selection_histograms.append(list_filter_zeroes(team_selection_screenshot.histogram()))
-
-    # Compare histograms to constant to determine team
-    team = None
-    if team_selection_histograms[0] == HISTOGRAMS['teams']['usmc']['active'] or \
-            team_selection_histograms[0] == HISTOGRAMS['teams']['eu']['active']:
-        # Player is on USMC/EU team
-        team = 0
-    elif team_selection_histograms[1] == HISTOGRAMS['teams']['mec']['active'] or \
-            team_selection_histograms[1] == HISTOGRAMS['teams']['china']['active']:
-        # Player is on MEC/CHINA team
-        team = 1
-
-    return team
 
 
 def get_map_name(left: int, top: int) -> str:
@@ -403,6 +429,46 @@ def get_map_size(left: int, top: int) -> int:
     return map_size
 
 
+def get_player_team(server_ip: str, server_port: str) -> int:
+    response = requests.get(f'https://www.bf2hub.com/server/{server_ip}:{server_port}/')
+    soup = BeautifulSoup(response.text, 'html.parser')
+    player_link = soup.select_one('a[href="/stats/500310001"]')
+    team = None
+    if player_link is not None:
+        td_class = player_link.find_parents('td')[-1].get('class')[-1]
+        # Player's are added to USMC team by default
+        # Thus, consider USMC team to be team 0, MEC to be team 1
+        team = 0 if td_class == 'pl_team_2' else 1
+
+    return team
+
+
+def get_player_team_histogram(left: int, top: int) -> int:
+    # Take team selection screenshots
+    team_selection_screenshots = [
+        pyautogui.screenshot(region=(left + 68, top + 69, 41, 13)),
+        pyautogui.screenshot(region=(left + 209, top + 69, 41, 13))
+    ]
+
+    # Get histograms of screenshots (removing zeroes)
+    team_selection_histograms = []
+    for team_selection_screenshot in team_selection_screenshots:
+        team_selection_histograms.append(list_filter_zeroes(team_selection_screenshot.histogram()))
+
+    # Compare histograms to constant to determine team
+    team = None
+    if team_selection_histograms[0] == HISTOGRAMS['teams']['usmc']['active'] or \
+            team_selection_histograms[0] == HISTOGRAMS['teams']['eu']['active']:
+        # Player is on USMC/EU team
+        team = 0
+    elif team_selection_histograms[1] == HISTOGRAMS['teams']['mec']['active'] or \
+            team_selection_histograms[1] == HISTOGRAMS['teams']['china']['active']:
+        # Player is on MEC/CHINA team
+        team = 1
+
+    return team
+
+
 def check_if_server_full(server_ip: str, server_port: str) -> bool:
     response = requests.get(f'https://www.gametracker.com/server_info/{server_ip}:{server_port}')
     soup = BeautifulSoup(response.text, 'html.parser')
@@ -412,14 +478,104 @@ def check_if_server_full(server_ip: str, server_port: str) -> bool:
     return current_players == max_players
 
 
-def disconnect_from_server(left: int, top: int) -> None:
-    # Press ESC
-    auto_press_key(0x01)
-    time.sleep(5)
-    # Move cursor onto disconnect button and click
-    ctypes.windll.user32.SetCursorPos(left + 1210, top + 725)
-    ctypes.windll.user32.mouse_event(2, 0, 0, 0, 0)
-    ctypes.windll.user32.mouse_event(4, 0, 0, 0, 0)
+def ocr_player_scoreboard(left: int, top: int, right: int, bottom: int) -> list:
+    # Init list
+    players = []
+
+    # Press/hold tab
+    press_key(0x0f)
+    time.sleep(.5)
+
+    # Take screenshot
+    screenshot = pyautogui.screenshot(region=(left + 8, top + 31, right - left - 16, bottom - top - 40))
+    screenshot.show()
+
+    # Release tab
+    release_key(0x0f)
+
+    # OCR USMC players
+    players.append([])
+    for i in range(0, 21):
+        cropped = ImageOps.crop(screenshot, (84, 114 + i * 24, 920, 101 + (20 - i) * 24))
+        custom_config = r'--oem 3 --psm 7'
+        ocr_result = pytesseract.image_to_string(cropped, config=custom_config)
+        print(ocr_result)
+        players[0].append(ocr_result.lower())
+
+    # OCR MEC players
+    players.append([])
+    for i in range(0, 21):
+        cropped = ImageOps.crop(screenshot, (708, 114 + i * 24, 290, 101 + (20 - i) * 24))
+        custom_config = r'--oem 3 --psm 7'
+        ocr_result = pytesseract.image_to_string(cropped, config=custom_config)
+        print(ocr_result)
+        players[1].append(ocr_result.lower())
+
+    return players
+
+
+def get_sever_player_count(left: int, top: int) -> int:
+    # Press/hold tab
+    press_key(0x0f)
+    time.sleep(.5)
+
+    # Take screenshot
+    screenshot = pyautogui.screenshot(region=(left + 180, top + 656, 647, 17))
+    # Invert
+    screenshot = ImageOps.invert(screenshot)
+
+    # Release tab
+    release_key(0x0f)
+
+    # Crop team totals from screenshot
+    team_count_crops = [
+        ImageOps.crop(screenshot, (0, 0, 625, 0)),
+        ImageOps.crop(screenshot, (625, 0, 0, 0))
+    ]
+
+    player_count = 0
+    for team_count_crop in team_count_crops:
+        # OCR team count
+        custom_config = r'--oem 3 --psm 8'
+        ocr_result = pytesseract.image_to_string(team_count_crop, config=custom_config)
+
+        # If we only have numbers, parse to int and add to total
+        if re.match(r'^[0-9]+$', ocr_result):
+            player_count += int(ocr_result)
+
+    return player_count
+
+
+def ocr_player_name(left: int, top: int) -> str:
+    screenshot = pyautogui.screenshot(region=(left + 875, top + 471, 110, 100))
+    orc_results = []
+    custom_config = r'--oem 3 --psm 7'
+    for i in range(0, screenshot.height, 6):
+        cropped = ImageOps.crop(screenshot, (0, i, 0, screenshot.height - (12 + i)))
+        inverted = ImageOps.autocontrast(ImageOps.invert(cropped))
+        orc_results.append(pytesseract.image_to_string(inverted, config=custom_config))
+
+    return orc_results[-1]
+
+
+def init_game_instance(bf2_path: str, player_name: str, player_pass: str,
+                       server_ip: str = None, server_port: str = None) -> None:
+    # Init shell
+    shell = win32com.client.Dispatch("WScript.Shell")
+
+    # Prepare command
+    command = f'cmd /c start /b /d "{bf2_path}" BF2.exe +restart 1 ' \
+              f'+playerName "{player_name}" +playerPassword "{player_pass}" ' \
+              f'+szx 1280 +szy 720 +fullscreen 0 +wx 5 +wy 5 ' \
+              f'+multi 1 +developer 1 +disableShaderCache 1'
+
+    # Add server details to command if provided
+    if server_ip is not None and server_port is not None:
+        command += f' +joinServer {server_ip} +port {server_port}'
+
+    # Run command
+    shell.Run(command)
+    time.sleep(15)
 
 
 def connect_to_server(left: int, top: int, server_ip: str, server_port: str, server_pass: str = None) -> None:
@@ -480,97 +636,21 @@ def connect_to_server(left: int, top: int, server_ip: str, server_port: str, ser
     pyautogui.leftClick()
 
 
+def disconnect_from_server(left: int, top: int) -> None:
+    # Press ESC
+    auto_press_key(0x01)
+    time.sleep(5)
+    # Move cursor onto disconnect button and click
+    pyautogui.moveTo(left + 1210, top + 725)
+    time.sleep(.2)
+    pyautogui.leftClick()
+
+
 def close_game_message(left: int, top: int) -> None:
     # Move cursor onto ok button and click
-    ctypes.windll.user32.SetCursorPos(left + 806, top + 412)
-    time.sleep(.1)
-    ctypes.windll.user32.mouse_event(2, 0, 0, 0, 0)
-    ctypes.windll.user32.mouse_event(4, 0, 0, 0, 0)
-
-
-def ocr_player_name(left: int, top: int) -> str:
-    screenshot = pyautogui.screenshot(region=(left + 875, top + 471, 110, 100))
-    screenshot.show()
-    orcResults = []
-    custom_config = r'--oem 3 --psm 7'
-    for i in range(0, screenshot.height, 6):
-        screenshot.height
-        cropped = ImageOps.crop(screenshot, (0, i, 0, screenshot.height - (12 + i)))
-        inverted = ImageOps.autocontrast(ImageOps.invert(cropped))
-        inverted.show()
-        orcResults.append(pytesseract.image_to_string(inverted, config=custom_config))
-        print_log(orcResults[-1])
-
-    # Adding custom options
-    return orcResults[-1]
-
-
-def get_sever_player_count(left: int, top: int) -> int:
-    # Press/hold tab
-    PressKey(0x0f)
-    time.sleep(.5)
-
-    # Take screenshot
-    screenshot = pyautogui.screenshot(region=(left + 180, top + 656, 647, 17))
-    # Invert
-    screenshot = ImageOps.invert(screenshot)
-
-    # Release tab
-    ReleaseKey(0x0f)
-
-    # Crop team totals from screenshot
-    team_count_crops = [
-        ImageOps.crop(screenshot, (0, 0, 625, 0)),
-        ImageOps.crop(screenshot, (625, 0, 0, 0))
-    ]
-
-    player_count = 0
-    for team_count_crop in team_count_crops:
-        # OCR team count
-        custom_config = r'--oem 3 --psm 8'
-        ocr_result = pytesseract.image_to_string(team_count_crop, config=custom_config)
-
-        # If we only have numbers, parse to int and add to total
-        if re.match(r'^[0-9]+$', ocr_result):
-            player_count += int(ocr_result)
-
-    return player_count
-
-
-def ocr_player_scoreboard(left: int, top: int, right: int, bottom: int) -> list:
-    # Init list
-    players = []
-
-    # Press/hold tab
-    PressKey(0x0f)
-    time.sleep(.5)
-
-    # Take screenshot
-    screenshot = pyautogui.screenshot(region=(left + 8, top + 31, right - left - 16, bottom - top - 40))
-    screenshot.show()
-
-    # Release tab
-    ReleaseKey(0x0f)
-
-    # OCR USMC players
-    players.append([])
-    for i in range(0, 21):
-        cropped = ImageOps.crop(screenshot, (84, 114 + i * 24, 920, 101 + (20 - i) * 24))
-        custom_config = r'--oem 3 --psm 7'
-        ocr_result = pytesseract.image_to_string(cropped, config=custom_config)
-        print(ocr_result)
-        players[0].append(ocr_result.lower())
-
-    # OCR MEC players
-    players.append([])
-    for i in range(0, 21):
-        cropped = ImageOps.crop(screenshot, (708, 114 + i * 24, 290, 101 + (20 - i) * 24))
-        custom_config = r'--oem 3 --psm 7'
-        ocr_result = pytesseract.image_to_string(cropped, config=custom_config)
-        print(ocr_result)
-        players[1].append(ocr_result.lower())
-
-    return players
+    pyautogui.moveTo(left + 806, top + 412)
+    time.sleep(.2)
+    pyautogui.leftClick()
 
 
 def spawn_suicide(map_name: str, map_size: int, team: int):
@@ -625,81 +705,6 @@ def toggle_hud(direction: int):
     # X / toggle console
     auto_press_key(0x1d)
     time.sleep(.1)
-
-
-# Move mouse using old mouse_event method (relative, by "mickeys)
-def mouse_move_legacy(dx: int, dy: int) -> None:
-    win32api.mouse_event(win32con.MOUSEEVENTF_MOVE, dx, dy)
-    time.sleep(.08)
-
-
-# Mouse click using old mouse_event method
-def mouse_click_legacy() -> None:
-    win32api.mouse_event(win32con.MOUSEEVENTF_LEFTDOWN, 0, 0, 0, 0)
-    time.sleep(.08)
-    win32api.mouse_event(win32con.MOUSEEVENTF_LEFTUP, 0, 0, 0, 0)
-
-
-def mouse_reset_legacy() -> None:
-    win32api.mouse_event(win32con.MOUSEEVENTF_MOVE, -10000, -10000)
-    time.sleep(.5)
-
-
-def init_game_instance(bf2_path: str, player_name: str, player_pass: str,
-                       server_ip: str = None, server_port: str = None) -> None:
-    # Init shell
-    shell = win32com.client.Dispatch("WScript.Shell")
-
-    # Prepare command
-    command = f'cmd /c start /b /d "{bf2_path}" BF2.exe +restart 1 ' \
-              f'+playerName "{player_name}" +playerPassword "{player_pass}" ' \
-              f'+szx 1280 +szy 720 +fullscreen 0 +wx 5 +wy 5 ' \
-              f'+multi 1 +developer 1 +disableShaderCache 1'
-
-    # Add server details to command if provided
-    if server_ip is not None and server_port is not None:
-        command += f' +joinServer {server_ip} +port {server_port}'
-
-    # Run command
-    shell.Run(command)
-    time.sleep(15)
-
-
-def find_window_by_title(search_title: str) -> dict:
-    # Call window enumeration handler
-    win32gui.EnumWindows(window_enumeration_handler, top_windows)
-    bf2_window = None
-    for window in top_windows:
-        if search_title in window['title']:
-            bf2_window = window
-
-    return bf2_window
-
-
-# Take a screenshot of the given region and run the result through OCR
-def ocr_screenshot_region(x: int, y: int, w: int, h: int, invert: bool = False, show: bool = False,
-                          config: str = r'--oem 3 --psm 7') -> str:
-    screenshot = pyautogui.screenshot(region=(x, y, w, h))
-    if invert:
-        screenshot = ImageOps.invert(screenshot)
-    if show:
-        screenshot.show()
-    ocr_result = pytesseract.image_to_string(screenshot, config=config)
-    # print_log(f'OCR result: {ocr_result}')
-    return ocr_result.lower()
-
-
-def is_responding_pid(pid: int) -> bool:
-    """Check if a program (based on its PID) is responding"""
-    cmd = 'tasklist /FI "PID eq %d" /FI "STATUS eq running"' % pid
-    status = subprocess.Popen(cmd, stdout=subprocess.PIPE).stdout.read()
-    return str(pid) in str(status)
-
-
-def taskkill_pid(pid: int) -> bool:
-    cmd = 'taskkill /F /PID %d' % pid
-    output = subprocess.Popen(cmd, stdout=subprocess.PIPE).stdout.read()
-    return 'has been terminated' in str(output)
 
 
 parser = argparse.ArgumentParser(description='Launch and control a Battlefield 2 spectator instance')
@@ -835,6 +840,7 @@ while True:
         if 'full' in gameMessage:
             print_log('Server full, trying to rejoin in 30 seconds')
             connect_to_server(bf2Window['rect'][0], bf2Window['rect'][1], args.server_ip, args.server_port)
+            # Connect to server waits 10, wait another 20 = 30
             time.sleep(20)
             gameInstanceState.set_spectator_on_server(True)
         elif 'kicked' in gameMessage:
