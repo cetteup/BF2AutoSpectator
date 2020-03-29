@@ -715,6 +715,9 @@ while True:
         bf2Window = find_window_by_title('BF2 (v1.5.3153-802.0, pid:')
         # Reset state
         gameInstanceState.restart_reset()
+        # Unless we are joining a password server, spectator should be on server after restart
+        if gameInstanceState.get_server_password() is None:
+            gameInstanceState.set_spectator_on_server(True)
         continue
 
     # Make sure we are still in the game
