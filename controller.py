@@ -281,17 +281,23 @@ def disconnect_from_server(left: int, top: int) -> None:
 def connect_to_server(left: int, top: int, server_ip: str, server_port: str, server_pass: str = None) -> None:
     # Move cursor onto bfhq menu item and click
     # Required to reset multiplayer menu
-    pyautogui.click(left + 111, top + 50, duration=.2)
+    pyautogui.moveTo(left + 111, top + 50)
+    time.sleep(.2)
+    pyautogui.leftClick()
 
     time.sleep(3)
 
     # Move cursor onto multiplayer menu item and click
-    pyautogui.click(left + 331, top + 50, duration=.2)
+    pyautogui.moveTo(left + 331, top + 50)
+    time.sleep(.2)
+    pyautogui.leftClick()
 
     time.sleep(4)
 
     # Move cursor onto connect to ip button and click
-    pyautogui.click(left + 111, top + 452, duration=.2)
+    pyautogui.moveTo(left + 111, top + 452)
+    time.sleep(.2)
+    pyautogui.leftClick()
 
     # Give field popup time to appear
     time.sleep(.3)
@@ -325,7 +331,9 @@ def connect_to_server(left: int, top: int, server_ip: str, server_port: str, ser
         time.sleep(.3)
 
     # Move cursor onto ok button and click
-    pyautogui.click(left + 777, top + 362, duration=.2)
+    pyautogui.moveTo(left + 777, top + 362)
+    time.sleep(.2)
+    pyautogui.leftClick()
 
 
 def close_game_message(left: int, top: int) -> None:
