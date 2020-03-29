@@ -12,6 +12,7 @@ class GameInstanceState:
 
     # Map details (map is as in one entry in the map rotation)
     __rotation_map_name: str = ''
+    __rotation_map_size: int = -1
     __rotation_spawned: bool = False
 
     # Round details
@@ -71,6 +72,12 @@ class GameInstanceState:
     def get_rotation_map_name(self) -> str:
         return self.__rotation_map_name
 
+    def set_rotation_map_size(self, map_size: int):
+        self.__rotation_map_size = map_size
+
+    def get_rotation_map_size(self) -> int:
+        return self.__rotation_map_size
+
     def set_rotation_spawned(self, spawned: bool):
         self.__rotation_spawned = spawned
 
@@ -98,6 +105,7 @@ class GameInstanceState:
     # Reset relevant fields after map rotation
     def map_rotation_reset(self):
         self.__rotation_map_name = ''
+        self.__rotation_map_size = -1
         self.__rotation_spawned = False
         self.__round_team = -1
         self.__round_started_spectation = False
@@ -113,6 +121,7 @@ class GameInstanceState:
         self.__hud_hidden = False
         self.__round_num = 0
         self.__rotation_map_name = ''
+        self.__rotation_map_size = -1
         self.__rotation_spawned = False
         self.__round_team = -1
         self.__round_started_spectation = False

@@ -122,6 +122,74 @@ HISTOGRAMS = {
         }
     }
 }
+SPAWN_COORDINATES = {
+    'dalian-plant': {
+        '64': [(618, 218), (296, 296)]
+    },
+    'strike-at-karkand': {
+        '64': [(382, 390), (569, 160)]
+    },
+    'dragon-valley': {
+        '64': [(517, 56), (476, 363)]
+    },
+    'fushe-pass': {
+        '64': [(562, 132), (253, 312)]
+    },
+    'daqing-oilfields': {
+        '64': [(500, 346), (363, 137)]
+    },
+    'gulf-of-oman': {
+        '64': [(308, 326), (581, 132)]
+    },
+    'road-to-jalalabad': {
+        '64': [(314, 159), (569, 156)]
+    },
+    'wake-island-2007': {
+        '64': [(359, 158), (524, 290)]
+    },
+    'zatar-wetlands': {
+        '64': [(372, 44), (604, 336)]
+    },
+    'sharqi-peninsula': {
+        '64': [(476, 220), (321, 128)]
+    },
+    'kubra-dam': {
+        '64': [(494, 137), (336, 330)]
+    },
+    'operation-clean-sweep': {
+        '64': [(326, 120), (579, 249)]
+    },
+    'mashtuur-city': {
+        '64': [(563, 319), (328, 89)]
+    },
+    'midnight-sun': {
+        '64': [(590, 207), (317, 287)]
+    },
+    'operation-road-rage': {
+        '64': [(419, 32), (458, 407)]
+    },
+    'taraba-quarry': {
+        '32': [(569, 346), (310, 379)]
+    },
+    'great-wall': {
+        '32': [(529, 122), (368, 360)]
+    },
+    'highway-tampa': {
+        '64': [(612, 246), (428, 52)]
+    },
+    'operation-blue-pearl': {
+        '64': [(588, 268), (280, 154)]
+    },
+    'songhua-stalemate': {
+        '64': [(565, 244), (306, 234)]
+    },
+    'operation-harvest': {
+        '64': [(544, 393), (509, 93)]
+    },
+    'operation-smoke-screen': {
+        '32': [(434, 98), (466, 383)]
+    }
+}
 
 
 # =============================================================================
@@ -288,6 +356,51 @@ def get_player_team_histogram(left: int, top: int) -> int:
         team = 1
 
     return team
+
+
+def get_map_name(left: int, top: int) -> str:
+    # Screenshot and OCR map name area
+    ocr_result = ocr_screenshot_region(
+        left + 769,
+        top + 114,
+        210,
+        17,
+        True
+    )
+
+    # Replace spaces with dashes
+    ocr_result = ocr_result.replace(' ', '-')
+    print_log(ocr_result)
+
+    map_name = None
+    # Make sure map name is valid
+    # Also check while replacing first g with q to account for common ocr error
+    if ocr_result.lower() in SPAWN_COORDINATES.keys():
+        map_name = ocr_result.lower()
+    elif re.sub(r'^([^g]*?)g(.*)$', '\\1q\\2', ocr_result.lower()) in SPAWN_COORDINATES.keys():
+        map_name = re.sub(r'^([^g]*?)g(.*)$', '\\1q\\2', ocr_result.lower())
+
+    return map_name
+
+
+def get_map_size(left: int, top: int) -> int:
+    # Screenshot and OCR map size region
+    ocr_result = ocr_screenshot_region(
+        left + 1256,
+        top + 570,
+        20,
+        17,
+        True
+    )
+
+    print_log(f'map_size ocr {ocr_result}')
+
+    map_size = -1
+    # Make sure ocr result only contains numbers
+    if re.match(r'^[0-9]+$', ocr_result):
+        map_size = int(ocr_result)
+
+    return map_size
 
 
 def check_if_server_full(server_ip: str, server_port: str) -> bool:
@@ -460,17 +573,13 @@ def ocr_player_scoreboard(left: int, top: int, right: int, bottom: int) -> list:
     return players
 
 
-def spawn_suicide(team: int):
+def spawn_suicide(map_name: str, map_size: int, team: int):
     # Reset mouse to top left corner
     mouse_reset_legacy()
 
     # Select default spawn based on current team
-    if team == 0:
-        # Player is on USMC team, move cursor to USMC default spawn point
-        mouse_move_legacy(382, 390)
-    elif team == 1:
-        # Player is on MEC team, move cursor to MEC default spawn point
-        mouse_move_legacy(569, 160)
+    spawn_coordinates = SPAWN_COORDINATES[map_name][str(map_size)][team]
+    mouse_move_legacy(spawn_coordinates[0], spawn_coordinates[1])
     time.sleep(.3)
     mouse_click_legacy()
 
@@ -773,9 +882,22 @@ while True:
         # Reset spawn flag every round on non-freecam servers
         if gameInstanceState.get_server_ip() not in FREECAM_SERVERS:
             gameInstanceState.set_rotation_spawned(False)
+
         # If map is loading, reset spawn flag
         if mapIsLoading:
             gameInstanceState.map_rotation_reset()
+
+        currentMapName = get_map_name(bf2Window['rect'][0], bf2Window['rect'][1])
+        currentMapSize = get_map_size(bf2Window['rect'][0], bf2Window['rect'][1])
+
+        # Update map state if relevant and required
+        if currentMapName is not None and currentMapSize != -1 and \
+                (currentMapName != gameInstanceState.get_rotation_map_name() or
+                 currentMapSize != gameInstanceState.get_rotation_map_size()):
+            print_log(f'Updating map state: {currentMapName}; {currentMapSize}')
+            gameInstanceState.set_rotation_map_name(currentMapName)
+            gameInstanceState.set_rotation_map_size(currentMapSize)
+
         time.sleep(10)
     elif not gameInstanceState.rotation_spawned():
         # Re-enable hud if required
@@ -787,11 +909,22 @@ while True:
             # Give game time to swap teams
             time.sleep(3)
         print_log('Determining team')
-        gameInstanceState.set_round_team(get_player_team_histogram(bf2Window['rect'][0], bf2Window['rect'][1]))
-        print_log(f'Current team: {"USMC" if gameInstanceState.get_round_team() == 0 else "MEC/CHINA"}')
-        print_log('Spawning once')
-        spawn_suicide(gameInstanceState.get_round_team())
-        gameInstanceState.set_rotation_spawned(True)
+        currentTeam = get_player_team_histogram(bf2Window['rect'][0], bf2Window['rect'][1])
+        if currentTeam is not None:
+            gameInstanceState.set_round_team(currentTeam)
+            print_log(f'Current team: {"USMC" if gameInstanceState.get_round_team() == 0 else "MEC/CHINA"}')
+            print_log('Spawning once')
+            spawn_suicide(
+                gameInstanceState.get_rotation_map_name(),
+                gameInstanceState.get_rotation_map_size(),
+                gameInstanceState.get_round_team()
+            )
+            gameInstanceState.set_rotation_spawned(True)
+        else:
+            print_log('Failed to determine current team, retrying')
+            # Force another attempt re-enable hud
+            gameInstanceState.set_hud_hidden(True)
+            time.sleep(2)
     elif not gameInstanceState.hud_hidden():
         print_log('Hiding hud')
         toggle_hud(0)
