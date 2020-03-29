@@ -187,21 +187,31 @@ def window_enumeration_handler(hwnd, top_windows):
 
 
 def check_if_round_ended(left: int, top: int) -> bool:
-    screenshot = pyautogui.screenshot(region=(left + 5, top + 30, 1000, 50))
-    inverted = ImageOps.invert(screenshot)
-    custom_config = r'--oem 3 --psm 7'
-    ocr_result = pytesseract.image_to_string(inverted, config=custom_config)
-    print_log(f'Round end check ocr: {ocr_result}')
-    return 'join game button' in ocr_result.lower()
+    ocr_result = ocr_screenshot_region(
+        left + 72,
+        top + 82,
+        740,
+        20,
+        True
+    )
+
+    round_end_labels = ['score list', 'top players', 'top scores', 'map briefing']
+
+    return any(round_end_label in ocr_result for round_end_label in round_end_labels)
 
 
 def check_if_map_is_loading(left: int, top: int) -> bool:
-    screenshot = pyautogui.screenshot(region=(left + 5, top + 30, 500, 50))
-    inverted = ImageOps.invert(screenshot)
-    custom_config = r'--oem 3 --psm 7'
-    ocr_result = pytesseract.image_to_string(inverted, config=custom_config)
-    print_log(f'Map loading check ocr: {ocr_result}')
-    return 'cancel loading' in ocr_result.lower()
+    on_round_end_screen = check_if_round_ended(left, top)
+
+    join_game_button_present = 'join game' in ocr_screenshot_region(
+        left + 1163,
+        top + 725,
+        80,
+        16,
+        True
+    )
+
+    return on_round_end_screen and not join_game_button_present
 
 
 def check_for_game_message(left: int, top: int) -> bool:
@@ -534,6 +544,19 @@ def find_window_by_title(search_title: str) -> dict:
             bf2_window = window
 
     return bf2_window
+
+
+# Take a screenshot of the given region and run the result through OCR
+def ocr_screenshot_region(x: int, y: int, w: int, h: int, invert: bool = False, show: bool = False,
+                          config: str = r'--oem 3 --psm 7') -> str:
+    screenshot = pyautogui.screenshot(region=(x, y, w, h))
+    if invert:
+        screenshot = ImageOps.invert(screenshot)
+    if show:
+        screenshot.show()
+    ocr_result = pytesseract.image_to_string(screenshot, config=config)
+    # print_log(f'OCR result: {ocr_result}')
+    return ocr_result.lower()
 
 
 def is_responding_pid(pid: int) -> bool:
