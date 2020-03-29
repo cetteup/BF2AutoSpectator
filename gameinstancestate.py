@@ -1,17 +1,17 @@
 class GameInstanceState:
     # Global details
     __spectator_on_server: bool = False
-    __hud_hidden: str = ''
+    __hud_hidden: str = None
     __round_num = 0
 
     # Server details
-    __server_ip: str = ''
-    __server_port: str = ''
-    __server_password: str = ''
+    __server_ip: str = None
+    __server_port: str = None
+    __server_password: str = None
     __server_player_count: int = -1
 
     # Map details (map is as in one entry in the map rotation)
-    __rotation_map_name: str = ''
+    __rotation_map_name: str = None
     __rotation_map_size: int = -1
     __rotation_spawned: bool = False
 
@@ -104,7 +104,7 @@ class GameInstanceState:
 
     # Reset relevant fields after map rotation
     def map_rotation_reset(self):
-        self.__rotation_map_name = ''
+        self.__rotation_map_name = None
         self.__rotation_map_size = -1
         self.__rotation_spawned = False
         self.__round_team = -1
@@ -120,7 +120,7 @@ class GameInstanceState:
         self.__spectator_on_server = False
         self.__hud_hidden = False
         self.__round_num = 0
-        self.__rotation_map_name = ''
+        self.__rotation_map_name = None
         self.__rotation_map_size = -1
         self.__rotation_spawned = False
         self.__round_team = -1
