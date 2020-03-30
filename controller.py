@@ -401,7 +401,6 @@ def get_map_name(left: int, top: int) -> str:
 
     # Replace spaces with dashes
     ocr_result = ocr_result.replace(' ', '-')
-    print_log(ocr_result)
 
     map_name = None
     # Make sure map name is valid
@@ -423,8 +422,6 @@ def get_map_size(left: int, top: int) -> int:
         17,
         True
     )
-
-    print_log(f'map_size ocr {ocr_result}')
 
     map_size = -1
     # Make sure ocr result only contains numbers
