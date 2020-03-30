@@ -346,13 +346,13 @@ def check_for_game_message(left: int, top: int) -> bool:
     return 'game message' in ocr_result
 
 
-def ocr_game_message(left: int, top: int) -> bool:
+def ocr_game_message(left: int, top: int) -> str:
     # Get ocr result of game message content region
     ocr_result = ocr_screenshot_region(
         left + 400,
-        top + 246,
+        top + 245,
         470,
-        16,
+        18,
         True
     )
 
