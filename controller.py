@@ -287,16 +287,21 @@ def window_enumeration_handler(hwnd, top_windows):
         'handle': hwnd,
         'title': win32gui.GetWindowText(hwnd),
         'rect': win32gui.GetWindowRect(hwnd),
+        'class': win32gui.GetClassName(hwnd),
         'pid': re.sub(r'^.*pid\: ([0-9]+)\)$', '\\1', win32gui.GetWindowText(hwnd))
     })
 
 
-def find_window_by_title(search_title: str) -> dict:
+def find_window_by_title(search_title: str, search_class: str) -> dict:
+    # Reset top windows array
+    top_windows = []
+
     # Call window enumeration handler
     win32gui.EnumWindows(window_enumeration_handler, top_windows)
     found_window = None
     for window in top_windows:
-        if search_title in window['title']:
+        if search_title in window['title'] and \
+                (search_class is None or search_class in window['class']):
             found_window = window
 
     return found_window
@@ -763,7 +768,7 @@ gameInstanceState.set_server_password(args.server_pass)
 
 # Find BF2 window
 print_log('Finding BF2 window')
-bf2Window = find_window_by_title('BF2 (v1.5.3153-802.0, pid:')
+bf2Window = find_window_by_title('BF2 (v1.5.3153-802.0, pid:', 'BF2')
 print_log(f'Found window: {bf2Window}')
 
 # Connect to server if requested/required
@@ -820,7 +825,7 @@ while True:
             gameInstanceState.get_server_port()
         )
         # Update window dict
-        bf2Window = find_window_by_title('BF2 (v1.5.3153-802.0, pid:')
+        bf2Window = find_window_by_title('BF2 (v1.5.3153-802.0, pid:', 'BF2')
         # Reset state
         gameInstanceState.restart_reset()
         # Unless we are joining a password server, spectator should be on server after restart
