@@ -907,12 +907,13 @@ while True:
     elif not gameInstanceState.rotation_spawned():
         # Re-enable hud if required
         if gameInstanceState.hud_hidden():
+            # Give game time to swap teams
+            time.sleep(3)
+            # Re-enable hud
             print_log('Enabling hud')
             toggle_hud(1)
             # Update state
             gameInstanceState.set_hud_hidden(False)
-            # Give game time to swap teams
-            time.sleep(3)
         print_log('Determining team')
         currentTeam = get_player_team_histogram(bf2Window['rect'][0], bf2Window['rect'][1])
         if currentTeam is not None:
