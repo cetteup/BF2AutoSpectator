@@ -800,16 +800,31 @@ while True:
             print_log(str(e))
             gameInstanceState.set_error_restart_required(True)
 
-    # Check for "Not responding" in title of BF2 window (added on game freeze)
+    # Check if game froze
     if not gameInstanceState.error_restart_required() and not is_responding_pid(int(bf2Window['pid'])):
-        print_log('BF2 froze, restart required')
-        gameInstanceState.set_error_restart_required(True)
-        # Kill frozen instance by pid
-        killed = taskkill_pid(int(bf2Window['pid']))
-        print_log(f'Frozen window killed: {killed}')
-        # Give Windows time to actually close the window
-        time.sleep(2)
-        continue
+        print_log('Game froze, checking unresponsive count')
+        # Game will temporarily freeze when map load finishes or when joining server, so don't restart right away
+        if gameInstanceState.get_error_unresponsive_count() <= 2:
+            print_log('Unresponsive count below limit, giving time to recover')
+            # Increase unresponsive count
+            gameInstanceState.increase_error_unresponsive_count()
+            # Check again in 3 seconds
+            time.sleep(3)
+            continue
+        else:
+            print_log('Unresponsive count exceeded limit, scheduling restart')
+            gameInstanceState.set_error_restart_required(True)
+            # Kill frozen instance by pid
+            print_log('Killing existing game instance')
+            killed = taskkill_pid(int(bf2Window['pid']))
+            print_log(f'Frozen window killed: {killed}')
+            # Give Windows time to actually close the window
+            time.sleep(2)
+            continue
+    elif gameInstanceState.get_error_unresponsive_count() > 0:
+        print_log('Game recovered from temp freeze, resetting unresponsive count')
+        # Game got it together, reset unresponsive count
+        gameInstanceState.reset_error_unresponsive_count()
 
     # Start a new game instance if required
     if gameInstanceState.error_restart_required():

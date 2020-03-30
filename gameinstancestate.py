@@ -20,6 +20,7 @@ class GameInstanceState:
     __round_started_spectation: bool = False
 
     # Error details
+    __error_unresponsive_count = 0
     __error_restart_required: bool = False
 
     # Global getter/setter functions
@@ -96,6 +97,12 @@ class GameInstanceState:
     def round_started_spectation(self) -> bool:
         return self.__round_started_spectation
 
+    def increase_error_unresponsive_count(self):
+        self.__error_unresponsive_count += 1
+
+    def get_error_unresponsive_count(self) -> int:
+        return self.__error_unresponsive_count
+
     def set_error_restart_required(self, restart_required: bool):
         self.__error_restart_required = restart_required
 
@@ -115,6 +122,9 @@ class GameInstanceState:
         self.__round_team = -1
         self.__round_started_spectation = False
 
+    def reset_error_unresponsive_count(self):
+        self.__error_unresponsive_count = 0
+
     # Reset relevant fields after/on game restart
     def restart_reset(self):
         self.__spectator_on_server = False
@@ -125,4 +135,5 @@ class GameInstanceState:
         self.__rotation_spawned = False
         self.__round_team = -1
         self.__round_started_spectation = False
+        self.__error_unresponsive_count = 0
         self.__error_restart_required = False
