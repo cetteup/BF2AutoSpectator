@@ -940,7 +940,9 @@ while True:
             gameInstanceState.set_hud_hidden(False)
         print_log('Determining team')
         currentTeam = get_player_team_histogram(bf2Window['rect'][0], bf2Window['rect'][1])
-        if currentTeam is not None:
+        if currentTeam is not None and \
+                gameInstanceState.get_rotation_map_name() is not None and \
+                gameInstanceState.get_rotation_map_size() != -1:
             gameInstanceState.set_round_team(currentTeam)
             print_log(f'Current team: {"USMC" if gameInstanceState.get_round_team() == 0 else "MEC/CHINA"}')
             print_log('Spawning once')
