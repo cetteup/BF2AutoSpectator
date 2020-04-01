@@ -1,8 +1,8 @@
 class GameInstanceState:
     # Global details
     __spectator_on_server: bool = False
-    __hud_hidden: str = None
-    __round_num = 0
+    __hud_hidden: bool = False
+    __round_num: int = 0
 
     # Server details
     __server_ip: str = None
