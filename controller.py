@@ -883,6 +883,9 @@ while True:
             print_log('Got kicked for modified content, trying to rejoin')
             connect_to_server(bf2Window['rect'][0], bf2Window['rect'][1], args.server_ip, args.server_port)
             gameInstanceState.set_spectator_on_server(True)
+        elif 'invalid ip address' in gameMessage:
+            print_log('Join by ip dialogue bugged, restart required')
+            gameInstanceState.set_error_restart_required(True)
         else:
             sys.exit(gameMessage)
 
