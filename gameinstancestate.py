@@ -3,6 +3,7 @@ class GameInstanceState:
     __spectator_on_server: bool = False
     __hud_hidden: bool = False
     __round_num: int = 0
+    __active_join_possible: bool = False
 
     # Server details
     __server_ip: str = None
@@ -14,6 +15,7 @@ class GameInstanceState:
     __rotation_map_name: str = None
     __rotation_map_size: int = -1
     __rotation_spawned: bool = False
+    __rotation_on_map: bool = False
 
     # Round details
     __round_team: int = -1
@@ -41,6 +43,12 @@ class GameInstanceState:
 
     def get_round_num(self) -> int:
         return self.__round_num
+
+    def set_active_join_possible(self, active_join_possible: bool):
+        self.__active_join_possible = active_join_possible
+
+    def active_join_possible(self) -> bool:
+        return self.__active_join_possible
 
     # Server getter/setter functions
     def set_server_ip(self, server_ip: str):
@@ -79,6 +87,12 @@ class GameInstanceState:
     def get_rotation_map_size(self) -> int:
         return self.__rotation_map_size
 
+    def set_rotation_on_map(self, on_map: bool):
+        self.__rotation_on_map = on_map
+
+    def rotation_on_map(self) -> bool:
+        return self.__rotation_on_map
+
     def set_rotation_spawned(self, spawned: bool):
         self.__rotation_spawned = spawned
 
@@ -111,14 +125,17 @@ class GameInstanceState:
 
     # Reset relevant fields after map rotation
     def map_rotation_reset(self):
+        self.__active_join_possible = False
         self.__rotation_map_name = None
         self.__rotation_map_size = -1
+        self.__rotation_on_map = False
         self.__rotation_spawned = False
         self.__round_team = -1
         self.__round_started_spectation = False
 
     # Reset relevant fields when round ended
     def round_end_reset(self):
+        self.__active_join_possible = False
         self.__round_team = -1
         self.__round_started_spectation = False
 
@@ -130,8 +147,10 @@ class GameInstanceState:
         self.__spectator_on_server = False
         self.__hud_hidden = False
         self.__round_num = 0
+        self.__active_join_possible = False
         self.__rotation_map_name = None
         self.__rotation_map_size = -1
+        self.__rotation_on_map = False
         self.__rotation_spawned = False
         self.__round_team = -1
         self.__round_started_spectation = False

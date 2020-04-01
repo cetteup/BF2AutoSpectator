@@ -396,6 +396,19 @@ def check_if_map_is_loading(left: int, top: int) -> bool:
     return on_round_end_screen and not join_game_button_present
 
 
+def check_for_map_briefing(left: int, top: int) -> bool:
+    # Get ocr result of top left "map briefing" area
+    map_briefing_present = 'map briefing' in ocr_screenshot_region(
+        left + 24,
+        top + 112,
+        115,
+        20,
+        True
+    )
+
+    return map_briefing_present
+
+
 def get_map_name(left: int, top: int) -> str:
     # Screenshot and OCR map name area
     ocr_result = ocr_screenshot_region(
@@ -662,6 +675,13 @@ def close_game_message(left: int, top: int) -> None:
     pyautogui.leftClick()
 
 
+def join_game(left: int, top: int) -> None:
+    # Move cursor onto join game button and click
+    pyautogui.moveTo(left + 1210, top + 725)
+    time.sleep(.2)
+    pyautogui.leftClick()
+
+
 def spawn_suicide(map_name: str, map_size: int, team: int):
     # Reset mouse to top left corner
     mouse_reset_legacy()
@@ -856,7 +876,6 @@ while True:
 
     # Make sure we are still in the game
     gameMessagePresent = check_for_game_message(bf2Window['rect'][0], bf2Window['rect'][1])
-    print_log(f'Game message present: {str(gameMessagePresent)}')
     if gameMessagePresent:
         print_log('Game message present, ocr-ing message')
         gameMessage = ocr_game_message(bf2Window['rect'][0], bf2Window['rect'][1])
@@ -902,20 +921,17 @@ while True:
         gameInstanceState.set_spectator_on_server(True)
 
     onRoundFinishScreen = check_if_round_ended(bf2Window['rect'][0], bf2Window['rect'][1])
-    print_log(f'onRoundFinishScreen: {onRoundFinishScreen}')
     mapIsLoading = check_if_map_is_loading(bf2Window['rect'][0], bf2Window['rect'][1])
-    print_log(f'mapIsLoading: {mapIsLoading}')
-    if onRoundFinishScreen or mapIsLoading:
-        # Reset state
-        gameInstanceState.round_end_reset()
-        # Reset spawn flag every round on non-freecam servers
-        if gameInstanceState.get_server_ip() not in FREECAM_SERVERS:
-            gameInstanceState.set_rotation_spawned(False)
-
-        # If map is loading, reset spawn flag
-        if mapIsLoading:
+    mapBriefingPresent = check_for_map_briefing(bf2Window['rect'][0], bf2Window['rect'][1])
+    if mapIsLoading:
+        print_log('Map is loading')
+        # Reset state once if it still reflected to be on the (same) map
+        if gameInstanceState.rotation_on_map():
+            print_log('Performing map rotation reset')
             gameInstanceState.map_rotation_reset()
-
+        time.sleep(6)
+    elif mapBriefingPresent and not gameInstanceState.active_join_possible():
+        print_log('Map briefing present, checking map')
         currentMapName = get_map_name(bf2Window['rect'][0], bf2Window['rect'][1])
         currentMapSize = get_map_size(bf2Window['rect'][0], bf2Window['rect'][1])
 
@@ -927,7 +943,29 @@ while True:
             gameInstanceState.set_rotation_map_name(currentMapName)
             gameInstanceState.set_rotation_map_size(currentMapSize)
 
-        time.sleep(10)
+            # Give go-ahead for active joining
+            print_log('Enabling active joining')
+            gameInstanceState.set_active_join_possible(True)
+
+        time.sleep(6)
+    elif mapBriefingPresent and gameInstanceState.active_join_possible():
+        # Check if join game button is present
+        print_log('Could actively join, checking for button')
+        joinGameButtonPresent = check_for_join_game_button(bf2Window['rect'][0], bf2Window['rect'][1])
+
+        if joinGameButtonPresent:
+            # TODO
+            pass
+
+        time.sleep(6)
+    elif onRoundFinishScreen:
+        print_log('Game is on round finish screen')
+        # Reset state
+        gameInstanceState.round_end_reset()
+        # Reset spawn flag every round on non-freecam servers
+        if gameInstanceState.get_server_ip() not in FREECAM_SERVERS:
+            gameInstanceState.set_rotation_spawned(False)
+        time.sleep(6)
     elif not gameInstanceState.rotation_spawned():
         # Re-enable hud if required
         if gameInstanceState.hud_hidden():
@@ -971,6 +1009,8 @@ while True:
         gameInstanceState.set_round_started_spectation(True)
         # Increase round number/counter
         gameInstanceState.increase_round_num()
+        # Spectator has "entered" map, update state accordingly
+        gameInstanceState.set_rotation_on_map(True)
         # time.sleep(20)
     elif iterationsOnPlayer < 4:
         iterationsOnPlayer += 1
