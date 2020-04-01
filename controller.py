@@ -796,6 +796,8 @@ if not args.start_game and args.connect or args.start_game and args.server_pass 
         print_log(str(e))
         gameInstanceState.set_error_restart_required(True)
 
+# Start with 4 to switch away from dead spectator right away
+iterationsOnPlayer = 4
 while True:
     # Try to bring BF2 window to foreground
     if not gameInstanceState.error_restart_required():
@@ -968,9 +970,13 @@ while True:
         # Increase round number/counter
         gameInstanceState.increase_round_num()
         # time.sleep(20)
+    elif iterationsOnPlayer < 4:
+        iterationsOnPlayer += 1
+        time.sleep(4.5)
     else:
+        print_log('Rotating to next player')
         auto_press_key(0x2e)
-        time.sleep(22)
+        iterationsOnPlayer = 0
 
     # serverIsFull = get_sever_player_count(bf2Window['rect'][0], bf2Window['rect'][1]) == 64
     # print_log(f'Server is full {serverIsFull}')
