@@ -828,7 +828,7 @@ while True:
             # Give Windows time to actually close the window
             time.sleep(2)
             continue
-    elif gameInstanceState.get_error_unresponsive_count() > 0:
+    elif not gameInstanceState.error_restart_required() and gameInstanceState.get_error_unresponsive_count() > 0:
         print_log('Game recovered from temp freeze, resetting unresponsive count')
         # Game got it together, reset unresponsive count
         gameInstanceState.reset_error_unresponsive_count()
