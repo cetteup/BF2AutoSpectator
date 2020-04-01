@@ -373,18 +373,25 @@ def check_if_round_ended(left: int, top: int) -> bool:
     return any(round_end_label in ocr_result for round_end_label in round_end_labels)
 
 
-def check_if_map_is_loading(left: int, top: int) -> bool:
-    # Check if game is on round end screen
-    on_round_end_screen = check_if_round_ended(left, top)
-
+def check_for_join_game_button(left: int, top: int) -> bool:
     # Get ocr result of bottom left corner where "join game"-button would be
-    join_game_button_present = 'join game' in ocr_screenshot_region(
+    ocr_result = ocr_screenshot_region(
         left + 1163,
         top + 725,
         80,
         16,
         True
     )
+
+    return 'join game' in ocr_result
+
+
+def check_if_map_is_loading(left: int, top: int) -> bool:
+    # Check if game is on round end screen
+    on_round_end_screen = check_if_round_ended(left, top)
+
+    # Check if join game button is present
+    join_game_button_present = check_for_join_game_button(left, top)
 
     return on_round_end_screen and not join_game_button_present
 
