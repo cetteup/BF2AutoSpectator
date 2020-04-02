@@ -983,7 +983,7 @@ while True:
         if gameInstanceState.get_server_ip() not in FREECAM_SERVERS:
             gameInstanceState.set_rotation_spawned(False)
         time.sleep(6)
-    elif not gameInstanceState.rotation_spawned():
+    elif not onRoundFinishScreen and not gameInstanceState.rotation_spawned():
         # Re-enable hud if required
         if gameInstanceState.hud_hidden():
             # Give game time to swap teams
@@ -1020,14 +1020,14 @@ while True:
             # Force another attempt re-enable hud
             gameInstanceState.set_hud_hidden(True)
             time.sleep(2)
-    elif not gameInstanceState.hud_hidden():
+    elif not onRoundFinishScreen and not gameInstanceState.hud_hidden():
         print_log('Hiding hud')
         toggle_hud(0)
         gameInstanceState.set_hud_hidden(True)
         # Enable free cam
         print_log('Enabling free cam')
         auto_press_key(0x39)
-    elif not gameInstanceState.round_started_spectation():
+    elif not onRoundFinishScreen and not gameInstanceState.round_started_spectation():
         # Disable free cam
         print_log('Disabling free cam')
         auto_press_key(0x39)
@@ -1036,11 +1036,10 @@ while True:
         gameInstanceState.increase_round_num()
         # Spectator has "entered" map, update state accordingly
         gameInstanceState.set_rotation_on_map(True)
-        # time.sleep(20)
-    elif iterationsOnPlayer < 4:
+    elif not onRoundFinishScreen and iterationsOnPlayer < 4:
         iterationsOnPlayer += 1
         time.sleep(4.5)
-    else:
+    elif not onRoundFinishScreen:
         print_log('Rotating to next player')
         auto_press_key(0x2e)
         iterationsOnPlayer = 0
