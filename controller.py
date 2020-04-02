@@ -935,7 +935,7 @@ while True:
             print_log('Performing map rotation reset')
             gameInstanceState.map_rotation_reset()
         time.sleep(6)
-    elif mapBriefingPresent and not gameInstanceState.active_join_possible():
+    elif mapBriefingPresent:
         print_log('Map briefing present, checking map')
         currentMapName = get_map_name(bf2Window['rect'][0], bf2Window['rect'][1])
         currentMapSize = get_map_size(bf2Window['rect'][0], bf2Window['rect'][1])
@@ -952,15 +952,14 @@ while True:
             print_log('Enabling active joining')
             gameInstanceState.set_active_join_possible(True)
 
-        time.sleep(6)
-    elif mapBriefingPresent and gameInstanceState.active_join_possible():
-        # Check if join game button is present
-        print_log('Could actively join, checking for button')
-        joinGameButtonPresent = check_for_join_game_button(bf2Window['rect'][0], bf2Window['rect'][1])
+        if gameInstanceState.active_join_possible():
+            # Check if join game button is present
+            print_log('Could actively join, checking for button')
+            joinGameButtonPresent = check_for_join_game_button(bf2Window['rect'][0], bf2Window['rect'][1])
 
-        if joinGameButtonPresent:
-            # TODO
-            pass
+            if joinGameButtonPresent:
+                # TODO
+                pass
 
         time.sleep(6)
     elif onRoundFinishScreen:
