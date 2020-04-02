@@ -610,7 +610,7 @@ def init_game_instance(bf2_path: str, player_name: str, player_pass: str,
 
     # Run command
     shell.Run(command)
-    time.sleep(15)
+    time.sleep(20)
 
 
 def connect_to_server(left: int, top: int, server_ip: str, server_port: str, server_pass: str = None) -> None:
@@ -938,6 +938,7 @@ while True:
         time.sleep(10)
         # Update state
         gameInstanceState.set_spectator_on_server(True)
+        continue
 
     onRoundFinishScreen = check_if_round_ended(bf2Window['rect'][0], bf2Window['rect'][1])
     mapIsLoading = check_if_map_is_loading(bf2Window['rect'][0], bf2Window['rect'][1])
