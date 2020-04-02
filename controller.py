@@ -885,39 +885,44 @@ while True:
 
         if 'full' in gameMessage:
             print_log('Server full, trying to rejoin in 30 seconds')
-            connect_to_server(bf2Window['rect'][0], bf2Window['rect'][1], args.server_ip, args.server_port)
+            # Update state
+            gameInstanceState.set_spectator_on_server(False)
             # Connect to server waits 10, wait another 20 = 30
             time.sleep(20)
-            gameInstanceState.set_spectator_on_server(True)
         elif 'kicked' in gameMessage:
             print_log('Got kicked, trying to rejoin')
-            connect_to_server(bf2Window['rect'][0], bf2Window['rect'][1], args.server_ip, args.server_port)
-            gameInstanceState.set_spectator_on_server(True)
+            # Update state
+            gameInstanceState.set_spectator_on_server(False)
         elif 'banned' in gameMessage:
             sys.exit('Got banned, contact server admin')
         elif 'connection' in gameMessage and 'lost' in gameMessage or \
                 'failed to connect' in gameMessage:
             print_log('Connection lost, trying to reconnect')
-            connect_to_server(bf2Window['rect'][0], bf2Window['rect'][1], args.server_ip, args.server_port)
-            gameInstanceState.set_spectator_on_server(True)
+            # Update state
+            gameInstanceState.set_spectator_on_server(False)
         elif 'modified content' in gameMessage:
             print_log('Got kicked for modified content, trying to rejoin')
-            connect_to_server(bf2Window['rect'][0], bf2Window['rect'][1], args.server_ip, args.server_port)
-            gameInstanceState.set_spectator_on_server(True)
+            # Update state
+            gameInstanceState.set_spectator_on_server(False)
         elif 'invalid ip address' in gameMessage:
             print_log('Join by ip dialogue bugged, restart required')
+            # Set restart flag
             gameInstanceState.set_error_restart_required(True)
         else:
             sys.exit(gameMessage)
 
-        time.sleep(10)
         continue
 
     # Player is not on server, check if rejoining is possible and makes sense
     if not gameInstanceState.spectator_on_server():
         # Check number of free slots
         # TODO
+        # (Re-)connect to server
+        print_log('(Re-)Connecting to server')
         connect_to_server(bf2Window['rect'][0], bf2Window['rect'][1], args.server_ip, args.server_port)
+        # Treat re-connecting as map rotation (state wise)
+        gameInstanceState.map_rotation_reset()
+        # Update state
         gameInstanceState.set_spectator_on_server(True)
 
     onRoundFinishScreen = check_if_round_ended(bf2Window['rect'][0], bf2Window['rect'][1])
