@@ -833,12 +833,12 @@ while True:
     if not gameInstanceState.error_restart_required() and not is_responding_pid(int(bf2Window['pid'])):
         print_log('Game froze, checking unresponsive count')
         # Game will temporarily freeze when map load finishes or when joining server, so don't restart right away
-        if gameInstanceState.get_error_unresponsive_count() <= 2:
+        if gameInstanceState.get_error_unresponsive_count() < 3:
             print_log('Unresponsive count below limit, giving time to recover')
             # Increase unresponsive count
             gameInstanceState.increase_error_unresponsive_count()
-            # Check again in 3 seconds
-            time.sleep(3)
+            # Check again in 2 seconds
+            time.sleep(2)
             continue
         else:
             print_log('Unresponsive count exceeded limit, scheduling restart')
