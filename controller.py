@@ -935,6 +935,7 @@ while True:
         connect_to_server(bf2Window['rect'][0], bf2Window['rect'][1], args.server_ip, args.server_port)
         # Treat re-connecting as map rotation (state wise)
         gameInstanceState.map_rotation_reset()
+        time.sleep(10)
         # Update state
         gameInstanceState.set_spectator_on_server(True)
 
