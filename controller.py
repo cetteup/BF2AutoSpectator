@@ -610,7 +610,7 @@ def init_game_instance(bf2_path: str, player_name: str, player_pass: str,
 
     # Run command
     shell.Run(command)
-    time.sleep(20)
+    time.sleep(25)
 
 
 def connect_to_server(left: int, top: int, server_ip: str, server_port: str, server_pass: str = None) -> None:
