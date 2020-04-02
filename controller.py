@@ -815,6 +815,7 @@ if not args.start_game and args.connect or args.start_game and args.server_pass 
         win32gui.SetForegroundWindow(bf2Window['handle'])
 
         # Connect to server
+        print_log('Connecting to server')
         connect_to_server(
             bf2Window['rect'][0],
             bf2Window['rect'][1],
@@ -822,7 +823,7 @@ if not args.start_game and args.connect or args.start_game and args.server_pass 
             gameInstanceState.get_server_port(),
             gameInstanceState.get_server_password()
         )
-        time.sleep(10)
+        time.sleep(5)
         gameInstanceState.set_spectator_on_server(True)
     except Exception as e:
         print_log('BF2 window is gone, restart required')
@@ -935,7 +936,7 @@ while True:
         connect_to_server(bf2Window['rect'][0], bf2Window['rect'][1], args.server_ip, args.server_port)
         # Treat re-connecting as map rotation (state wise)
         gameInstanceState.map_rotation_reset()
-        time.sleep(10)
+        time.sleep(5)
         # Update state
         gameInstanceState.set_spectator_on_server(True)
         continue
