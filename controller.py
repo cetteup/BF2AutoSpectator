@@ -750,7 +750,7 @@ def toggle_hud(direction: int):
 
 
 parser = argparse.ArgumentParser(description='Launch and control a Battlefield 2 spectator instance')
-parser.add_argument('--version', action='version', version='bf2-auto-spectator v0.1.4')
+parser.add_argument('--version', action='version', version='bf2-auto-spectator v0.1.5')
 parser.add_argument('--player-name', help='Account name of spectating player', type=str, required=True)
 parser.add_argument('--player-pass', help='Account password of spectating player', type=str, required=True)
 parser.add_argument('--server-ip', help='IP of sever to join for spectating', type=str, required=True)
