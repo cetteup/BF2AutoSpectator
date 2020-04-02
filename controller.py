@@ -409,6 +409,19 @@ def check_for_map_briefing(left: int, top: int) -> bool:
     return map_briefing_present
 
 
+def check_if_spawn_menu_visible(left: int, top: int) -> bool:
+    # Get ocr result of "special forces" class label/name
+    ocr_result = ocr_screenshot_region(
+        left + 60,
+        top + 125,
+        140,
+        18,
+        True
+    )
+
+    return 'special forces' in ocr_result
+
+
 def get_map_name(left: int, top: int) -> str:
     # Screenshot and OCR map name area
     ocr_result = ocr_screenshot_region(
@@ -980,6 +993,14 @@ while True:
             toggle_hud(1)
             # Update state
             gameInstanceState.set_hud_hidden(False)
+            time.sleep(1)
+
+        spawnMenuVisible = check_if_spawn_menu_visible(bf2Window['rect'][0], bf2Window['rect'][1])
+        if not spawnMenuVisible:
+            print_log('Spawn menu not visible, opening with enter')
+            auto_press_key(0x1c)
+            time.sleep(1.5)
+
         print_log('Determining team')
         currentTeam = get_player_team_histogram(bf2Window['rect'][0], bf2Window['rect'][1])
         if currentTeam is not None and \
