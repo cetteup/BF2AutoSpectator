@@ -39,20 +39,20 @@ Daqing Oilfields|No|No|Yes
 Dragon Valley|No|No|Yes
 FuShe Pass|No|No|Yes
 Great Wall|No|Yes|n/a
-Gulf of Oman|No|No|Yes
+Gulf of Oman|Yes|No|Yes
 Highway Tampa|No|No|Yes
 Kubra Dam|No|No|Yes
-Mashtuur City|No|No|Yes
+Mashtuur City|Yes|No|Yes
 Midnight Sun|No|No|Yes
 Operation Blue Pearl|No|No|Yes
 Operation Clean Sweep|No|No|Yes
 Operation Harvest|No|No|Yes
 Operation Road Rage|No|No|Yes
 Operation Smoke Screen|No|No|Yes
-Road to Jalalabad|No|No|Yes
-Sharqi Peninsula|No|No|Yes
+Road to Jalalabad|Yes|No|Yes
+Sharqi Peninsula|Yes|No|Yes
 Songhua Stalemate|No|No|Yes
-Strike at Karkand|No|No|Yes
+Strike at Karkand|Yes|No|Yes
 Taraba Quarry|No|Yes|n/a
 Wake Island 2007|No|No|Yes
 Zatar Wetlands|No|No|Yes
