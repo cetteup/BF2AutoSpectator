@@ -1041,11 +1041,21 @@ while True:
             )
             print_log('Spawn succeeded' if spawnSucceeded else 'Spawn failed, retrying')
             gameInstanceState.set_rotation_spawned(spawnSucceeded)
-        else:
+        elif gameInstanceState.get_rotation_map_name() is not None and \
+                gameInstanceState.get_rotation_map_size() != -1:
             print_log('Failed to determine current team, retrying')
             # Force another attempt re-enable hud
             gameInstanceState.set_hud_hidden(True)
             time.sleep(2)
+        else:
+            # TODO: Fallback to detecting map via scoreboard instead
+            # Map detection failed, force reconnect
+            print_log('Map detection failed, disconnecting')
+            disconnect_from_server(bf2Window['rect'][0], bf2Window['rect'][1])
+            time.sleep(3)
+            # Update state
+            gameInstanceState.set_spectator_on_server(False)
+            continue
     elif not onRoundFinishScreen and not gameInstanceState.hud_hidden():
         print_log('Hiding hud')
         toggle_hud(0)
