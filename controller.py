@@ -873,12 +873,6 @@ while True:
         else:
             print_log('Unresponsive count exceeded limit, scheduling restart')
             gameInstanceState.set_error_restart_required(True)
-            # Kill frozen instance by pid
-            print_log('Killing existing game instance')
-            killed = taskkill_pid(int(bf2Window['pid']))
-            print_log(f'Frozen window killed: {killed}')
-            # Give Windows time to actually close the window
-            time.sleep(2)
             continue
     elif not gameInstanceState.error_restart_required() and gameInstanceState.get_error_unresponsive_count() > 0:
         print_log('Game recovered from temp freeze, resetting unresponsive count')
@@ -887,6 +881,13 @@ while True:
 
     # Start a new game instance if required
     if gameInstanceState.error_restart_required():
+        # Kill any remaining instance by pid
+        print_log('Killing existing game instance')
+        killed = taskkill_pid(int(bf2Window['pid']))
+        print_log(f'Instance killed: {killed}')
+        # Give Windows time to actually close the window
+        time.sleep(3)
+
         # Init game new game instance
         init_game_instance(
             args.game_path,
