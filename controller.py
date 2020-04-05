@@ -695,7 +695,7 @@ def join_game(left: int, top: int) -> None:
     pyautogui.leftClick()
 
 
-def spawn_suicide(map_name: str, map_size: int, team: int):
+def spawn_suicide(map_name: str, map_size: int, team: int, left: int, top: int) -> bool:
     # Reset mouse to top left corner
     mouse_reset_legacy()
 
@@ -724,11 +724,22 @@ def spawn_suicide(map_name: str, map_size: int, team: int):
     # Reset cursor once more
     mouse_reset_legacy()
 
-    # Click suicide button
-    mouse_move_legacy(469, 459)
-    time.sleep(.3)
-    mouse_click_legacy()
-    time.sleep(.5)
+    suicide_button_present = 'suicide' in ocr_screenshot_region(
+        left + 940,
+        top + 678,
+        75,
+        19,
+        True
+    )
+
+    if suicide_button_present:
+        # Click suicide button
+        mouse_move_legacy(469, 459)
+        time.sleep(.3)
+        mouse_click_legacy()
+        time.sleep(.5)
+
+    return suicide_button_present
 
 
 def toggle_hud(direction: int):
@@ -1012,12 +1023,15 @@ while True:
             gameInstanceState.set_round_team(currentTeam)
             print_log(f'Current team: {"USMC" if gameInstanceState.get_round_team() == 0 else "MEC/CHINA"}')
             print_log('Spawning once')
-            spawn_suicide(
+            spawnSucceeded = spawn_suicide(
                 gameInstanceState.get_rotation_map_name(),
                 gameInstanceState.get_rotation_map_size(),
-                gameInstanceState.get_round_team()
+                gameInstanceState.get_round_team(),
+                bf2Window['rect'][0],
+                bf2Window['rect'][1]
             )
-            gameInstanceState.set_rotation_spawned(True)
+            print_log('Spawn succeeded' if spawnSucceeded else 'Spawn failed, retrying')
+            gameInstanceState.set_rotation_spawned(spawnSucceeded)
         else:
             print_log('Failed to determine current team, retrying')
             # Force another attempt re-enable hud
