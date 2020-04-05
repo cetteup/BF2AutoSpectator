@@ -961,7 +961,8 @@ while True:
         if gameInstanceState.rotation_on_map():
             print_log('Performing map rotation reset')
             gameInstanceState.map_rotation_reset()
-        time.sleep(6)
+        iterationsOnPlayer = 4
+        time.sleep(3)
     elif mapBriefingPresent:
         print_log('Map briefing present, checking map')
         currentMapName = get_map_name(bf2Window['rect'][0], bf2Window['rect'][1])
@@ -988,16 +989,18 @@ while True:
                 # TODO
                 pass
 
-        time.sleep(6)
+        time.sleep(3)
     elif onRoundFinishScreen:
         print_log('Game is on round finish screen')
         # Reset state
         gameInstanceState.round_end_reset()
+        iterationsOnPlayer = 4
         # Reset spawn flag every round on non-freecam servers
         if gameInstanceState.get_server_ip() not in FREECAM_SERVERS:
             gameInstanceState.set_rotation_spawned(False)
-        time.sleep(6)
+        time.sleep(3)
     elif not onRoundFinishScreen and not gameInstanceState.rotation_spawned():
+        time.sleep(3)
         # Re-enable hud if required
         if gameInstanceState.hud_hidden():
             # Give game time to swap teams
