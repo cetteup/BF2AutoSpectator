@@ -1027,14 +1027,6 @@ while True:
         print_log('Hiding hud')
         toggle_hud(0)
         gameInstanceState.set_hud_hidden(True)
-        # Enable free cam
-        print_log('Enabling free cam')
-        auto_press_key(0x39)
-    elif not onRoundFinishScreen and not gameInstanceState.round_started_spectation():
-        # Disable free cam
-        print_log('Disabling free cam')
-        auto_press_key(0x39)
-        gameInstanceState.set_round_started_spectation(True)
         # Increase round number/counter
         gameInstanceState.increase_round_num()
         # Spectator has "entered" map, update state accordingly
