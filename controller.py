@@ -881,12 +881,13 @@ while True:
 
     # Start a new game instance if required
     if gameInstanceState.error_restart_required():
-        # Kill any remaining instance by pid
-        print_log('Killing existing game instance')
-        killed = taskkill_pid(int(bf2Window['pid']))
-        print_log(f'Instance killed: {killed}')
-        # Give Windows time to actually close the window
-        time.sleep(3)
+        if bf2Window is not None:
+            # Kill any remaining instance by pid
+            print_log('Killing existing game instance')
+            killed = taskkill_pid(int(bf2Window['pid']))
+            print_log(f'Instance killed: {killed}')
+            # Give Windows time to actually close the window
+            time.sleep(3)
 
         # Init game new game instance
         init_game_instance(
