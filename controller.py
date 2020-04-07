@@ -618,7 +618,7 @@ def init_game_instance(bf2_path: str, player_name: str, player_pass: str,
     time.sleep(25)
 
 
-def connect_to_server(left: int, top: int, server_ip: str, server_port: str, server_pass: str = None) -> None:
+def connect_to_server(left: int, top: int, server_ip: str, server_port: str, server_pass: str = None) -> bool:
     # Move cursor onto bfhq menu item and click
     # Required to reset multiplayer menu
     pyautogui.moveTo(left + 111, top + 50)
@@ -632,7 +632,22 @@ def connect_to_server(left: int, top: int, server_ip: str, server_port: str, ser
     time.sleep(.2)
     pyautogui.leftClick()
 
-    time.sleep(4)
+    check_count = 0
+    check_limit = 10
+    connect_to_ip_button_present = False
+    while not connect_to_ip_button_present and check_count < check_limit:
+        connect_to_ip_button_present = 'connect to ip' in ocr_screenshot_region(
+            left + 50,
+            top + 448,
+            110,
+            18,
+            True
+        )
+        check_count += 1
+        time.sleep(1)
+
+    if not connect_to_ip_button_present:
+        return False
 
     # Move cursor onto connect to ip button and click
     pyautogui.moveTo(left + 111, top + 452)
@@ -674,6 +689,8 @@ def connect_to_server(left: int, top: int, server_ip: str, server_port: str, ser
     pyautogui.moveTo(left + 777, top + 362)
     time.sleep(.2)
     pyautogui.leftClick()
+
+    return True
 
 
 def disconnect_from_server(left: int, top: int) -> None:
@@ -832,7 +849,7 @@ if not args.start_game and args.connect or args.start_game and args.server_pass 
 
         # Connect to server
         print_log('Connecting to server')
-        connect_to_server(
+        connected = connect_to_server(
             bf2Window['rect'][0],
             bf2Window['rect'][1],
             gameInstanceState.get_server_ip(),
@@ -840,7 +857,7 @@ if not args.start_game and args.connect or args.start_game and args.server_pass 
             gameInstanceState.get_server_password()
         )
         time.sleep(5)
-        gameInstanceState.set_spectator_on_server(True)
+        gameInstanceState.set_spectator_on_server(connected)
     except Exception as e:
         print_log('BF2 window is gone, restart required')
         print_log(str(e))
@@ -951,12 +968,12 @@ while True:
         # TODO
         # (Re-)connect to server
         print_log('(Re-)Connecting to server')
-        connect_to_server(bf2Window['rect'][0], bf2Window['rect'][1], args.server_ip, args.server_port)
+        connected = connect_to_server(bf2Window['rect'][0], bf2Window['rect'][1], args.server_ip, args.server_port)
         # Treat re-connecting as map rotation (state wise)
         gameInstanceState.map_rotation_reset()
         time.sleep(5)
         # Update state
-        gameInstanceState.set_spectator_on_server(True)
+        gameInstanceState.set_spectator_on_server(connected)
         continue
 
     onRoundFinishScreen = check_if_round_ended(bf2Window['rect'][0], bf2Window['rect'][1])
