@@ -17,6 +17,7 @@ from PIL import ImageOps
 from bs4 import BeautifulSoup
 
 from gameinstancestate import GameInstanceState
+from exceptions import *
 
 SendInput = ctypes.windll.user32.SendInput
 
@@ -718,6 +719,11 @@ def join_game(left: int, top: int) -> None:
 
 
 def spawn_suicide(map_name: str, map_size: int, team: int, left: int, top: int) -> bool:
+    # Make sure spawning on map and size is supported
+    if map_name not in SPAWN_COORDINATES.keys() or \
+            str(map_size) not in SPAWN_COORDINATES[map_name].keys():
+        raise UnsupportedMapException('No coordinates for current map/size')
+
     # Reset mouse to top left corner
     mouse_reset_legacy()
 
@@ -1050,15 +1056,20 @@ while True:
             gameInstanceState.set_round_team(currentTeam)
             print_log(f'Current team: {"USMC" if gameInstanceState.get_round_team() == 0 else "MEC/CHINA"}')
             print_log('Spawning once')
-            spawnSucceeded = spawn_suicide(
-                gameInstanceState.get_rotation_map_name(),
-                gameInstanceState.get_rotation_map_size(),
-                gameInstanceState.get_round_team(),
-                bf2Window['rect'][0],
-                bf2Window['rect'][1]
-            )
-            print_log('Spawn succeeded' if spawnSucceeded else 'Spawn failed, retrying')
-            gameInstanceState.set_rotation_spawned(spawnSucceeded)
+            try:
+                spawnSucceeded = spawn_suicide(
+                    gameInstanceState.get_rotation_map_name(),
+                    gameInstanceState.get_rotation_map_size(),
+                    gameInstanceState.get_round_team(),
+                    bf2Window['rect'][0],
+                    bf2Window['rect'][1]
+                )
+                print_log('Spawn succeeded' if spawnSucceeded else 'Spawn failed, retrying')
+                gameInstanceState.set_rotation_spawned(spawnSucceeded)
+            except UnsupportedMapException as e:
+                print_log('Spawning not supported on current map/sizec')
+                # Wait map out by "faking" spawn
+                gameInstanceState.set_rotation_spawned(True)
         elif gameInstanceState.get_rotation_map_name() is not None and \
                 gameInstanceState.get_rotation_map_size() != -1:
             print_log('Failed to determine current team, retrying')
