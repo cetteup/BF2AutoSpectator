@@ -14,7 +14,7 @@ class GameInstanceState:
     # Map details (map is as in one entry in the map rotation)
     __rotation_map_name: str = None
     __rotation_map_size: int = -1
-    __rotation_spawned: bool = False
+    __round_spawned: bool = False
     __rotation_on_map: bool = False
 
     # Round details
@@ -93,17 +93,17 @@ class GameInstanceState:
     def rotation_on_map(self) -> bool:
         return self.__rotation_on_map
 
-    def set_rotation_spawned(self, spawned: bool):
-        self.__rotation_spawned = spawned
-
-    def rotation_spawned(self) -> bool:
-        return self.__rotation_spawned
-
     def set_round_team(self, team: int):
         self.__round_team = team
 
     def get_round_team(self) -> int:
         return self.__round_team
+
+    def set_round_spawned(self, spawned: bool):
+        self.__round_spawned = spawned
+
+    def round_spawned(self) -> bool:
+        return self.__round_spawned
 
     def set_round_started_spectation(self, startet_spectation: bool):
         self.__round_started_spectation = startet_spectation
@@ -129,14 +129,15 @@ class GameInstanceState:
         self.__rotation_map_name = None
         self.__rotation_map_size = -1
         self.__rotation_on_map = False
-        self.__rotation_spawned = False
         self.__round_team = -1
+        self.__round_spawned = False
         self.__round_started_spectation = False
 
     # Reset relevant fields when round ended
     def round_end_reset(self):
         self.__active_join_possible = False
         self.__round_team = -1
+        self.__round_spawned = False
         self.__round_started_spectation = False
 
     def reset_error_unresponsive_count(self):
@@ -151,8 +152,8 @@ class GameInstanceState:
         self.__rotation_map_name = None
         self.__rotation_map_size = -1
         self.__rotation_on_map = False
-        self.__rotation_spawned = False
         self.__round_team = -1
+        self.__round_spawned = False
         self.__round_started_spectation = False
         self.__error_unresponsive_count = 0
         self.__error_restart_required = False

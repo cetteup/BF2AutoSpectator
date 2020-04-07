@@ -23,10 +23,6 @@ SendInput = ctypes.windll.user32.SendInput
 
 # C struct redefinitions
 PUL = ctypes.POINTER(ctypes.c_ulong)
-FREECAM_SERVERS = [
-    '185.107.96.105',
-    '185.107.96.106'
-]
 HISTOGRAMS = {
     'teams': {
         'usmc': {
@@ -244,8 +240,6 @@ class Input(ctypes.Structure):
     _fields_ = [("type", ctypes.c_ulong),
                 ("ii", Input_I)]
 
-
-# Actuals Functions
 
 def press_key(hexKeyCode):
     extra = ctypes.c_ulong(0)
@@ -1024,12 +1018,10 @@ while True:
         print_log('Game is on round finish screen')
         # Reset state
         gameInstanceState.round_end_reset()
+        # Set counter to 4 again to skip spectator
         iterationsOnPlayer = 4
-        # Reset spawn flag every round on non-freecam servers
-        if gameInstanceState.get_server_ip() not in FREECAM_SERVERS:
-            gameInstanceState.set_rotation_spawned(False)
         time.sleep(3)
-    elif not onRoundFinishScreen and not gameInstanceState.rotation_spawned():
+    elif not onRoundFinishScreen and not gameInstanceState.round_spawned():
         # Re-enable hud if required
         if gameInstanceState.hud_hidden():
             # Give game time to swap teams
@@ -1065,11 +1057,11 @@ while True:
                     bf2Window['rect'][1]
                 )
                 print_log('Spawn succeeded' if spawnSucceeded else 'Spawn failed, retrying')
-                gameInstanceState.set_rotation_spawned(spawnSucceeded)
+                gameInstanceState.set_round_spawned(spawnSucceeded)
             except UnsupportedMapException as e:
                 print_log('Spawning not supported on current map/sizec')
                 # Wait map out by "faking" spawn
-                gameInstanceState.set_rotation_spawned(True)
+                gameInstanceState.set_round_spawned(True)
         elif gameInstanceState.get_rotation_map_name() is not None and \
                 gameInstanceState.get_rotation_map_size() != -1:
             print_log('Failed to determine current team, retrying')
