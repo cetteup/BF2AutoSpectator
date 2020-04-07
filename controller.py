@@ -1007,7 +1007,6 @@ while True:
             gameInstanceState.set_rotation_spawned(False)
         time.sleep(3)
     elif not onRoundFinishScreen and not gameInstanceState.rotation_spawned():
-        time.sleep(3)
         # Re-enable hud if required
         if gameInstanceState.hud_hidden():
             # Give game time to swap teams
@@ -1024,6 +1023,7 @@ while True:
             print_log('Spawn menu not visible, opening with enter')
             auto_press_key(0x1c)
             time.sleep(1.5)
+            continue
 
         print_log('Determining team')
         currentTeam = get_player_team_histogram(bf2Window['rect'][0], bf2Window['rect'][1])
@@ -1048,8 +1048,8 @@ while True:
             # Force another attempt re-enable hud
             gameInstanceState.set_hud_hidden(True)
             time.sleep(2)
+            continue
         else:
-            # TODO: Fallback to detecting map via scoreboard instead
             # Map detection failed, force reconnect
             print_log('Map detection failed, disconnecting')
             disconnect_from_server(bf2Window['rect'][0], bf2Window['rect'][1])
