@@ -292,7 +292,7 @@ def window_enumeration_handler(hwnd, top_windows):
     })
 
 
-def find_window_by_title(search_title: str, search_class: str) -> dict:
+def find_window_by_title(search_title: str, search_class: str = None) -> dict:
     # Reset top windows array
     top_windows = []
 
@@ -890,11 +890,15 @@ while True:
         else:
             print_log('Unresponsive count exceeded limit, scheduling restart')
             gameInstanceState.set_error_restart_required(True)
-            continue
     elif not gameInstanceState.error_restart_required() and gameInstanceState.get_error_unresponsive_count() > 0:
         print_log('Game recovered from temp freeze, resetting unresponsive count')
         # Game got it together, reset unresponsive count
         gameInstanceState.reset_error_unresponsive_count()
+
+    # Check for (debug assertion) error window
+    if not gameInstanceState.error_restart_required() and find_window_by_title('BF2 Error') is not None:
+        print_log('BF2 Error window present, scheduling restart')
+        gameInstanceState.set_error_restart_required(True)
 
     # Start a new game instance if required
     if gameInstanceState.error_restart_required():
