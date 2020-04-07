@@ -607,7 +607,7 @@ def init_game_instance(bf2_path: str, player_name: str, player_pass: str,
     command = f'cmd /c start /b /d "{bf2_path}" BF2.exe +restart 1 ' \
               f'+playerName "{player_name}" +playerPassword "{player_pass}" ' \
               f'+szx 1280 +szy 720 +fullscreen 0 +wx 5 +wy 5 ' \
-              f'+multi 1 +developer 1 +disableShaderCache 1'
+              f'+multi 1 +developer 1 +disableShaderCache 1 +ignoreAsserts 1'
 
     # Add server details to command if provided
     if server_ip is not None and server_port is not None:
