@@ -6,6 +6,8 @@ import time
 import argparse
 import sys
 
+import cv2
+import numpy as np
 import pyautogui
 import pytesseract
 import requests
@@ -782,6 +784,31 @@ def toggle_hud(direction: int):
     time.sleep(.1)
 
 
+def check_if_player_afk(left: int, top: int, right: int, bottom: int) -> bool:
+    histograms = []
+
+    # Take 3 screenshots and calculate histograms
+    for i in range(0, 3):
+        # Take screenshot
+        screenshot = pyautogui.screenshot(region=(left + 8, top + 31, right - left - 16, bottom - top - 40))
+        # Convert PIL to cv2 image
+        cvScreenshot = cv2.cvtColor(np.asarray(screenshot), cv2.COLOR_RGB2BGR)
+        # Calculate histogram
+        histograms.append(cv2.calcHist([cvScreenshot], [0], None, [256], [0, 256]))
+
+        time.sleep(.75)
+
+    histogram_deltas = []
+    # Calculate histogram differences
+    for j in range (0, len(histograms) -1):
+        histogram_deltas.append(cv2.compareHist(histograms[j], histograms[j+1], cv2.HISTCMP_BHATTACHARYYA))
+
+    # Take average of deltas
+    average_delta = np.average(histogram_deltas)
+
+    return average_delta <= .015
+
+
 parser = argparse.ArgumentParser(description='Launch and control a Battlefield 2 spectator instance')
 parser.add_argument('--version', action='version', version='bf2-auto-spectator v0.1.5')
 parser.add_argument('--player-name', help='Account name of spectating player', type=str, required=True)
@@ -1090,8 +1117,14 @@ while True:
         # Spectator has "entered" map, update state accordingly
         gameInstanceState.set_rotation_on_map(True)
     elif not onRoundFinishScreen and iterationsOnPlayer < 4:
-        iterationsOnPlayer += 1
-        time.sleep(4.5)
+        # Check if player is afk
+        if check_if_player_afk(bf2Window['rect'][0], bf2Window['rect'][1], bf2Window['rect'][2], bf2Window['rect'][3]):
+            print_log('Player is afk')
+            iterationsOnPlayer = 4
+        else:
+            print_log('Nothing to do, stay on player')
+            iterationsOnPlayer += 1
+            time.sleep(4.5)
     elif not onRoundFinishScreen:
         print_log('Rotating to next player')
         auto_press_key(0x2e)
