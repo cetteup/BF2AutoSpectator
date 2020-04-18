@@ -999,7 +999,13 @@ while True:
         # TODO
         # (Re-)connect to server
         print_log('(Re-)Connecting to server')
-        connected = connect_to_server(bf2Window['rect'][0], bf2Window['rect'][1], args.server_ip, args.server_port)
+        connected = connect_to_server(
+            bf2Window['rect'][0],
+            bf2Window['rect'][1],
+            gameInstanceState.get_server_ip(),
+            gameInstanceState.get_server_port(),
+            gameInstanceState.get_server_password()
+        )
         # Treat re-connecting as map rotation (state wise)
         gameInstanceState.map_rotation_reset()
         time.sleep(5)
