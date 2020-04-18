@@ -784,7 +784,7 @@ def toggle_hud(direction: int):
     time.sleep(.1)
 
 
-def check_if_player_afk(left: int, top: int, right: int, bottom: int) -> bool:
+def is_sufficient_action_on_screen(left: int, top: int, right: int, bottom: int) -> bool:
     histograms = []
 
     # Take 3 screenshots and calculate histograms
@@ -800,13 +800,13 @@ def check_if_player_afk(left: int, top: int, right: int, bottom: int) -> bool:
 
     histogram_deltas = []
     # Calculate histogram differences
-    for j in range (0, len(histograms) -1):
+    for j in range(0, len(histograms) - 1):
         histogram_deltas.append(cv2.compareHist(histograms[j], histograms[j+1], cv2.HISTCMP_BHATTACHARYYA))
 
     # Take average of deltas
     average_delta = np.average(histogram_deltas)
 
-    return average_delta <= .015
+    return average_delta > .015
 
 
 parser = argparse.ArgumentParser(description='Launch and control a Battlefield 2 spectator instance')
@@ -1118,9 +1118,9 @@ while True:
         gameInstanceState.set_rotation_on_map(True)
     elif not onRoundFinishScreen and iterationsOnPlayer < 4:
         # Check if player is afk
-        if check_if_player_afk(bf2Window['rect'][0], bf2Window['rect'][1], bf2Window['rect'][2], bf2Window['rect'][3]):
-            print_log('Player is afk')
-            iterationsOnPlayer = 4
+        if not is_sufficient_action_on_screen(bf2Window['rect'][0], bf2Window['rect'][1],
+                                              bf2Window['rect'][2], bf2Window['rect'][3]):
+            print_log('Insufficient action on screen')
         else:
             print_log('Nothing to do, stay on player')
             iterationsOnPlayer += 1
