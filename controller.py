@@ -773,7 +773,7 @@ def toggle_hud(direction: int):
 
     # Write command
     pyautogui.write(f'renderer.drawHud {str(direction)}')
-    time.sleep(.1)
+    time.sleep(.3)
 
     # Hit enter
     pyautogui.press('enter')
@@ -1075,6 +1075,8 @@ while True:
             print_log('Spawn menu not visible, opening with enter')
             auto_press_key(0x1c)
             time.sleep(1.5)
+            # Force another attempt re-enable hud
+            gameInstanceState.set_hud_hidden(True)
             continue
 
         print_log('Determining team')
