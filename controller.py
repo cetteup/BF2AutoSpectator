@@ -891,7 +891,7 @@ if not args.start_game and args.connect or args.start_game and args.server_pass 
         gameInstanceState.set_error_restart_required(True)
 
 # Start with 4 to switch away from dead spectator right away
-iterationsOnPlayer = 4
+iterationsOnPlayer = 5
 while True:
     # Try to bring BF2 window to foreground
     if not gameInstanceState.error_restart_required():
@@ -1016,7 +1016,7 @@ while True:
         if gameInstanceState.rotation_on_map():
             print_log('Performing map rotation reset')
             gameInstanceState.map_rotation_reset()
-        iterationsOnPlayer = 4
+        iterationsOnPlayer = 5
         time.sleep(3)
     elif mapBriefingPresent:
         print_log('Map briefing present, checking map')
@@ -1050,7 +1050,7 @@ while True:
         # Reset state
         gameInstanceState.round_end_reset()
         # Set counter to 4 again to skip spectator
-        iterationsOnPlayer = 4
+        iterationsOnPlayer = 5
         time.sleep(3)
     elif not onRoundFinishScreen and not gameInstanceState.round_spawned():
         # Re-enable hud if required
@@ -1116,15 +1116,16 @@ while True:
         gameInstanceState.increase_round_num()
         # Spectator has "entered" map, update state accordingly
         gameInstanceState.set_rotation_on_map(True)
-    elif not onRoundFinishScreen and iterationsOnPlayer < 4:
+    elif not onRoundFinishScreen and iterationsOnPlayer < 5:
         # Check if player is afk
         if not is_sufficient_action_on_screen(bf2Window['rect'][0], bf2Window['rect'][1],
                                               bf2Window['rect'][2], bf2Window['rect'][3]):
             print_log('Insufficient action on screen')
+            iterationsOnPlayer = 5
         else:
             print_log('Nothing to do, stay on player')
             iterationsOnPlayer += 1
-            time.sleep(4.5)
+            time.sleep(2)
     elif not onRoundFinishScreen:
         print_log('Rotating to next player')
         auto_press_key(0x2e)
