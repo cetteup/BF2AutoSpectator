@@ -829,6 +829,10 @@ args = parser.parse_args()
 pytesseract.pytesseract.tesseract_cmd = os.path.join(args.tesseract_path, 'tesseract.exe')
 top_windows = []
 
+# Remove the top left corner from pyautogui failsafe points
+# (avoid triggering failsafe exception due to mouse moving to left left during spawn)
+del pyautogui.FAILSAFE_POINTS[0]
+
 # Make sure provided paths are valid
 if not os.path.isfile(pytesseract.pytesseract.tesseract_cmd):
     sys.exit(f'Could not find tesseract.exe in given install folder: {args.tesseract_path}')
