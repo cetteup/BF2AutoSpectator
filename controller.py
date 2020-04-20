@@ -796,7 +796,7 @@ def is_sufficient_action_on_screen(left: int, top: int, right: int, bottom: int)
         # Calculate histogram
         histograms.append(cv2.calcHist([cvScreenshot], [0], None, [256], [0, 256]))
 
-        time.sleep(.75)
+        time.sleep(.55)
 
     histogram_deltas = []
     # Calculate histogram differences
