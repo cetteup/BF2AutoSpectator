@@ -771,6 +771,9 @@ def toggle_hud(direction: int):
     auto_press_key(0x1d)
     time.sleep(.1)
 
+    # Clear out command input
+    pyautogui.press('backspace', presses=2)
+
     # Write command
     pyautogui.write(f'renderer.drawHud {str(direction)}', interval=.1)
     time.sleep(.3)
