@@ -784,19 +784,23 @@ def toggle_hud(direction: int):
     time.sleep(.1)
 
 
-def is_sufficient_action_on_screen(left: int, top: int, right: int, bottom: int) -> bool:
+def is_sufficient_action_on_screen(left: int, top: int, right: int, bottom: int,
+                                   screenshot_count: int = 3, screenshot_sleep: float = .55,
+                                   min_delta: float = .015) -> bool:
     histograms = []
 
-    # Take 3 screenshots and calculate histograms
-    for i in range(0, 3):
+    # Take screenshots and calculate histograms
+    for i in range(0, screenshot_count):
         # Take screenshot
         screenshot = pyautogui.screenshot(region=(left + 8, top + 31, right - left - 16, bottom - top - 40))
         # Convert PIL to cv2 image
-        cvScreenshot = cv2.cvtColor(np.asarray(screenshot), cv2.COLOR_RGB2BGR)
+        cv_screenshot = cv2.cvtColor(np.asarray(screenshot), cv2.COLOR_RGB2BGR)
         # Calculate histogram
-        histograms.append(cv2.calcHist([cvScreenshot], [0], None, [256], [0, 256]))
+        histograms.append(cv2.calcHist([cv_screenshot], [0], None, [256], [0, 256]))
 
-        time.sleep(.55)
+        # Sleep before taking next screenshot
+        if i+1 < screenshot_count:
+            time.sleep(screenshot_sleep)
 
     histogram_deltas = []
     # Calculate histogram differences
@@ -806,7 +810,7 @@ def is_sufficient_action_on_screen(left: int, top: int, right: int, bottom: int)
     # Take average of deltas
     average_delta = np.average(histogram_deltas)
 
-    return average_delta > .015
+    return average_delta > min_delta
 
 
 parser = argparse.ArgumentParser(description='Launch and control a Battlefield 2 spectator instance')
