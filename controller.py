@@ -792,7 +792,7 @@ def is_sufficient_action_on_screen(left: int, top: int, right: int, bottom: int,
     # Take screenshots and calculate histograms
     for i in range(0, screenshot_count):
         # Take screenshot
-        screenshot = pyautogui.screenshot(region=(left + 8, top + 31, right - left - 16, bottom - top - 40))
+        screenshot = pyautogui.screenshot(region=(left + 168, top + 31, right - left - 336, bottom - top - 40))
         # Convert PIL to cv2 image
         cv_screenshot = cv2.cvtColor(np.asarray(screenshot), cv2.COLOR_RGB2BGR)
         # Calculate histogram
