@@ -655,8 +655,7 @@ def connect_to_server(left: int, top: int, server_ip: str, server_port: str, ser
     time.sleep(.3)
 
     # Clear out ip field
-    for i in range(0, 20):
-        pyautogui.press('backspace')
+    pyautogui.press('backspace', presses=20)
 
     # Write ip
     pyautogui.write(server_ip)
@@ -665,8 +664,7 @@ def connect_to_server(left: int, top: int, server_ip: str, server_port: str, ser
     pyautogui.press('tab')
 
     # Clear out port field
-    for i in range(0, 10):
-        pyautogui.press('backspace')
+    pyautogui.press('backspace', presses=10)
 
     # Write port
     pyautogui.write(server_port)
