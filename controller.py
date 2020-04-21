@@ -772,7 +772,7 @@ def toggle_hud(direction: int):
     time.sleep(.1)
 
     # Write command
-    pyautogui.write(f'renderer.drawHud {str(direction)}')
+    pyautogui.write(f'renderer.drawHud {str(direction)}', interval=.1)
     time.sleep(.3)
 
     # Hit enter
