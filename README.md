@@ -88,6 +88,7 @@ If you want to stop the spectator, hit CTRL + C in the CMD/Powershell window at 
 
 ## Known limitations
 - bf2-auto-spectator currently only supports running the game in 720p windowed mode
+- Windows display scaling must be set to 100%
 - auto-spawning will currently fail if the default spawn has been captured by the other team
 - game locale/language must be set to English
 - some elements of your English locale must be somewhat standard (team names, kick messages, menu items etc)
