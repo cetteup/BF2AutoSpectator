@@ -655,19 +655,19 @@ def connect_to_server(left: int, top: int, server_ip: str, server_port: str, ser
     time.sleep(.3)
 
     # Clear out ip field
-    pyautogui.press('backspace', presses=20)
+    pyautogui.press('backspace', presses=20, interval=.05)
 
     # Write ip
-    pyautogui.write(server_ip)
+    pyautogui.write(server_ip, interval=.05)
 
     # Hit tab to enter port
     pyautogui.press('tab')
 
     # Clear out port field
-    pyautogui.press('backspace', presses=10)
+    pyautogui.press('backspace', presses=10, interval=.05)
 
     # Write port
-    pyautogui.write(server_port)
+    pyautogui.write(server_port, interval=.05)
 
     time.sleep(.3)
 
@@ -676,7 +676,7 @@ def connect_to_server(left: int, top: int, server_ip: str, server_port: str, ser
     if server_pass is not None:
         pyautogui.press('tab')
 
-        pyautogui.write(server_pass)
+        pyautogui.write(server_pass, interval=.05)
 
         time.sleep(.3)
 
@@ -770,10 +770,10 @@ def toggle_hud(direction: int):
     time.sleep(.1)
 
     # Clear out command input
-    pyautogui.press('backspace', presses=2)
+    pyautogui.press('backspace', presses=2, interval=.05)
 
     # Write command
-    pyautogui.write(f'renderer.drawHud {str(direction)}', interval=.1)
+    pyautogui.write(f'renderer.drawHud {str(direction)}', interval=.05)
     time.sleep(.3)
 
     # Hit enter
