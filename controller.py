@@ -3,6 +3,7 @@ import os
 import re
 import subprocess
 import time
+from datetime import datetime
 import argparse
 import sys
 
@@ -200,7 +201,7 @@ SPAWN_COORDINATES = {
 # Print a line preceded by a timestamp
 # =============================================================================
 def print_log(message: object) -> None:
-    print(f'{time.strftime("%Y-%m-%d %H:%M:%S")} # {str(message)}')
+    print(f'{datetime.now().strftime("%Y-%m-%d %H:%M:%S")} # {str(message)}')
 
 
 def list_filter_zeroes(list_with_zeroes: list) -> list:
