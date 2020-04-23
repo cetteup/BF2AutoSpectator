@@ -815,13 +815,13 @@ def is_sufficient_action_on_screen(left: int, top: int, right: int, bottom: int,
         histograms.append(cv2.calcHist([cv_screenshot], [0], None, [256], [0, 256]))
 
         # Sleep before taking next screenshot
-        if i+1 < screenshot_count:
+        if i + 1 < screenshot_count:
             time.sleep(screenshot_sleep)
 
     histogram_deltas = []
     # Calculate histogram differences
     for j in range(0, len(histograms) - 1):
-        histogram_deltas.append(cv2.compareHist(histograms[j], histograms[j+1], cv2.HISTCMP_BHATTACHARYYA))
+        histogram_deltas.append(cv2.compareHist(histograms[j], histograms[j + 1], cv2.HISTCMP_BHATTACHARYYA))
 
     # Take average of deltas
     average_delta = np.average(histogram_deltas)
