@@ -871,7 +871,7 @@ if args.debug:
     directories['debug'] = os.path.join(directories['root'], 'debug')
     # Create debug output dir if needed
     if not os.path.isdir(directories['debug']):
-        os.makedir(directories['debug'])
+        os.mkdir(directories['debug'])
 
 # Init game instance state store
 gameInstanceState = GameInstanceState()
