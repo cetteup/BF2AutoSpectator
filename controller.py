@@ -332,7 +332,21 @@ def ocr_screenshot_region(x: int, y: int, w: int, h: int, invert: bool = False, 
     if show:
         screenshot.show()
     ocr_result = pytesseract.image_to_string(screenshot, config=config)
-    # print_log(f'OCR result: {ocr_result}')
+
+    # Save screenshot to debug directory and print ocr result if debugging is enabled
+    if args.debug:
+        # Reference global variable
+        global directories
+        # Save screenshot
+        screenshot.save(
+            os.path.join(
+                directories['debug'],
+                f'ocr_screenshot-{datetime.now().strftime("%Y-%m-%d-%H-%M-%S-%f")}.jpg'
+            )
+        )
+        # Print ocr result
+        print_log(f'OCR result: {ocr_result}')
+
     return ocr_result.lower()
 
 
@@ -812,6 +826,9 @@ def is_sufficient_action_on_screen(left: int, top: int, right: int, bottom: int,
     # Take average of deltas
     average_delta = np.average(histogram_deltas)
 
+    if args.debug:
+        print_log(f'Average histogram delta: {average_delta}')
+
     return average_delta > min_delta
 
 
@@ -828,12 +845,16 @@ parser.add_argument('--tesseract-path', help='Path to Tesseract install folder',
                     type=str, default='C:\\Program Files\\Tesseract-OCR\\')
 parser.add_argument('--no-start', dest='start_game', action='store_false')
 parser.add_argument('--no-connect', dest='connect', action='store_false')
-parser.set_defaults(start_game=True, connect=True)
+parser.add_argument('--debug', dest='debug', action='store_true')
+parser.set_defaults(start_game=True, connect=True, debug=False)
 args = parser.parse_args()
 
 # Init global vars/settings
 pytesseract.pytesseract.tesseract_cmd = os.path.join(args.tesseract_path, 'tesseract.exe')
 top_windows = []
+directories = {
+    'root': os.path.dirname(os.path.realpath(__file__))
+}
 
 # Remove the top left corner from pyautogui failsafe points
 # (avoid triggering failsafe exception due to mouse moving to left left during spawn)
@@ -844,6 +865,13 @@ if not os.path.isfile(pytesseract.pytesseract.tesseract_cmd):
     sys.exit(f'Could not find tesseract.exe in given install folder: {args.tesseract_path}')
 elif not os.path.isfile(os.path.join(args.game_path, 'BF2.exe')):
     sys.exit(f'Could not find BF2.exe in given game install folder: {args.game_path}')
+
+# Init debug directory if debugging is enabled
+if args.debug:
+    directories['debug'] = os.path.join(directories['root'], 'debug')
+    # Create debug output dir if needed
+    if not os.path.isdir(directories['debug']):
+        os.makedir(directories['debug'])
 
 # Init game instance state store
 gameInstanceState = GameInstanceState()
