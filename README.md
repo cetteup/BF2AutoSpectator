@@ -28,6 +28,8 @@ Argument|Description|Default|Required
 `--tesseract-path`|Path to Tesseract install folder|C:\Program Files\Tesseract-OCR\ |No
 `--no-start`|Do not start a new game instance (use existing)
 `--no-connect`|Do not connect to a server automatically
+`--debug-log`|Add debugging information to log output
+`--debug-screenshot`|Write any screenshots to disk for debugging
 
 You can always get these details locally by providing the `--help` argument.
 
@@ -73,7 +75,6 @@ Any settings not explicitly mentioned here can be changed however you like.
 2. Under "controls"
     1. Remove crouch binding and airplane/helicopter free look binding (and/or any other `left ctrl` bindings)
     2. Bind `left ctrl` to console
-3. Under "video", set game resolution to 720p (1280x720)
   
 ## How to run
 1. Open CMD or Powershell (recommended)
