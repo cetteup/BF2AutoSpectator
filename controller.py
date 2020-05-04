@@ -802,7 +802,7 @@ def toggle_hud(direction: int):
 
 def is_sufficient_action_on_screen(left: int, top: int, right: int, bottom: int,
                                    screenshot_count: int = 3, screenshot_sleep: float = .55,
-                                   min_delta: float = .015) -> bool:
+                                   min_delta: float = .022) -> bool:
     histograms = []
 
     # Take screenshots and calculate histograms
