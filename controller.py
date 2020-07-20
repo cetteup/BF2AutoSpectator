@@ -1,127 +1,33 @@
+import argparse
 import ctypes
 import os
+import pickle
 import re
 import subprocess
+import sys
 import time
 from datetime import datetime
-import argparse
-import sys
 
 import cv2
 import numpy as np
 import pyautogui
 import pytesseract
 import requests
-import win32com.client
-import win32gui
 import win32api
+import win32com.client
 import win32con
-from PIL import ImageOps
+import win32gui
+from PIL import Image, ImageOps
 from bs4 import BeautifulSoup
 
-from gameinstancestate import GameInstanceState
 from exceptions import *
+from gameinstancestate import GameInstanceState
 
 SendInput = ctypes.windll.user32.SendInput
 
 # C struct redefinitions
 PUL = ctypes.POINTER(ctypes.c_ulong)
-HISTOGRAMS = {
-    'teams': {
-        'usmc': {
-            'active': [102, 10, 2, 4, 1, 6, 6, 3, 3, 3, 3, 4, 1, 1, 3, 4, 4, 2, 5, 1, 6, 3, 5, 1, 1, 6, 4, 1, 1, 1, 4,
-                       1, 1, 2, 3, 5, 1, 5, 4, 11, 2, 1, 5, 4, 5, 3, 3, 10, 4, 5, 4, 1, 1, 6, 1, 3, 2, 10, 1, 5, 3, 4,
-                       1, 2, 3, 3, 2, 4, 5, 2, 3, 5, 4, 9, 1, 5, 1, 2, 2, 4, 4, 3, 6, 4, 4, 2, 8, 6, 7, 2, 3, 4, 3, 3,
-                       3, 3, 4, 8, 4, 3, 8, 4, 2, 7, 1, 1, 2, 5, 3, 6, 3, 3, 6, 6, 3, 4, 1, 7, 2, 102, 10, 2, 4, 1, 6,
-                       6, 3, 3, 3, 2, 4, 1, 1, 4, 4, 4, 2, 5, 1, 3, 4, 4, 3, 2, 3, 6, 1, 1, 1, 1, 1, 4, 1, 1, 1, 3, 5,
-                       4, 3, 13, 3, 1, 5, 4, 5, 3, 3, 10, 4, 5, 4, 1, 6, 1, 1, 3, 2, 10, 1, 5, 3, 4, 1, 1, 3, 1, 3, 2,
-                       4, 5, 2, 3, 2, 6, 3, 7, 2, 5, 1, 3, 4, 4, 3, 1, 8, 4, 1, 9, 4, 9, 2, 2, 5, 1, 3, 5, 2, 6, 5, 4,
-                       3, 2, 6, 3, 4, 2, 7, 1, 1, 5, 4, 4, 4, 4, 1, 6, 6, 3, 4, 1, 7, 2, 102, 10, 2, 3, 2, 6, 6, 2, 4,
-                       2, 1, 3, 4, 1, 1, 3, 4, 4, 1, 2, 5, 6, 1, 4, 3, 1, 1, 6, 3, 1, 1, 1, 1, 1, 4, 1, 1, 1, 3, 5, 1,
-                       5, 4, 10, 3, 1, 5, 5, 5, 2, 3, 10, 2, 5, 2, 4, 1, 1, 6, 1, 4, 9, 2, 1, 3, 4, 2, 3, 1, 2, 2, 1, 3,
-                       3, 3, 5, 2, 2, 3, 3, 4, 9, 2, 4, 1, 2, 2, 4, 4, 1, 3, 5, 4, 4, 9, 4, 3, 7, 2, 1, 5, 1, 3, 5, 1,
-                       3, 4, 5, 4, 3, 3, 5, 6, 3, 7, 1, 1, 2, 5, 2, 4, 3, 3, 3, 3, 4, 6, 2, 4, 1, 7, 2],
-            'inactive': [23, 3, 8, 2, 6, 7, 62, 11, 2, 3, 2, 2, 8, 5, 2, 1, 3, 1, 1, 2, 1, 3, 2, 6, 2, 2, 1, 4, 4, 4, 4,
-                         1, 6, 1, 1, 1, 1, 1, 4, 1, 1, 1, 3, 5, 3, 4, 1, 12, 2, 1, 1, 5, 5, 1, 6, 4, 1, 10, 3, 4, 1, 4,
-                         3, 3, 1, 1, 3, 3, 8, 2, 5, 3, 2, 3, 3, 1, 3, 3, 1, 2, 5, 1, 2, 3, 1, 6, 4, 6, 1, 1, 5, 2, 6, 3,
-                         1, 5, 4, 4, 3, 1, 9, 2, 6, 6, 2, 1, 5, 1, 6, 2, 2, 6, 1, 7, 4, 2, 7, 5, 2, 1, 8, 1, 5, 2, 3, 3,
-                         4, 4, 2, 5, 6, 3, 4, 1, 7, 2, 23, 3, 8, 8, 1, 7, 64, 11, 4, 3, 9, 4, 3, 2, 2, 2, 2, 4, 3, 4, 2,
-                         5, 1, 6, 4, 3, 6, 2, 1, 1, 2, 4, 2, 2, 4, 4, 5, 5, 11, 1, 7, 5, 5, 4, 11, 3, 5, 5, 4, 2, 3, 5,
-                         9, 6, 3, 5, 2, 2, 4, 2, 2, 6, 3, 3, 8, 4, 5, 5, 1, 5, 4, 4, 6, 6, 4, 11, 5, 7, 3, 6, 3, 5, 5,
-                         4, 8, 4, 2, 9, 5, 3, 6, 8, 5, 4, 5, 7, 6, 6, 1, 7, 1, 1, 1, 1, 7, 5, 9, 7, 9, 8, 5, 7, 4, 12,
-                         2, 8, 10, 4, 8, 5, 10, 13, 4, 11, 5, 7, 5, 11, 6, 7, 6, 2, 10, 4, 3, 3, 3, 7, 12, 5, 10, 2, 10,
-                         11, 5, 8, 6, 7, 15, 5, 6, 2, 5, 7, 2, 4, 9, 4, 7, 5, 7, 7, 4, 6, 23, 1, 9, 3, 16, 2, 17, 62]
-        },
-        'eu': {
-            'active': [336, 3, 1, 1, 1, 1, 3, 1, 2, 1, 1, 1, 3, 6, 2, 7, 3, 2, 3, 4, 2, 1, 1, 4, 1, 2, 1, 1, 1, 1, 1, 1,
-                       1, 1, 2, 1, 3, 1, 4, 1, 6, 1, 2, 2, 2, 2, 5, 9, 4, 1, 1, 2, 1, 2, 1, 3, 2, 2, 1, 1, 1, 2, 2, 3,
-                       3, 1, 5, 1, 2, 3, 2, 5, 1, 2, 8, 2, 2, 3, 3, 2, 2, 1, 2, 1, 3, 2, 2, 1, 3, 336, 3, 1, 1, 1, 1, 3,
-                       1, 2, 1, 1, 1, 3, 6, 1, 6, 4, 2, 1, 3, 4, 3, 1, 2, 3, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 3, 1,
-                       4, 1, 6, 1, 2, 4, 2, 5, 9, 4, 1, 1, 2, 1, 1, 1, 2, 2, 2, 2, 1, 1, 2, 2, 3, 3, 2, 3, 2, 1, 2, 1,
-                       3, 2, 5, 5, 6, 3, 3, 3, 2, 3, 3, 3, 2, 2, 1, 3, 336, 3, 1, 1, 1, 1, 3, 1, 2, 1, 1, 1, 2, 2, 6, 1,
-                       7, 2, 2, 1, 3, 4, 3, 1, 2, 2, 1, 1, 2, 1, 1, 1, 1, 2, 1, 2, 1, 1, 3, 2, 2, 1, 5, 2, 2, 4, 2, 3,
-                       2, 9, 4, 1, 1, 2, 1, 1, 1, 1, 3, 2, 1, 1, 1, 1, 1, 1, 2, 3, 1, 3, 1, 3, 2, 1, 2, 1, 2, 2, 5, 1,
-                       5, 5, 2, 2, 1, 3, 2, 2, 2, 1, 3, 1, 2, 3, 1, 1, 3],
-            'inactive': [27, 25, 1, 25, 28, 234, 3, 1, 2, 1, 2, 5, 3, 1, 1, 2, 1, 2, 3, 4, 1, 3, 3, 2, 2, 3, 3, 1, 2, 1,
-                         2, 1, 1, 1, 1, 2, 1, 2, 1, 2, 3, 5, 2, 3, 2, 2, 2, 2, 4, 3, 9, 1, 4, 2, 1, 1, 1, 2, 2, 1, 1, 2,
-                         1, 1, 2, 2, 1, 3, 3, 2, 3, 1, 3, 2, 2, 2, 5, 2, 8, 1, 3, 1, 2, 5, 2, 1, 2, 1, 3, 2, 2, 1, 3,
-                         27, 25, 26, 3, 25, 235, 2, 1, 1, 2, 1, 5, 3, 1, 3, 1, 1, 2, 3, 1, 6, 1, 3, 4, 3, 3, 1, 1, 2, 1,
-                         2, 2, 1, 2, 2, 3, 4, 7, 4, 1, 1, 3, 3, 3, 3, 1, 9, 4, 2, 1, 2, 2, 2, 1, 2, 1, 2, 2, 2, 4, 3, 4,
-                         2, 3, 2, 4, 5, 1, 5, 6, 2, 4, 4, 3, 3, 3, 3, 1, 1, 2, 1, 3, 1, 4, 3, 3, 3, 2, 3, 5, 9, 4, 7, 3,
-                         3, 5, 4, 5, 3, 2, 2, 2, 3, 3, 1, 3, 3, 7, 10, 3, 3, 3, 2, 4, 5, 3, 3, 1, 2, 2, 1, 2, 2, 2, 2,
-                         1, 2, 4, 7, 5, 3, 1, 11, 4, 4, 1, 29, 26, 26, 28, 235]
-        },
-        'mec': {
-            'active': [205, 7, 1, 2, 2, 1, 2, 3, 3, 3, 5, 7, 2, 3, 4, 2, 3, 5, 3, 1, 1, 1, 3, 1, 2, 1, 3, 1, 2, 1, 2, 1,
-                       1, 3, 2, 2, 2, 3, 4, 4, 2, 3, 7, 1, 1, 1, 2, 3, 3, 2, 5, 1, 1, 2, 4, 2, 2, 4, 3, 2, 3, 10, 7, 11,
-                       5, 2, 5, 2, 1, 9, 1, 1, 2, 3, 1, 3, 3, 2, 2, 2, 4, 2, 1, 1, 4, 1, 1, 10, 3, 6, 2, 3, 4, 4, 5, 1,
-                       3, 3, 4, 1, 2, 2, 2, 3, 5, 5, 2, 3, 4, 1, 1, 3, 1, 6, 205, 7, 1, 2, 2, 1, 2, 3, 3, 3, 2, 9, 1, 2,
-                       3, 4, 2, 3, 2, 4, 2, 1, 1, 1, 1, 3, 1, 2, 2, 2, 1, 1, 1, 2, 2, 3, 2, 4, 1, 4, 2, 2, 2, 2, 3, 7,
-                       1, 1, 1, 2, 2, 3, 1, 2, 5, 1, 1, 2, 4, 2, 2, 4, 1, 4, 3, 10, 7, 11, 5, 2, 5, 2, 2, 8, 2, 1, 2, 3,
-                       3, 3, 2, 4, 1, 5, 1, 2, 4, 1, 8, 2, 3, 6, 3, 4, 2, 5, 5, 1, 2, 3, 4, 1, 2, 2, 4, 3, 7, 1, 2, 3,
-                       4, 1, 1, 3, 1, 6, 205, 7, 1, 2, 1, 1, 1, 1, 2, 4, 1, 3, 2, 9, 1, 2, 3, 4, 2, 5, 3, 3, 1, 1, 1, 3,
-                       1, 1, 2, 3, 1, 1, 1, 1, 2, 1, 1, 2, 1, 2, 2, 2, 3, 2, 2, 4, 2, 1, 2, 7, 1, 2, 2, 2, 1, 3, 2, 5,
-                       2, 2, 1, 5, 2, 4, 1, 4, 3, 4, 11, 2, 11, 5, 2, 4, 1, 2, 1, 9, 2, 2, 3, 1, 3, 3, 1, 1, 2, 2, 4, 2,
-                       1, 1, 4, 1, 1, 8, 2, 3, 6, 2, 3, 2, 2, 5, 4, 1, 1, 2, 1, 2, 4, 1, 2, 2, 2, 2, 3, 3, 5, 2, 2, 2,
-                       4, 3, 1, 1, 6],
-            'inactive': [23, 15, 2, 1, 14, 2, 15, 141, 6, 3, 3, 1, 1, 1, 1, 3, 2, 1, 1, 3, 2, 2, 6, 1, 1, 3, 3, 2, 2, 1,
-                         2, 2, 1, 1, 3, 1, 1, 2, 1, 1, 2, 1, 1, 2, 2, 1, 3, 1, 2, 1, 3, 1, 1, 3, 4, 1, 1, 3, 5, 3, 2, 1,
-                         3, 1, 3, 1, 6, 1, 2, 1, 6, 3, 6, 4, 2, 1, 9, 7, 10, 2, 5, 4, 1, 1, 2, 8, 1, 1, 1, 2, 2, 2, 4,
-                         1, 2, 2, 2, 2, 4, 1, 1, 4, 1, 1, 8, 4, 7, 3, 3, 3, 5, 4, 1, 1, 2, 5, 2, 1, 2, 2, 2, 3, 2, 7, 1,
-                         2, 3, 4, 1, 1, 3, 1, 6, 23, 16, 2, 16, 1, 15, 145, 5, 2, 3, 1, 3, 2, 4, 2, 3, 6, 4, 3, 3, 2, 3,
-                         1, 1, 1, 1, 4, 1, 2, 1, 1, 3, 3, 3, 3, 3, 4, 1, 4, 2, 3, 2, 2, 6, 2, 3, 3, 4, 1, 6, 3, 5, 2, 9,
-                         5, 2, 10, 6, 12, 6, 4, 2, 2, 8, 1, 3, 3, 4, 3, 2, 3, 6, 2, 4, 2, 8, 5, 6, 2, 4, 5, 4, 4, 3, 2,
-                         3, 3, 2, 5, 4, 7, 3, 4, 4, 1, 4, 6, 6, 2, 3, 5, 5, 8, 6, 3, 7, 3, 3, 8, 5, 6, 2, 9, 9, 5, 3, 4,
-                         5, 3, 6, 4, 4, 9, 4, 5, 12, 17, 10, 4, 4, 5, 3, 6, 5, 4, 1, 4, 5, 4, 4, 3, 5, 6, 3, 4, 5, 1, 3,
-                         5, 4, 4, 4, 1, 6, 3, 6, 6, 3, 1, 30, 2, 17, 3, 14, 2, 20, 142]
-        },
-        'china': {
-            'active': [135, 2, 4, 1, 4, 2, 5, 1, 1, 2, 3, 4, 6, 1, 2, 3, 7, 7, 4, 2, 2, 3, 1, 3, 2, 3, 4, 3, 1, 2, 2, 1,
-                       5, 2, 2, 2, 1, 2, 3, 4, 1, 3, 4, 1, 12, 5, 1, 3, 1, 1, 1, 4, 3, 3, 1, 4, 5, 3, 3, 2, 4, 2, 1, 1,
-                       3, 2, 2, 4, 2, 3, 6, 3, 9, 4, 2, 1, 3, 2, 13, 3, 2, 10, 2, 6, 4, 3, 2, 8, 4, 1, 4, 4, 3, 3, 3, 4,
-                       5, 5, 4, 10, 3, 5, 2, 1, 2, 11, 2, 1, 2, 4, 13, 3, 10, 2, 3, 1, 6, 135, 2, 4, 1, 4, 2, 5, 1, 1,
-                       1, 3, 4, 3, 5, 2, 3, 7, 3, 8, 2, 1, 1, 1, 3, 1, 4, 3, 2, 4, 2, 3, 1, 1, 5, 2, 2, 2, 1, 3, 2, 2,
-                       2, 3, 3, 2, 1, 12, 5, 1, 3, 1, 1, 3, 2, 3, 3, 1, 4, 5, 3, 3, 2, 3, 2, 2, 1, 3, 2, 2, 4, 2, 3, 3,
-                       3, 1, 5, 10, 1, 2, 3, 2, 13, 5, 2, 8, 3, 5, 3, 4, 2, 6, 2, 4, 4, 4, 4, 5, 1, 9, 2, 3, 4, 10, 3,
-                       5, 2, 2, 9, 3, 3, 2, 4, 13, 3, 10, 2, 3, 1, 6, 135, 2, 4, 3, 2, 2, 5, 1, 1, 2, 2, 4, 1, 6, 3, 3,
-                       7, 3, 4, 4, 2, 1, 1, 3, 1, 1, 4, 3, 2, 4, 1, 1, 2, 1, 1, 1, 5, 3, 1, 2, 1, 2, 3, 2, 2, 1, 3, 4,
-                       11, 2, 5, 1, 3, 1, 1, 1, 4, 3, 3, 1, 1, 3, 5, 1, 3, 2, 2, 4, 1, 2, 1, 2, 2, 1, 2, 4, 2, 1, 5, 3,
-                       1, 5, 6, 4, 2, 1, 3, 2, 10, 3, 3, 2, 10, 3, 5, 4, 3, 2, 6, 2, 4, 4, 1, 4, 3, 5, 1, 4, 5, 2, 4, 5,
-                       8, 3, 5, 3, 2, 8, 3, 2, 1, 2, 1, 13, 6, 10, 1, 1, 3, 1, 6],
-            'inactive': [17, 1, 1, 2, 1, 9, 2, 2, 9, 1, 9, 91, 1, 4, 3, 1, 4, 3, 5, 3, 1, 1, 4, 2, 3, 1, 2, 2, 1, 1, 1,
-                         2, 5, 1, 1, 2, 1, 2, 3, 2, 3, 5, 3, 1, 1, 1, 1, 1, 5, 4, 2, 1, 3, 1, 2, 1, 1, 2, 1, 2, 6, 2, 1,
-                         10, 3, 2, 1, 1, 1, 3, 3, 2, 1, 6, 1, 3, 4, 2, 3, 1, 1, 4, 2, 2, 3, 1, 3, 3, 4, 1, 2, 5, 1, 5,
-                         10, 1, 1, 2, 3, 2, 12, 3, 4, 1, 7, 6, 2, 1, 3, 3, 2, 7, 4, 2, 3, 5, 3, 4, 2, 4, 5, 3, 3, 3, 11,
-                         2, 5, 1, 2, 2, 11, 3, 2, 4, 13, 3, 2, 8, 2, 3, 1, 6, 18, 1, 2, 1, 9, 3, 10, 1, 9, 94, 2, 7, 3,
-                         3, 6, 1, 3, 4, 3, 3, 1, 3, 1, 4, 6, 2, 2, 3, 5, 5, 3, 3, 1, 1, 7, 4, 4, 1, 3, 3, 3, 7, 2, 10,
-                         3, 3, 1, 4, 2, 2, 5, 3, 1, 6, 1, 4, 2, 4, 4, 1, 5, 3, 2, 4, 3, 5, 1, 11, 5, 2, 4, 11, 3, 7, 8,
-                         6, 2, 5, 4, 7, 5, 4, 6, 2, 5, 3, 7, 5, 6, 10, 6, 2, 5, 9, 3, 2, 4, 16, 10, 2, 3, 7, 7, 4, 2, 9,
-                         16, 4, 5, 11, 5, 7, 12, 8, 9, 6, 4, 8, 6, 8, 10, 3, 12, 5, 14, 5, 2, 13, 4, 4, 9, 4, 3, 2, 6,
-                         7, 4, 7, 5, 1, 6, 4, 4, 3, 6, 9, 6, 4, 3, 2, 4, 5, 5, 3, 2, 3, 9, 9, 5, 11, 3, 7, 6, 3, 4, 4,
-                         20, 5, 10, 2, 10, 2, 11, 92]
-        }
-    }
-}
+HISTCMP_MAX_DELTA = 0.2
 SPAWN_COORDINATES = {
     'dalian-plant': {
         '64': [(618, 218), (296, 296)]
@@ -323,6 +229,14 @@ def taskkill_pid(pid: int) -> bool:
     return 'has been terminated' in str(output)
 
 
+def calc_cv2_hist_from_pil_image(pil_image: Image):
+    # Convert PIL to cv2 image
+    cv_image = cv2.cvtColor(np.asarray(pil_image), cv2.COLOR_RGB2BGR)
+    histogram = cv2.calcHist([cv_image], [0], None, [256], [0, 256])
+
+    return histogram
+
+
 # Take a screenshot of the given region and run the result through OCR
 def ocr_screenshot_region(x: int, y: int, w: int, h: int, invert: bool = False, show: bool = False,
                           config: str = r'--oem 3 --psm 7') -> str:
@@ -502,19 +416,31 @@ def get_player_team_histogram(left: int, top: int) -> int:
         pyautogui.screenshot(region=(left + 209, top + 69, 41, 13))
     ]
 
-    # Get histograms of screenshots (removing zeroes)
+    # Get histograms of screenshots
     team_selection_histograms = []
     for team_selection_screenshot in team_selection_screenshots:
-        team_selection_histograms.append(list_filter_zeroes(team_selection_screenshot.histogram()))
+        team_selection_histograms.append(calc_cv2_hist_from_pil_image(team_selection_screenshot))
+
+    # Calculate histogram deltas
+    histogram_deltas = {
+        'to_usmc_active': cv2.compareHist(team_selection_histograms[0], HISTOGRAMS['teams']['usmc']['active'],
+                                          cv2.HISTCMP_BHATTACHARYYA),
+        'to_eu_active': cv2.compareHist(team_selection_histograms[0], HISTOGRAMS['teams']['eu']['active'],
+                                        cv2.HISTCMP_BHATTACHARYYA),
+        'to_china_active': cv2.compareHist(team_selection_histograms[1], HISTOGRAMS['teams']['china']['active'],
+                                           cv2.HISTCMP_BHATTACHARYYA),
+        'to_mec_active': cv2.compareHist(team_selection_histograms[1], HISTOGRAMS['teams']['mec']['active'],
+                                         cv2.HISTCMP_BHATTACHARYYA),
+    }
 
     # Compare histograms to constant to determine team
     team = None
-    if team_selection_histograms[0] == HISTOGRAMS['teams']['usmc']['active'] or \
-            team_selection_histograms[0] == HISTOGRAMS['teams']['eu']['active']:
+    if histogram_deltas['to_usmc_active'] < HISTCMP_MAX_DELTA or \
+            histogram_deltas['to_eu_active'] < HISTCMP_MAX_DELTA:
         # Player is on USMC/EU team
         team = 0
-    elif team_selection_histograms[1] == HISTOGRAMS['teams']['mec']['active'] or \
-            team_selection_histograms[1] == HISTOGRAMS['teams']['china']['active']:
+    elif histogram_deltas['to_china_active'] < HISTCMP_MAX_DELTA or \
+            histogram_deltas['to_mec_active'] < HISTCMP_MAX_DELTA:
         # Player is on MEC/CHINA team
         team = 1
 
@@ -809,10 +735,8 @@ def is_sufficient_action_on_screen(left: int, top: int, right: int, bottom: int,
     for i in range(0, screenshot_count):
         # Take screenshot
         screenshot = pyautogui.screenshot(region=(left + 168, top + 31, right - left - 336, bottom - top - 40))
-        # Convert PIL to cv2 image
-        cv_screenshot = cv2.cvtColor(np.asarray(screenshot), cv2.COLOR_RGB2BGR)
         # Calculate histogram
-        histograms.append(cv2.calcHist([cv_screenshot], [0], None, [256], [0, 256]))
+        histograms.append(calc_cv2_hist_from_pil_image(screenshot))
 
         # Sleep before taking next screenshot
         if i + 1 < screenshot_count:
@@ -866,6 +790,12 @@ if not os.path.isfile(pytesseract.pytesseract.tesseract_cmd):
     sys.exit(f'Could not find tesseract.exe in given install folder: {args.tesseract_path}')
 elif not os.path.isfile(os.path.join(args.game_path, 'BF2.exe')):
     sys.exit(f'Could not find BF2.exe in given game install folder: {args.game_path}')
+
+# Load pickles
+print_log('Loading pickles')
+directories['pickle'] = os.path.join(directories['root'], 'pickle')
+with open(os.path.join(directories['pickle'], 'histograms.pickle'), 'rb') as histogramFile:
+    HISTOGRAMS = pickle.load(histogramFile)
 
 # Init debug directory if debugging is enabled
 if args.debug_screenshot:
