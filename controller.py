@@ -28,77 +28,106 @@ SendInput = ctypes.windll.user32.SendInput
 # C struct redefinitions
 PUL = ctypes.POINTER(ctypes.c_ulong)
 HISTCMP_MAX_DELTA = 0.2
-SPAWN_COORDINATES = {
-    'dalian-plant': {
-        '64': [(618, 218), (296, 296)]
+COORDINATES = {
+    # format for click coordinates: tuple(x coordinate, y coordinate)
+    # legacy mouse moves use relative offsets instead of absolute coordinates, but are stored the same way
+    'clicks': {
+        'bfhq-menu-item': (111, 50),
+        'multiplayer-menu-item': (331, 50),
+        'connect-to-ip-button': (111, 452),
+        'connect-to-ip-ok-button': (777, 362),
+        'disconnect-button': (1210, 725),
+        'game-message-close-button': (806, 412),
+        'join-game-button': (1210, 725),
+        'spawnpoint-deselect': (250, 50),
+        'suicide-button': (469, 459)
     },
-    'strike-at-karkand': {
-        '16': [(490, 390), (463, 98)],
-        '64': [(382, 390), (569, 160)]
+    # format for ocr coordinates: tuple(x coordinate, y coordinate, width, height)
+    'ocr': {
+        'game-message-header': (400, 223, 130, 25),
+        'game-message-text': (400, 245, 470, 18),
+        'connect-to-ip-button': (50, 448, 110, 18),
+        'eor-header-items': (72, 82, 740, 20),
+        'join-game-button': (1163, 725, 80, 16),
+        'map-briefing-header': (24, 112, 115, 20),
+        'special-forces-class-label': (60, 125, 140, 18),
+        'eor-map-name': (769, 114, 210, 17),
+        'eor-map-size': (1256, 570, 20, 17),
+        'suicide-button': (940, 678, 75, 19)
     },
-    'dragon-valley': {
-        '64': [(517, 56), (476, 363)]
-    },
-    'fushe-pass': {
-        '64': [(562, 132), (253, 312)]
-    },
-    'daqing-oilfields': {
-        '64': [(500, 346), (363, 137)]
-    },
-    'gulf-of-oman': {
-        '16': [(416, 355), (434, 122)],
-        '64': [(308, 326), (581, 132)]
-    },
-    'road-to-jalalabad': {
-        '16': [(382, 315), (487, 133)],
-        '64': [(314, 159), (569, 156)]
-    },
-    'wake-island-2007': {
-        '64': [(359, 158), (524, 290)]
-    },
-    'zatar-wetlands': {
-        '64': [(372, 44), (604, 336)]
-    },
-    'sharqi-peninsula': {
-        '16': [(495, 209), (360, 284)],
-        '64': [(476, 220), (321, 128)]
-    },
-    'kubra-dam': {
-        '64': [(494, 137), (336, 330)]
-    },
-    'operation-clean-sweep': {
-        '64': [(326, 120), (579, 249)]
-    },
-    'mashtuur-city': {
-        '16': [(503, 316), (406, 155)],
-        '64': [(563, 319), (328, 89)]
-    },
-    'midnight-sun': {
-        '64': [(590, 207), (317, 287)]
-    },
-    'operation-road-rage': {
-        '64': [(419, 32), (458, 407)]
-    },
-    'taraba-quarry': {
-        '32': [(569, 346), (310, 379)]
-    },
-    'great-wall': {
-        '32': [(529, 122), (368, 360)]
-    },
-    'highway-tampa': {
-        '64': [(612, 246), (428, 52)]
-    },
-    'operation-blue-pearl': {
-        '64': [(588, 268), (280, 154)]
-    },
-    'songhua-stalemate': {
-        '64': [(565, 244), (306, 234)]
-    },
-    'operation-harvest': {
-        '64': [(544, 393), (509, 93)]
-    },
-    'operation-smoke-screen': {
-        '32': [(434, 98), (466, 383)]
+    # format for spawn coordinates: list(team 0 tuple, team 1 tuple) with tuple(x offset, y offset)
+    'spawns': {
+        'dalian-plant': {
+            '64': [(618, 218), (296, 296)]
+        },
+        'strike-at-karkand': {
+            '16': [(490, 390), (463, 98)],
+            '64': [(382, 390), (569, 160)]
+        },
+        'dragon-valley': {
+            '64': [(517, 56), (476, 363)]
+        },
+        'fushe-pass': {
+            '64': [(562, 132), (253, 312)]
+        },
+        'daqing-oilfields': {
+            '64': [(500, 346), (363, 137)]
+        },
+        'gulf-of-oman': {
+            '16': [(416, 355), (434, 122)],
+            '64': [(308, 326), (581, 132)]
+        },
+        'road-to-jalalabad': {
+            '16': [(382, 315), (487, 133)],
+            '64': [(314, 159), (569, 156)]
+        },
+        'wake-island-2007': {
+            '64': [(359, 158), (524, 290)]
+        },
+        'zatar-wetlands': {
+            '64': [(372, 44), (604, 336)]
+        },
+        'sharqi-peninsula': {
+            '16': [(495, 209), (360, 284)],
+            '64': [(476, 220), (321, 128)]
+        },
+        'kubra-dam': {
+            '64': [(494, 137), (336, 330)]
+        },
+        'operation-clean-sweep': {
+            '64': [(326, 120), (579, 249)]
+        },
+        'mashtuur-city': {
+            '16': [(503, 316), (406, 155)],
+            '64': [(563, 319), (328, 89)]
+        },
+        'midnight-sun': {
+            '64': [(590, 207), (317, 287)]
+        },
+        'operation-road-rage': {
+            '64': [(419, 32), (458, 407)]
+        },
+        'taraba-quarry': {
+            '32': [(569, 346), (310, 379)]
+        },
+        'great-wall': {
+            '32': [(529, 122), (368, 360)]
+        },
+        'highway-tampa': {
+            '64': [(612, 246), (428, 52)]
+        },
+        'operation-blue-pearl': {
+            '64': [(588, 268), (280, 154)]
+        },
+        'songhua-stalemate': {
+            '64': [(565, 244), (306, 234)]
+        },
+        'operation-harvest': {
+            '64': [(544, 393), (509, 93)]
+        },
+        'operation-smoke-screen': {
+            '32': [(434, 98), (466, 383)]
+        }
     }
 }
 
@@ -178,6 +207,24 @@ def mouse_move_legacy(dx: int, dy: int) -> None:
     time.sleep(.08)
 
 
+def mouse_move_to_game_window_coord(key: str, legacy: bool = False) -> None:
+    """
+    Move mouse cursor to specified game window coordinates
+    :param key: key of click target in coordinates dict
+    :param legacy: whether to use legacy mouse move instead of pyautogui move
+    :return:
+    """
+
+    if legacy:
+        mouse_move_legacy(COORDINATES['clicks'][key][0], COORDINATES['clicks'][key][1])
+    else:
+        global bf2Window
+        pyautogui.moveTo(
+            bf2Window['rect'][0] + COORDINATES['clicks'][key][0],
+            bf2Window['rect'][1] + COORDINATES['clicks'][key][1]
+        )
+
+
 # Mouse click using old mouse_event method
 def mouse_click_legacy() -> None:
     win32api.mouse_event(win32con.MOUSEEVENTF_LEFTDOWN, 0, 0, 0, 0)
@@ -237,6 +284,21 @@ def calc_cv2_hist_from_pil_image(pil_image: Image):
     return histogram
 
 
+def screenshot_game_window_region(x: int, y: int, w: int, h: int) -> Image:
+    """
+    Take a screenshot of the specified game window region (wrapper for pyautogui.screenshot)
+    :param x: x coordinate of region start
+    :param y: y coordinate of region start
+    :param w: region width
+    :param h: region height
+    :return: 
+    """
+    
+    global bf2Window
+    
+    return pyautogui.screenshot(region=(bf2Window['rect'][0] + x, bf2Window['rect'][1] + y, w, h))
+
+
 # Take a screenshot of the given region and run the result through OCR
 def ocr_screenshot_region(x: int, y: int, w: int, h: int, invert: bool = False, show: bool = False,
                           config: str = r'--oem 3 --psm 7') -> str:
@@ -264,38 +326,53 @@ def ocr_screenshot_region(x: int, y: int, w: int, h: int, invert: bool = False, 
     return ocr_result.lower()
 
 
-def check_for_game_message(left: int, top: int) -> bool:
+def ocr_screenshot_game_window_region(key: str, invert: bool = False, show: bool = False,
+                                      config: str = r'--oem 3 --psm 7') -> str:
+    """
+    Run a region of a game window through OCR (wrapper for ocr_screenshot_region)
+    :param key: key of region in coordinates dict
+    :param invert: whether to invert the screenshot
+    :param show: whether to show the screenshot
+    :param config: config/parameters for Tesseract OCR
+    :return:
+    """
+
+    global bf2Window
+
+    return ocr_screenshot_region(
+        bf2Window['rect'][0] + COORDINATES['ocr'][key][0],
+        bf2Window['rect'][1] + COORDINATES['ocr'][key][1],
+        COORDINATES['ocr'][key][2],
+        COORDINATES['ocr'][key][3],
+        invert,
+        show,
+        config
+    )
+
+
+def check_for_game_message() -> bool:
     # Get ocr result of game message area
-    ocr_result = ocr_screenshot_region(
-        left + 400,
-        top + 223,
-        130,
-        25,
+    ocr_result = ocr_screenshot_game_window_region(
+        'game-message-header',
         True
     )
 
     return 'game message' in ocr_result
 
 
-def ocr_game_message(left: int, top: int) -> str:
+def ocr_game_message() -> str:
     # Get ocr result of game message content region
-    ocr_result = ocr_screenshot_region(
-        left + 400,
-        top + 245,
-        470,
-        18,
+    ocr_result = ocr_screenshot_game_window_region(
+        'game-message-text',
         True
     )
 
     return ocr_result
 
 
-def check_if_round_ended(left: int, top: int) -> bool:
-    ocr_result = ocr_screenshot_region(
-        left + 72,
-        top + 82,
-        740,
-        20,
+def check_if_round_ended() -> bool:
+    ocr_result = ocr_screenshot_game_window_region(
+        'eor-header-items',
         True
     )
 
@@ -304,62 +381,50 @@ def check_if_round_ended(left: int, top: int) -> bool:
     return any(round_end_label in ocr_result for round_end_label in round_end_labels)
 
 
-def check_for_join_game_button(left: int, top: int) -> bool:
+def check_for_join_game_button() -> bool:
     # Get ocr result of bottom left corner where "join game"-button would be
-    ocr_result = ocr_screenshot_region(
-        left + 1163,
-        top + 725,
-        80,
-        16,
+    ocr_result = ocr_screenshot_game_window_region(
+        'join-game-button',
         True
     )
 
     return 'join game' in ocr_result
 
 
-def check_if_map_is_loading(left: int, top: int) -> bool:
+def check_if_map_is_loading() -> bool:
     # Check if game is on round end screen
-    on_round_end_screen = check_if_round_ended(left, top)
+    on_round_end_screen = check_if_round_ended()
 
     # Check if join game button is present
-    join_game_button_present = check_for_join_game_button(left, top)
+    join_game_button_present = check_for_join_game_button()
 
     return on_round_end_screen and not join_game_button_present
 
 
-def check_for_map_briefing(left: int, top: int) -> bool:
+def check_for_map_briefing() -> bool:
     # Get ocr result of top left "map briefing" area
-    map_briefing_present = 'map briefing' in ocr_screenshot_region(
-        left + 24,
-        top + 112,
-        115,
-        20,
+    map_briefing_present = 'map briefing' in ocr_screenshot_game_window_region(
+        'map-briefing-header',
         True
     )
 
     return map_briefing_present
 
 
-def check_if_spawn_menu_visible(left: int, top: int) -> bool:
+def check_if_spawn_menu_visible() -> bool:
     # Get ocr result of "special forces" class label/name
-    ocr_result = ocr_screenshot_region(
-        left + 60,
-        top + 125,
-        140,
-        18,
+    ocr_result = ocr_screenshot_game_window_region(
+        'special-forces-class-label',
         True
     )
 
     return 'special forces' in ocr_result
 
 
-def get_map_name(left: int, top: int) -> str:
+def get_map_name() -> str:
     # Screenshot and OCR map name area
-    ocr_result = ocr_screenshot_region(
-        left + 769,
-        top + 114,
-        210,
-        17,
+    ocr_result = ocr_screenshot_game_window_region(
+        'eor-map-name',
         True
     )
 
@@ -369,21 +434,18 @@ def get_map_name(left: int, top: int) -> str:
     map_name = None
     # Make sure map name is valid
     # Also check while replacing first g with q to account for common ocr error
-    if ocr_result.lower() in SPAWN_COORDINATES.keys():
+    if ocr_result.lower() in COORDINATES['spawns'].keys():
         map_name = ocr_result.lower()
-    elif re.sub(r'^([^g]*?)g(.*)$', '\\1q\\2', ocr_result.lower()) in SPAWN_COORDINATES.keys():
+    elif re.sub(r'^([^g]*?)g(.*)$', '\\1q\\2', ocr_result.lower()) in COORDINATES['spawns'].keys():
         map_name = re.sub(r'^([^g]*?)g(.*)$', '\\1q\\2', ocr_result.lower())
 
     return map_name
 
 
-def get_map_size(left: int, top: int) -> int:
+def get_map_size() -> int:
     # Screenshot and OCR map size region
-    ocr_result = ocr_screenshot_region(
-        left + 1256,
-        top + 570,
-        20,
-        17,
+    ocr_result = ocr_screenshot_game_window_region(
+        'eor-map-size',
         True
     )
 
@@ -409,11 +471,11 @@ def get_player_team(server_ip: str, server_port: str) -> int:
     return team
 
 
-def get_player_team_histogram(left: int, top: int) -> int:
+def get_player_team_histogram() -> int:
     # Take team selection screenshots
     team_selection_screenshots = [
-        pyautogui.screenshot(region=(left + 68, top + 69, 41, 13)),
-        pyautogui.screenshot(region=(left + 209, top + 69, 41, 13))
+        screenshot_game_window_region(68, 69, 41, 13),
+        screenshot_game_window_region(209, 69, 41, 13)
     ]
 
     # Get histograms of screenshots
@@ -492,13 +554,13 @@ def ocr_player_scoreboard(left: int, top: int, right: int, bottom: int) -> list:
     return players
 
 
-def get_sever_player_count(left: int, top: int) -> int:
+def get_server_player_count() -> int:
     # Press/hold tab
     press_key(0x0f)
     time.sleep(.5)
 
     # Take screenshot
-    screenshot = pyautogui.screenshot(region=(left + 180, top + 656, 647, 17))
+    screenshot = screenshot_game_window_region(180, 656, 647, 17)
     # Invert
     screenshot = ImageOps.invert(screenshot)
 
@@ -524,8 +586,8 @@ def get_sever_player_count(left: int, top: int) -> int:
     return player_count
 
 
-def ocr_player_name(left: int, top: int) -> str:
-    screenshot = pyautogui.screenshot(region=(left + 875, top + 471, 110, 100))
+def ocr_player_name() -> str:
+    screenshot = screenshot_game_window_region(875, 471, 110, 100)
     orc_results = []
     custom_config = r'--oem 3 --psm 7'
     for i in range(0, screenshot.height, 6):
@@ -556,17 +618,17 @@ def init_game_instance(bf2_path: str, player_name: str, player_pass: str,
     time.sleep(25)
 
 
-def connect_to_server(left: int, top: int, server_ip: str, server_port: str, server_pass: str = None) -> bool:
+def connect_to_server(server_ip: str, server_port: str, server_pass: str = None) -> bool:
     # Move cursor onto bfhq menu item and click
     # Required to reset multiplayer menu
-    pyautogui.moveTo(left + 111, top + 50)
+    mouse_move_to_game_window_coord('bfhq-menu-item')
     time.sleep(.2)
     pyautogui.leftClick()
 
     time.sleep(3)
 
     # Move cursor onto multiplayer menu item and click
-    pyautogui.moveTo(left + 331, top + 50)
+    mouse_move_to_game_window_coord('multiplayer-menu-item')
     time.sleep(.2)
     pyautogui.leftClick()
 
@@ -574,11 +636,8 @@ def connect_to_server(left: int, top: int, server_ip: str, server_port: str, ser
     check_limit = 10
     connect_to_ip_button_present = False
     while not connect_to_ip_button_present and check_count < check_limit:
-        connect_to_ip_button_present = 'connect to ip' in ocr_screenshot_region(
-            left + 50,
-            top + 448,
-            110,
-            18,
+        connect_to_ip_button_present = 'connect to ip' in ocr_screenshot_game_window_region(
+            'connect-to-ip-button',
             True
         )
         check_count += 1
@@ -588,7 +647,7 @@ def connect_to_server(left: int, top: int, server_ip: str, server_port: str, ser
         return False
 
     # Move cursor onto connect to ip button and click
-    pyautogui.moveTo(left + 111, top + 452)
+    mouse_move_to_game_window_coord('connect-to-ip-button')
     time.sleep(.2)
     pyautogui.leftClick()
 
@@ -622,48 +681,48 @@ def connect_to_server(left: int, top: int, server_ip: str, server_port: str, ser
         time.sleep(.3)
 
     # Move cursor onto ok button and click
-    pyautogui.moveTo(left + 777, top + 362)
+    mouse_move_to_game_window_coord('connect-to-ip-ok-button')
     time.sleep(.2)
     pyautogui.leftClick()
 
     return True
 
 
-def disconnect_from_server(left: int, top: int) -> None:
+def disconnect_from_server() -> None:
     # Press ESC
     auto_press_key(0x01)
     time.sleep(5)
     # Move cursor onto disconnect button and click
-    pyautogui.moveTo(left + 1210, top + 725)
+    mouse_move_to_game_window_coord('disconnect-button')
     time.sleep(.2)
     pyautogui.leftClick()
 
 
-def close_game_message(left: int, top: int) -> None:
+def close_game_message() -> None:
     # Move cursor onto ok button and click
-    pyautogui.moveTo(left + 806, top + 412)
+    mouse_move_to_game_window_coord('game-message-close-button')
     time.sleep(.2)
     pyautogui.leftClick()
 
 
-def join_game(left: int, top: int) -> None:
+def join_game() -> None:
     # Move cursor onto join game button and click
-    pyautogui.moveTo(left + 1210, top + 725)
+    mouse_move_to_game_window_coord('join-game-button')
     time.sleep(.2)
     pyautogui.leftClick()
 
 
-def spawn_suicide(map_name: str, map_size: int, team: int, left: int, top: int) -> bool:
+def spawn_suicide(map_name: str, map_size: int, team: int) -> bool:
     # Make sure spawning on map and size is supported
-    if map_name not in SPAWN_COORDINATES.keys() or \
-            str(map_size) not in SPAWN_COORDINATES[map_name].keys():
+    if map_name not in COORDINATES['spawns'].keys() or \
+            str(map_size) not in COORDINATES['spawns'][map_name].keys():
         raise UnsupportedMapException('No coordinates for current map/size')
 
     # Reset mouse to top left corner
     mouse_reset_legacy()
 
     # Select default spawn based on current team
-    spawn_coordinates = SPAWN_COORDINATES[map_name][str(map_size)][team]
+    spawn_coordinates = COORDINATES['spawns'][map_name][str(map_size)][team]
     mouse_move_legacy(spawn_coordinates[0], spawn_coordinates[1])
     time.sleep(.3)
     mouse_click_legacy()
@@ -680,24 +739,21 @@ def spawn_suicide(map_name: str, map_size: int, team: int, left: int, top: int) 
     mouse_reset_legacy()
 
     # De-select spawn point
-    mouse_move_legacy(250, 50)
+    mouse_move_to_game_window_coord('spawnpoint-deselect', True)
     time.sleep(0.3)
     mouse_click_legacy()
 
     # Reset cursor once more
     mouse_reset_legacy()
 
-    suicide_button_present = 'suicide' in ocr_screenshot_region(
-        left + 940,
-        top + 678,
-        75,
-        19,
+    suicide_button_present = 'suicide' in ocr_screenshot_game_window_region(
+        'suicide-button',
         True
     )
 
     if suicide_button_present:
         # Click suicide button
-        mouse_move_legacy(469, 459)
+        mouse_move_to_game_window_coord('suicide-button', True)
         time.sleep(.3)
         mouse_click_legacy()
         time.sleep(.5)
@@ -726,10 +782,12 @@ def toggle_hud(direction: int):
     time.sleep(.1)
 
 
-def is_sufficient_action_on_screen(left: int, top: int, right: int, bottom: int,
-                                   screenshot_count: int = 3, screenshot_sleep: float = .55,
+def is_sufficient_action_on_screen(screenshot_count: int = 3, screenshot_sleep: float = .55,
                                    min_delta: float = .022) -> bool:
     histograms = []
+
+    global bf2Window
+    left, top, right, bottom = bf2Window['rect']
 
     # Take screenshots and calculate histograms
     for i in range(0, screenshot_count):
@@ -846,8 +904,6 @@ if not args.start_game and args.connect or args.start_game and args.server_pass 
         # Connect to server
         print_log('Connecting to server')
         connected = connect_to_server(
-            bf2Window['rect'][0],
-            bf2Window['rect'][1],
             gameInstanceState.get_server_ip(),
             gameInstanceState.get_server_port(),
             gameInstanceState.get_server_password()
@@ -924,13 +980,13 @@ while True:
         continue
 
     # Make sure we are still in the game
-    gameMessagePresent = check_for_game_message(bf2Window['rect'][0], bf2Window['rect'][1])
+    gameMessagePresent = check_for_game_message()
     if gameMessagePresent:
         print_log('Game message present, ocr-ing message')
-        gameMessage = ocr_game_message(bf2Window['rect'][0], bf2Window['rect'][1])
+        gameMessage = ocr_game_message()
 
         # Close game message to enable actions
-        close_game_message(bf2Window['rect'][0], bf2Window['rect'][1])
+        close_game_message()
 
         if 'full' in gameMessage:
             print_log('Server full, trying to rejoin in 30 seconds')
@@ -969,8 +1025,6 @@ while True:
         # (Re-)connect to server
         print_log('(Re-)Connecting to server')
         connected = connect_to_server(
-            bf2Window['rect'][0],
-            bf2Window['rect'][1],
             gameInstanceState.get_server_ip(),
             gameInstanceState.get_server_port(),
             gameInstanceState.get_server_password()
@@ -982,9 +1036,9 @@ while True:
         gameInstanceState.set_spectator_on_server(connected)
         continue
 
-    onRoundFinishScreen = check_if_round_ended(bf2Window['rect'][0], bf2Window['rect'][1])
-    mapIsLoading = check_if_map_is_loading(bf2Window['rect'][0], bf2Window['rect'][1])
-    mapBriefingPresent = check_for_map_briefing(bf2Window['rect'][0], bf2Window['rect'][1])
+    onRoundFinishScreen = check_if_round_ended()
+    mapIsLoading = check_if_map_is_loading()
+    mapBriefingPresent = check_for_map_briefing()
     if mapIsLoading:
         print_log('Map is loading')
         # Reset state once if it still reflected to be on the (same) map
@@ -995,8 +1049,8 @@ while True:
         time.sleep(3)
     elif mapBriefingPresent:
         print_log('Map briefing present, checking map')
-        currentMapName = get_map_name(bf2Window['rect'][0], bf2Window['rect'][1])
-        currentMapSize = get_map_size(bf2Window['rect'][0], bf2Window['rect'][1])
+        currentMapName = get_map_name()
+        currentMapSize = get_map_size()
 
         # Update map state if relevant and required
         if currentMapName is not None and currentMapSize != -1 and \
@@ -1013,7 +1067,7 @@ while True:
         if gameInstanceState.active_join_possible():
             # Check if join game button is present
             print_log('Could actively join, checking for button')
-            joinGameButtonPresent = check_for_join_game_button(bf2Window['rect'][0], bf2Window['rect'][1])
+            joinGameButtonPresent = check_for_join_game_button()
 
             if joinGameButtonPresent:
                 # TODO
@@ -1039,7 +1093,7 @@ while True:
             gameInstanceState.set_hud_hidden(False)
             time.sleep(1)
 
-        spawnMenuVisible = check_if_spawn_menu_visible(bf2Window['rect'][0], bf2Window['rect'][1])
+        spawnMenuVisible = check_if_spawn_menu_visible()
         if not spawnMenuVisible:
             print_log('Spawn menu not visible, opening with enter')
             auto_press_key(0x1c)
@@ -1049,7 +1103,7 @@ while True:
             continue
 
         print_log('Determining team')
-        currentTeam = get_player_team_histogram(bf2Window['rect'][0], bf2Window['rect'][1])
+        currentTeam = get_player_team_histogram()
         if currentTeam is not None and \
                 gameInstanceState.get_rotation_map_name() is not None and \
                 gameInstanceState.get_rotation_map_size() != -1:
@@ -1060,14 +1114,12 @@ while True:
                 spawnSucceeded = spawn_suicide(
                     gameInstanceState.get_rotation_map_name(),
                     gameInstanceState.get_rotation_map_size(),
-                    gameInstanceState.get_round_team(),
-                    bf2Window['rect'][0],
-                    bf2Window['rect'][1]
+                    gameInstanceState.get_round_team()
                 )
                 print_log('Spawn succeeded' if spawnSucceeded else 'Spawn failed, retrying')
                 gameInstanceState.set_round_spawned(spawnSucceeded)
             except UnsupportedMapException as e:
-                print_log('Spawning not supported on current map/sizec')
+                print_log('Spawning not supported on current map/size')
                 # Wait map out by "faking" spawn
                 gameInstanceState.set_round_spawned(True)
         elif gameInstanceState.get_rotation_map_name() is not None and \
@@ -1080,7 +1132,7 @@ while True:
         else:
             # Map detection failed, force reconnect
             print_log('Map detection failed, disconnecting')
-            disconnect_from_server(bf2Window['rect'][0], bf2Window['rect'][1])
+            disconnect_from_server()
             time.sleep(3)
             # Update state
             gameInstanceState.set_spectator_on_server(False)
@@ -1095,8 +1147,7 @@ while True:
         gameInstanceState.set_rotation_on_map(True)
     elif not onRoundFinishScreen and iterationsOnPlayer < 5:
         # Check if player is afk
-        if not is_sufficient_action_on_screen(bf2Window['rect'][0], bf2Window['rect'][1],
-                                              bf2Window['rect'][2], bf2Window['rect'][3]):
+        if not is_sufficient_action_on_screen():
             print_log('Insufficient action on screen')
             iterationsOnPlayer = 5
         else:
@@ -1108,9 +1159,9 @@ while True:
         auto_press_key(0x2e)
         iterationsOnPlayer = 0
 
-    # serverIsFull = get_sever_player_count(bf2Window['rect'][0], bf2Window['rect'][1]) == 64
+    # serverIsFull = get_server_player_count() == 64
     # print_log(f'Server is full {serverIsFull}')
     # if serverIsFull and gameInstanceState.spectator_on_server():
-    #     disconnect_from_server(bf2Window['rect'][0], bf2Window['rect'][1])
+    #     disconnect_from_server()
     #     gameInstanceState.set_spectator_on_server(False)
     #     time.sleep(30)
