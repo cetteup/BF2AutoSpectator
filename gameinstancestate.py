@@ -25,6 +25,11 @@ class GameInstanceState:
     __error_unresponsive_count = 0
     __error_restart_required: bool = False
 
+    def __init__(self, server_ip: str, server_port: str, server_password: str):
+        self.__server_ip = server_ip
+        self.__server_port = server_port
+        self.__server_password = server_password
+
     # Global getter/setter functions
     def set_spectator_on_server(self, spectator_on_server: bool):
         self.__spectator_on_server = spectator_on_server

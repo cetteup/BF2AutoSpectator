@@ -688,6 +688,38 @@ def connect_to_server(server_ip: str, server_port: str, server_pass: str = None)
     return True
 
 
+def controller_update_current_server(server_ip: str, server_port: str, server_pass: str = None, in_rotation: bool = False) -> bool:
+    requestOk = False
+    try:
+        response = requests.post(f'{args.controller_base_uri}/servers/current', data={
+            'app_key': args.controller_app_key,
+            'ip': server_ip,
+            'port': server_port,
+            'password': server_pass,
+            'in_rotation': str(in_rotation).lower()
+        })
+
+        if response.status_code == 200:
+            requestOk = True
+    except Exception as e:
+        print_log(e)
+
+    return requestOk
+
+
+def controller_get_join_server() -> dict:
+    join_sever = None
+    try:
+        response = requests.get(f'{args.controller_base_uri}/servers/join')
+
+        if response.status_code == 200:
+            join_sever = response.json()
+    except Exception as e:
+        print_log(e)
+
+    return join_sever
+
+
 def disconnect_from_server() -> None:
     # Press ESC
     auto_press_key(0x01)
@@ -829,7 +861,10 @@ parser.add_argument('--no-start', dest='start_game', action='store_false')
 parser.add_argument('--no-connect', dest='connect', action='store_false')
 parser.add_argument('--debug-log', dest='debug_log', action='store_true')
 parser.add_argument('--debug-screenshot', dest='debug_screenshot', action='store_true')
-parser.set_defaults(start_game=True, connect=True, debug_log=False, debug_screenshot=False)
+parser.add_argument('--use-controller', dest='use_controller', action='store_true')
+parser.add_argument('--controller-base-uri', help='Base uri of web controller', type=str)
+parser.add_argument('--controller-app-key', help='App key for web controller', type=str)
+parser.set_defaults(start_game=True, connect=True, debug_log=False, debug_screenshot=False, use_controller=False)
 args = parser.parse_args()
 
 # Init global vars/settings
@@ -863,7 +898,20 @@ if args.debug_screenshot:
         os.mkdir(directories['debug'])
 
 # Init game instance state store
-gameInstanceState = GameInstanceState()
+gameInstanceState = GameInstanceState(args.server_ip, args.server_port, args.server_pass)
+
+# Check whether the controller has a server join
+if args.use_controller:
+    print_log('Checking for join server on controller')
+    joinServer = controller_get_join_server()
+    if joinServer is not None and \
+            (joinServer['ip'] != gameInstanceState.get_server_ip() or
+             joinServer['port'] != gameInstanceState.get_server_port()):
+        # Spectator is supposed to be on different server
+        print_log('Controller has a server to join')
+        gameInstanceState.set_server_ip(joinServer['ip'])
+        gameInstanceState.set_server_port(joinServer['port'])
+        gameInstanceState.set_server_password(joinServer['password'])
 
 # Init game instance if requested
 if args.start_game and args.server_pass is None:
@@ -872,8 +920,8 @@ if args.start_game and args.server_pass is None:
         args.game_path,
         args.player_name,
         args.player_pass,
-        args.server_ip,
-        args.server_port
+        gameInstanceState.get_server_ip(),
+        gameInstanceState.get_server_port()
     )
     gameInstanceState.set_spectator_on_server(True)
 elif args.start_game and args.server_pass is not None:
@@ -885,10 +933,13 @@ elif args.start_game and args.server_pass is not None:
     )
     time.sleep(5)
 
-# Update state
-gameInstanceState.set_server_ip(args.server_ip)
-gameInstanceState.set_server_port(args.server_port)
-gameInstanceState.set_server_password(args.server_pass)
+# Update controller
+if args.use_controller:
+    controller_update_current_server(
+        gameInstanceState.get_server_ip(),
+        gameInstanceState.get_server_port(),
+        gameInstanceState.get_server_password()
+    )
 
 # Find BF2 window
 print_log('Finding BF2 window')
@@ -1018,6 +1069,22 @@ while True:
 
         continue
 
+    # If we are using a controller, check if server switch is required and possible (spectator on server, map loaded)
+    if args.use_controller and iterationsOnPlayer == 5 and gameInstanceState.spectator_on_server() and gameInstanceState.rotation_on_map():
+        print_log('Checking for join server on controller')
+        joinServer = controller_get_join_server()
+        if joinServer is not None and \
+                (joinServer['ip'] != gameInstanceState.get_server_ip() or
+                 joinServer['port'] != gameInstanceState.get_server_port()):
+            # Spectator is supposed to be on different server
+            print_log('Controller has a server to join')
+            gameInstanceState.set_server_ip(joinServer['ip'])
+            gameInstanceState.set_server_port(joinServer['port'])
+            gameInstanceState.set_server_password(joinServer['password'])
+            gameInstanceState.set_spectator_on_server(False)
+            print_log('Queued server switch, disconnecting from current server')
+            disconnect_from_server()
+
     # Player is not on server, check if rejoining is possible and makes sense
     if not gameInstanceState.spectator_on_server():
         # Check number of free slots
@@ -1034,6 +1101,13 @@ while True:
         time.sleep(5)
         # Update state
         gameInstanceState.set_spectator_on_server(connected)
+        # Update controller
+        if connected and args.use_controller:
+            controller_update_current_server(
+                gameInstanceState.get_server_ip(),
+                gameInstanceState.get_server_port(),
+                gameInstanceState.get_server_password()
+            )
         continue
 
     onRoundFinishScreen = check_if_round_ended()
