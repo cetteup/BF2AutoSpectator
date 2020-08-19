@@ -906,11 +906,11 @@ if args.use_controller:
     joinServer = controller_get_join_server()
     if joinServer is not None and \
             (joinServer['ip'] != gameInstanceState.get_server_ip() or
-             str(joinServer['game_port']) != gameInstanceState.get_server_port()):
+             str(joinServer['gamePort']) != gameInstanceState.get_server_port()):
         # Spectator is supposed to be on different server
         print_log('Controller has a server to join')
         gameInstanceState.set_server_ip(joinServer['ip'])
-        gameInstanceState.set_server_port(str(joinServer['game_port']))
+        gameInstanceState.set_server_port(str(joinServer['gamePort']))
         gameInstanceState.set_server_password(joinServer['password'])
 
 # Init game instance if requested
@@ -1075,11 +1075,11 @@ while True:
         joinServer = controller_get_join_server()
         if joinServer is not None and \
                 (joinServer['ip'] != gameInstanceState.get_server_ip() or
-                 str(joinServer['game_port']) != gameInstanceState.get_server_port()):
+                 str(joinServer['gamePort']) != gameInstanceState.get_server_port()):
             # Spectator is supposed to be on different server
             print_log('Controller has a server to join')
             gameInstanceState.set_server_ip(joinServer['ip'])
-            gameInstanceState.set_server_port(str(joinServer['game_port']))
+            gameInstanceState.set_server_port(str(joinServer['gamePort']))
             gameInstanceState.set_server_password(joinServer['password'])
             gameInstanceState.set_spectator_on_server(False)
             print_log('Queued server switch, disconnecting from current server')
