@@ -47,6 +47,7 @@ COORDINATES = {
         'game-message-header': (400, 223, 130, 25),
         'game-message-text': (400, 245, 470, 18),
         'connect-to-ip-button': (50, 448, 110, 18),
+        'disconnect-button': (1133, 725, 92, 16),
         'eor-header-items': (72, 82, 740, 20),
         'join-game-button': (1163, 725, 80, 16),
         'map-briefing-header': (24, 112, 115, 20),
@@ -733,10 +734,12 @@ def disconnect_from_server() -> None:
     # Press ESC
     auto_press_key(0x01)
     time.sleep(5)
-    # Move cursor onto disconnect button and click
-    mouse_move_to_game_window_coord('disconnect-button')
-    time.sleep(.2)
-    pyautogui.leftClick()
+    # Make sure disconnect button is present
+    if 'disconnect' in ocr_screenshot_game_window_region('disconnect-button'):
+        # Move cursor onto disconnect button and click
+        mouse_move_to_game_window_coord('disconnect-button')
+        time.sleep(.2)
+        pyautogui.leftClick()
 
 
 def close_game_message() -> None:
