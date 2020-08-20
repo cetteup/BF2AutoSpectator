@@ -4,7 +4,7 @@ An automated spectator for Battlefield 2 written in Python 🐍
 Battefield 2 might be an old game that is known for sometimes having more dust than hit registration. But it's still around after 15 years and people still play it. So, why not support this game and community with an automated spectator that makes it easy to, for example, stream this game around the clock so people can (re-)discover it via a [live stream](https://twitch.tv/allidoisspectate).
 
 ## Project state
-The goal is to provide a fully automated, fire-and-forget spectator for the game. However, this project is currently in an alpha-like state. *Thus, some monitoring of the spectator and any live stream is strongly recommended.*
+The goal is to provide a fully automated, fire-and-forget spectator for the game. However, this project is currently in an beta-like state. *Thus, some monitoring of the spectator and any live stream is strongly recommended.*
 
 ## Features
 - automatic start of a BF2 game instance (can be disabled to attach to an existing instance)
@@ -83,7 +83,7 @@ Any settings not explicitly mentioned here can be changed however you like.
 1. Open CMD or Powershell (recommended)
 2. Enter the path to the controller.exe (can be done by dragging & dropping the .exe onto the CMD/Powershell window)
 3. Enter required command line arguments (see above)
-4. Enter any additional command lind arguments (optional)
+4. Enter any additional command line arguments (optional)
 5. Hit enter to run the command
 
 If you want to stop the spectator, hit CTRL + C in the CMD/Powershell window at any time.
