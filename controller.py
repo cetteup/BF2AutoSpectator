@@ -869,12 +869,12 @@ parser.add_argument('--game-path', help='Path to BF2 install folder',
                     type=str, default='C:\\Program Files (x86)\\EA Games\\Battlefield 2\\')
 parser.add_argument('--tesseract-path', help='Path to Tesseract install folder',
                     type=str, default='C:\\Program Files\\Tesseract-OCR\\')
-parser.add_argument('--no-start', dest='start_game', action='store_false')
-parser.add_argument('--debug-log', dest='debug_log', action='store_true')
-parser.add_argument('--debug-screenshot', dest='debug_screenshot', action='store_true')
 parser.add_argument('--use-controller', dest='use_controller', action='store_true')
 parser.add_argument('--controller-base-uri', help='Base uri of web controller', type=str)
 parser.add_argument('--controller-app-key', help='App key for web controller', type=str)
+parser.add_argument('--no-start', dest='start_game', action='store_false')
+parser.add_argument('--debug-log', dest='debug_log', action='store_true')
+parser.add_argument('--debug-screenshot', dest='debug_screenshot', action='store_true')
 parser.set_defaults(start_game=True, debug_log=False, debug_screenshot=False, use_controller=False)
 args = parser.parse_args()
 

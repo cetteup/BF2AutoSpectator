@@ -14,6 +14,7 @@ The goal is to provide a fully automated, fire-and-forget spectator for the game
 - automatic rotation between players of spectator's team
 - in game error detection and handling
 - game freeze detection and handling
+- (optional) remote control using [bf2-auto-spectator-controller](https://github.com/cetteup/bf2-auto-spectator-controller)
 
 ## Command line arguments
 Argument|Description|Default|Required
@@ -26,6 +27,9 @@ Argument|Description|Default|Required
 `--server-pass`|Passwort for server to join|None|No
 `--game-path`|Path to BF2 install folder|C:\Program Files (x86)\EA Games\Battlefield 2\ |No
 `--tesseract-path`|Path to Tesseract install folder|C:\Program Files\Tesseract-OCR\ |No
+`--use-controller`|Use a bf2-auto-spectator-controller instance
+`--controller-base-uri`|Base uri of controller instance (format: http[s]://[hostname])
+`--controller-app-key`|App key for controller instance
 `--no-start`|Do not start a new game instance (use existing)
 `--debug-log`|Add debugging information to log output
 `--debug-screenshot`|Write any screenshots to disk for debugging
