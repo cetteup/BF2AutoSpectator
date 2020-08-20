@@ -27,7 +27,6 @@ Argument|Description|Default|Required
 `--game-path`|Path to BF2 install folder|C:\Program Files (x86)\EA Games\Battlefield 2\ |No
 `--tesseract-path`|Path to Tesseract install folder|C:\Program Files\Tesseract-OCR\ |No
 `--no-start`|Do not start a new game instance (use existing)
-`--no-connect`|Do not connect to a server automatically
 `--debug-log`|Add debugging information to log output
 `--debug-screenshot`|Write any screenshots to disk for debugging
 
