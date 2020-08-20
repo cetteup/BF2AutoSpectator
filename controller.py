@@ -598,8 +598,7 @@ def ocr_player_name() -> str:
     return orc_results[-1]
 
 
-def init_game_instance(bf2_path: str, player_name: str, player_pass: str,
-                       server_ip: str = None, server_port: str = None) -> None:
+def init_game_instance(bf2_path: str, player_name: str, player_pass: str) -> None:
     # Init shell
     shell = win32com.client.Dispatch("WScript.Shell")
 
@@ -609,13 +608,23 @@ def init_game_instance(bf2_path: str, player_name: str, player_pass: str,
               f'+szx 1280 +szy 720 +fullscreen 0 +wx 5 +wy 5 ' \
               f'+multi 1 +developer 1 +disableShaderCache 1 +ignoreAsserts 1'
 
-    # Add server details to command if provided
-    if server_ip is not None and server_port is not None:
-        command += f' +joinServer {server_ip} +port {server_port}'
-
     # Run command
     shell.Run(command)
-    time.sleep(25)
+
+    # Wait for game window to come up
+    game_window_present = False
+    check_count = 0
+    check_limit = 5
+    while not game_window_present and check_count < check_limit:
+        game_window_present = find_window_by_title('BF2 (v1.5.3153-802.0, pid:', 'BF2') is not None
+        check_count += 1
+        time.sleep(4)
+
+    # If game window came up, give it some time for login etc.
+    if game_window_present:
+        time.sleep(6)
+
+    return game_window_present
 
 
 def connect_to_server(server_ip: str, server_port: str, server_pass: str = None) -> bool:
@@ -914,24 +923,37 @@ if args.use_controller:
         gameInstanceState.set_server_password(joinServer['password'])
 
 # Init game instance if requested
-if args.start_game and args.server_pass is None:
-    print_log('Initializing spectator game instance and joining server')
-    init_game_instance(
-        args.game_path,
-        args.player_name,
-        args.player_pass,
-        gameInstanceState.get_server_ip(),
-        gameInstanceState.get_server_port()
-    )
-    gameInstanceState.set_spectator_on_server(True)
-elif args.start_game and args.server_pass is not None:
-    print_log('Initializing idle spectator game instance')
+if args.start_game:
+    print_log('Initializing spectator game instance')
     init_game_instance(
         args.game_path,
         args.player_name,
         args.player_pass
     )
+
+# Find BF2 window
+print_log('Finding BF2 window')
+bf2Window = find_window_by_title('BF2 (v1.5.3153-802.0, pid:', 'BF2')
+print_log(f'Found window: {bf2Window}')
+
+# Connect to server
+try:
+    win32gui.ShowWindow(bf2Window['handle'], win32con.SW_SHOW)
+    win32gui.SetForegroundWindow(bf2Window['handle'])
+
+    # Connect to server
+    print_log('Connecting to server')
+    connected = connect_to_server(
+        gameInstanceState.get_server_ip(),
+        gameInstanceState.get_server_port(),
+        gameInstanceState.get_server_password()
+    )
     time.sleep(5)
+    gameInstanceState.set_spectator_on_server(connected)
+except Exception as e:
+    print_log('BF2 window is gone, restart required')
+    print_log(str(e))
+    gameInstanceState.set_error_restart_required(True)
 
 # Update controller
 if args.use_controller:
@@ -940,31 +962,6 @@ if args.use_controller:
         gameInstanceState.get_server_port(),
         gameInstanceState.get_server_password()
     )
-
-# Find BF2 window
-print_log('Finding BF2 window')
-bf2Window = find_window_by_title('BF2 (v1.5.3153-802.0, pid:', 'BF2')
-print_log(f'Found window: {bf2Window}')
-
-# Connect to server if requested/required
-if not args.start_game and args.connect or args.start_game and args.server_pass is not None:
-    try:
-        win32gui.ShowWindow(bf2Window['handle'], win32con.SW_SHOW)
-        win32gui.SetForegroundWindow(bf2Window['handle'])
-
-        # Connect to server
-        print_log('Connecting to server')
-        connected = connect_to_server(
-            gameInstanceState.get_server_ip(),
-            gameInstanceState.get_server_port(),
-            gameInstanceState.get_server_password()
-        )
-        time.sleep(5)
-        gameInstanceState.set_spectator_on_server(connected)
-    except Exception as e:
-        print_log('BF2 window is gone, restart required')
-        print_log(str(e))
-        gameInstanceState.set_error_restart_required(True)
 
 # Start with 4 to switch away from dead spectator right away
 iterationsOnPlayer = 5
@@ -1017,17 +1014,30 @@ while True:
         init_game_instance(
             args.game_path,
             args.player_name,
-            args.player_pass,
-            gameInstanceState.get_server_ip(),
-            gameInstanceState.get_server_port()
+            args.player_pass
         )
         # Update window dict
         bf2Window = find_window_by_title('BF2 (v1.5.3153-802.0, pid:', 'BF2')
-        # Reset state
-        gameInstanceState.restart_reset()
-        # Unless we are joining a password server, spectator should be on server after restart
-        if gameInstanceState.get_server_password() is None:
-            gameInstanceState.set_spectator_on_server(True)
+
+        # Connect to server
+        try:
+            win32gui.ShowWindow(bf2Window['handle'], win32con.SW_SHOW)
+            win32gui.SetForegroundWindow(bf2Window['handle'])
+
+            # Connect to server
+            print_log('Connecting to server')
+            connected = connect_to_server(
+                gameInstanceState.get_server_ip(),
+                gameInstanceState.get_server_port(),
+                gameInstanceState.get_server_password()
+            )
+            time.sleep(5)
+            # Reset state
+            gameInstanceState.restart_reset()
+            gameInstanceState.set_spectator_on_server(connected)
+        except Exception as e:
+            print_log('BF2 window is gone, restart required')
+            print_log(str(e))
         continue
 
     # Make sure we are still in the game
