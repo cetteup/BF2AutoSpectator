@@ -2,8 +2,11 @@ class GameInstanceState:
     # Global details
     __spectator_on_server: bool = False
     __hud_hidden: bool = False
-    __round_num: int = 0
     __active_join_possible: bool = False
+
+    # TTL details
+    __round_num: int = 0
+    __rtl_restart_required: bool = False
 
     # Server details
     __server_ip: str = None
@@ -43,17 +46,23 @@ class GameInstanceState:
     def hud_hidden(self) -> bool:
         return self.__hud_hidden
 
+    def set_active_join_possible(self, active_join_possible: bool):
+        self.__active_join_possible = active_join_possible
+
+    def active_join_possible(self) -> bool:
+        return self.__active_join_possible
+
     def increase_round_num(self):
         self.__round_num += 1
 
     def get_round_num(self) -> int:
         return self.__round_num
 
-    def set_active_join_possible(self, active_join_possible: bool):
-        self.__active_join_possible = active_join_possible
+    def set_rtl_restart_required(self, restart_required: bool):
+        self.__rtl_restart_required = restart_required
 
-    def active_join_possible(self) -> bool:
-        return self.__active_join_possible
+    def rtl_restart_required(self) -> bool:
+        return self.__rtl_restart_required
 
     # Server getter/setter functions
     def set_server_ip(self, server_ip: str):

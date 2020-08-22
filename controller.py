@@ -34,6 +34,7 @@ COORDINATES = {
     'clicks': {
         'bfhq-menu-item': (111, 50),
         'multiplayer-menu-item': (331, 50),
+        'quit-menu-item': (1182, 50),
         'connect-to-ip-button': (111, 452),
         'connect-to-ip-ok-button': (777, 362),
         'disconnect-button': (1210, 725),
@@ -44,6 +45,7 @@ COORDINATES = {
     },
     # format for ocr coordinates: tuple(x coordinate, y coordinate, width, height)
     'ocr': {
+        'quit-menu-item': (1160, 42, 45, 20),
         'game-message-header': (400, 223, 130, 25),
         'game-message-text': (400, 245, 470, 18),
         'connect-to-ip-button': (50, 448, 110, 18),
@@ -628,6 +630,27 @@ def init_game_instance(bf2_path: str, player_name: str, player_pass: str) -> Non
     return game_window_present
 
 
+def quit_game_instance() -> bool:
+    global bf2Window
+
+    # Spam press ESC if menu is not already visible
+    attempt = 0
+    max_attempts = 5
+    while 'quit' not in ocr_screenshot_game_window_region('quit-menu-item', True) and attempt < max_attempts:
+        auto_press_key(0x01)
+        attempt += 1
+        time.sleep(1)
+
+    # Click quit menu item
+    mouse_move_to_game_window_coord('quit-menu-item')
+    time.sleep(.2)
+    pyautogui.leftClick()
+
+    time.sleep(2)
+
+    return not is_responding_pid(int(bf2Window['pid']))
+
+
 def connect_to_server(server_ip: str, server_port: str, server_pass: str = None) -> bool:
     # Move cursor onto bfhq menu item and click
     # Required to reset multiplayer menu
@@ -859,7 +882,7 @@ def is_sufficient_action_on_screen(screenshot_count: int = 3, screenshot_sleep: 
 
 
 parser = argparse.ArgumentParser(description='Launch and control a Battlefield 2 spectator instance')
-parser.add_argument('--version', action='version', version='bf2-auto-spectator v0.2.0')
+parser.add_argument('--version', action='version', version='bf2-auto-spectator v0.2.1')
 parser.add_argument('--player-name', help='Account name of spectating player', type=str, required=True)
 parser.add_argument('--player-pass', help='Account password of spectating player', type=str, required=True)
 parser.add_argument('--server-ip', help='IP of sever to join for spectating', type=str, required=True)
@@ -869,13 +892,15 @@ parser.add_argument('--game-path', help='Path to BF2 install folder',
                     type=str, default='C:\\Program Files (x86)\\EA Games\\Battlefield 2\\')
 parser.add_argument('--tesseract-path', help='Path to Tesseract install folder',
                     type=str, default='C:\\Program Files\\Tesseract-OCR\\')
+parser.add_argument('--instance-rtl', help='How many rounds to use a game instance for (rounds to live)', type=int, default=6)
 parser.add_argument('--use-controller', dest='use_controller', action='store_true')
 parser.add_argument('--controller-base-uri', help='Base uri of web controller', type=str)
 parser.add_argument('--controller-app-key', help='App key for web controller', type=str)
 parser.add_argument('--no-start', dest='start_game', action='store_false')
+parser.add_argument('--no-rtl-limit', dest='limit_rtl', action='store_false')
 parser.add_argument('--debug-log', dest='debug_log', action='store_true')
 parser.add_argument('--debug-screenshot', dest='debug_screenshot', action='store_true')
-parser.set_defaults(start_game=True, debug_log=False, debug_screenshot=False, use_controller=False)
+parser.set_defaults(start_game=True, limit_rtl=True, debug_log=False, debug_screenshot=False, use_controller=False)
 args = parser.parse_args()
 
 # Init global vars/settings
@@ -1003,8 +1028,19 @@ while True:
         gameInstanceState.set_error_restart_required(True)
 
     # Start a new game instance if required
-    if gameInstanceState.error_restart_required():
-        if bf2Window is not None:
+    if gameInstanceState.rtl_restart_required() or gameInstanceState.error_restart_required():
+        if bf2Window is not None and gameInstanceState.rtl_restart_required():
+            # Quit out of current instnace
+            print_log('Quitting existing game instance')
+            quitSuccessful = quit_game_instance()
+            print_log(f'Quit successful: {quitSuccessful}')
+            gameInstanceState.set_rtl_restart_required(False)
+            # If quit was not successful, switch to error restart
+            if not quitSuccessful:
+                print_log('Quitting existing game instance failed, switching to error restart')
+                gameInstanceState.set_error_restart_required(True)
+        # Don't use elif here so error restart can be executed right after a failed quit attempt
+        if bf2Window is not None and gameInstanceState.error_restart_required():
             # Kill any remaining instance by pid
             print_log('Killing existing game instance')
             killed = taskkill_pid(int(bf2Window['pid']))
@@ -1125,7 +1161,11 @@ while True:
     onRoundFinishScreen = check_if_round_ended()
     mapIsLoading = check_if_map_is_loading()
     mapBriefingPresent = check_for_map_briefing()
-    if mapIsLoading:
+
+    if args.limit_rtl and onRoundFinishScreen and gameInstanceState.get_round_num() >= args.instance_rtl:
+        print_log('Game instance has reached rtl limit, restart required')
+        gameInstanceState.set_rtl_restart_required(True)
+    elif mapIsLoading:
         print_log('Map is loading')
         # Reset state once if it still reflected to be on the (same) map
         if gameInstanceState.rotation_on_map():
@@ -1229,6 +1269,7 @@ while True:
         gameInstanceState.set_hud_hidden(True)
         # Increase round number/counter
         gameInstanceState.increase_round_num()
+        print_log(f'Entering round #{gameInstanceState.get_round_num()} using this instance')
         # Spectator has "entered" map, update state accordingly
         gameInstanceState.set_rotation_on_map(True)
     elif not onRoundFinishScreen and iterationsOnPlayer < 5:
