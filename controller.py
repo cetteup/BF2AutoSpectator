@@ -1117,8 +1117,10 @@ while True:
 
         continue
 
-    # If we are using a controller, check if server switch is required and possible (spectator on server, map loaded)
-    if args.use_controller and iterationsOnPlayer == 5 and gameInstanceState.spectator_on_server() and gameInstanceState.rotation_on_map():
+    # If we are using a controller, check if server switch is required and possible
+    # (spectator not on server or fully in game)
+    if args.use_controller and (not gameInstanceState.spectator_on_server() or
+                                (gameInstanceState.spectator_on_server() and gameInstanceState.rotation_on_map() and iterationsOnPlayer == 5)):
         print_log('Checking for join server on controller')
         joinServer = controller_get_join_server()
         if joinServer is not None and \
