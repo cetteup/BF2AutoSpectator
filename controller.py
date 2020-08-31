@@ -645,16 +645,10 @@ def init_game_instance(bf2_path: str, player_name: str, player_pass: str) -> Non
     # Init shell
     shell = win32com.client.Dispatch("WScript.Shell")
 
-    window_size = ()
-    if RESOLUTION == '720p':
-        window_size = (1280, 720)
-    elif RESOLUTION == '900p':
-        window_size = (1600, 900)
-
     # Prepare command
     command = f'cmd /c start /b /d "{bf2_path}" BF2.exe +restart 1 ' \
               f'+playerName "{player_name}" +playerPassword "{player_pass}" ' \
-              f'+szx {window_size[0]} +szy {window_size[1]} +fullscreen 0 +wx 5 +wy 5 ' \
+              f'+szx {WINDOW_SIZE[0]} +szy {WINDOW_SIZE[1]} +fullscreen 0 +wx 5 +wy 5 ' \
               f'+multi 1 +developer 1 +disableShaderCache 1 +ignoreAsserts 1'
 
     # Run command
@@ -959,7 +953,13 @@ directories = {
     'root': os.path.dirname(os.path.realpath(__file__))
 }
 
+# Copy resolution to constant and set dependent values
 RESOLUTION = args.game_res
+WINDOW_SIZE = ()
+if RESOLUTION == '720p':
+    WINDOW_SIZE = (1280, 720)
+elif RESOLUTION == '900p':
+    WINDOW_SIZE = (1600, 900)
 
 # Remove the top left corner from pyautogui failsafe points
 # (avoid triggering failsafe exception due to mouse moving to left left during spawn)
@@ -1014,32 +1014,10 @@ print_log('Finding BF2 window')
 bf2Window = find_window_by_title('BF2 (v1.5.3153-802.0, pid:', 'BF2')
 print_log(f'Found window: {bf2Window}')
 
-# Connect to server
-try:
-    win32gui.ShowWindow(bf2Window['handle'], win32con.SW_SHOW)
-    win32gui.SetForegroundWindow(bf2Window['handle'])
-
-    # Connect to server
-    print_log('Connecting to server')
-    connected = connect_to_server(
-        gameInstanceState.get_server_ip(),
-        gameInstanceState.get_server_port(),
-        gameInstanceState.get_server_password()
-    )
-    time.sleep(5)
-    gameInstanceState.set_spectator_on_server(connected)
-except Exception as e:
-    print_log('BF2 window is gone, restart required')
-    print_log(str(e))
+# Make sure found window is correct size/resolution (accounting for window margins)
+if bf2Window is not None and (bf2Window['rect'][2] - 21, bf2Window['rect'][3] - 44) != WINDOW_SIZE:
+    print_log('Existing game window is a different resolution/size than expected, restarting')
     gameInstanceState.set_error_restart_required(True)
-
-# Update controller
-if args.use_controller:
-    controller_update_current_server(
-        gameInstanceState.get_server_ip(),
-        gameInstanceState.get_server_port(),
-        gameInstanceState.get_server_password()
-    )
 
 # Start with 4 to switch away from dead spectator right away
 iterationsOnPlayer = 5
