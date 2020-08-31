@@ -1123,9 +1123,11 @@ while True:
                                 (gameInstanceState.spectator_on_server() and gameInstanceState.rotation_on_map() and iterationsOnPlayer == 5)):
         print_log('Checking for join server on controller')
         joinServer = controller_get_join_server()
+        # Update server and switch if spectator is supposed to be on a different server of password was updated
         if joinServer is not None and \
                 (joinServer['ip'] != gameInstanceState.get_server_ip() or
-                 str(joinServer['gamePort']) != gameInstanceState.get_server_port()):
+                 str(joinServer['gamePort']) != gameInstanceState.get_server_port() or
+                 joinServer['password'] != gameInstanceState.get_server_password()):
             # Spectator is supposed to be on different server
             print_log('Controller has a server to join')
             gameInstanceState.set_server_ip(joinServer['ip'])
@@ -1134,6 +1136,12 @@ while True:
             gameInstanceState.set_spectator_on_server(False)
             print_log('Queued server switch, disconnecting from current server')
             disconnect_from_server()
+        elif gameInstanceState.spectator_on_server():
+            controller_update_current_server(
+                gameInstanceState.get_server_ip(),
+                gameInstanceState.get_server_port(),
+                gameInstanceState.get_server_password()
+            )
 
     # Player is not on server, check if rejoining is possible and makes sense
     if not gameInstanceState.spectator_on_server():
