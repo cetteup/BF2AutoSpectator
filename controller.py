@@ -29,34 +29,73 @@ SendInput = ctypes.windll.user32.SendInput
 PUL = ctypes.POINTER(ctypes.c_ulong)
 HISTCMP_MAX_DELTA = 0.2
 COORDINATES = {
-    # format for click coordinates: tuple(x coordinate, y coordinate)
-    # legacy mouse moves use relative offsets instead of absolute coordinates, but are stored the same way
-    'clicks': {
-        'bfhq-menu-item': (111, 50),
-        'multiplayer-menu-item': (331, 50),
-        'quit-menu-item': (1182, 50),
-        'connect-to-ip-button': (111, 452),
-        'connect-to-ip-ok-button': (777, 362),
-        'disconnect-button': (1210, 725),
-        'game-message-close-button': (806, 412),
-        'join-game-button': (1210, 725),
-        'spawnpoint-deselect': (250, 50),
-        'suicide-button': (469, 459)
+    '720p': {
+        # format for click coordinates: tuple(x coordinate, y coordinate)
+        # legacy mouse moves use relative offsets instead of absolute coordinates, but are stored the same way
+        'clicks': {
+            'bfhq-menu-item': (111, 50),
+            'multiplayer-menu-item': (331, 50),
+            'quit-menu-item': (1182, 50),
+            'connect-to-ip-button': (111, 452),
+            'connect-to-ip-ok-button': (777, 362),
+            'disconnect-button': (1210, 725),
+            'game-message-close-button': (806, 412),
+            'join-game-button': (1210, 725),
+            'spawnpoint-deselect': (250, 50),
+            'suicide-button': (469, 459)
+        },
+        # format for ocr coordinates: tuple(x coordinate, y coordinate, width, height)
+        'ocr': {
+            'quit-menu-item': (1160, 42, 45, 20),
+            'game-message-header': (400, 223, 130, 25),
+            'game-message-text': (400, 245, 470, 18),
+            'connect-to-ip-button': (50, 448, 110, 18),
+            'disconnect-button': (1133, 725, 92, 16),
+            'eor-header-items': (72, 82, 740, 20),
+            'join-game-button': (1163, 725, 80, 16),
+            'map-briefing-header': (24, 112, 115, 20),
+            'special-forces-class-label': (60, 125, 140, 18),
+            'eor-map-name': (769, 114, 210, 17),
+            'eor-map-size': (1256, 570, 20, 17),
+            'suicide-button': (940, 678, 75, 19)
+        },
+        'hists': {
+            'teams': [(68, 69, 41, 13), (209, 69, 41, 13)]
+        }
     },
-    # format for ocr coordinates: tuple(x coordinate, y coordinate, width, height)
-    'ocr': {
-        'quit-menu-item': (1160, 42, 45, 20),
-        'game-message-header': (400, 223, 130, 25),
-        'game-message-text': (400, 245, 470, 18),
-        'connect-to-ip-button': (50, 448, 110, 18),
-        'disconnect-button': (1133, 725, 92, 16),
-        'eor-header-items': (72, 82, 740, 20),
-        'join-game-button': (1163, 725, 80, 16),
-        'map-briefing-header': (24, 112, 115, 20),
-        'special-forces-class-label': (60, 125, 140, 18),
-        'eor-map-name': (769, 114, 210, 17),
-        'eor-map-size': (1256, 570, 20, 17),
-        'suicide-button': (940, 678, 75, 19)
+    '900p': {
+        # format for click coordinates: tuple(x coordinate, y coordinate)
+        # legacy mouse moves use relative offsets instead of absolute coordinates, but are stored the same way
+        'clicks': {
+            'bfhq-menu-item': (138, 52),
+            'multiplayer-menu-item': (410, 52),
+            'quit-menu-item': (1468, 52),
+            'connect-to-ip-button': (122, 558),
+            'connect-to-ip-ok-button': (958, 440),
+            'disconnect-button': (1468, 906),
+            'game-message-close-button': (1002, 501),
+            'join-game-button': (1468, 906),
+            'spawnpoint-deselect': (250, 50),
+            'suicide-button': (497, 455)
+        },
+        # format for ocr coordinates: tuple(x coordinate, y coordinate, width, height)
+        'ocr': {
+            'quit-menu-item': (1449, 47, 47, 22),
+            'game-message-header': (500, 274, 152, 25),
+            'game-message-text': (500, 300, 520, 20),
+            'connect-to-ip-button': (62, 551, 134, 22),
+            'disconnect-button': (1418, 900, 108, 20),
+            'eor-header-items': (88, 94, 924, 22),
+            'join-game-button': (1450, 900, 98, 18),
+            'map-briefing-header': (26, 133, 141, 22),
+            'special-forces-class-label': (73, 149, 164, 20),
+            'eor-map-name': (956, 134, 250, 21),
+            'eor-map-size': (1564, 706, 24, 18),
+            'suicide-button': (1173, 841, 88, 20)
+        },
+        'hists': {
+            'teams': [(81, 77, 60, 18), (257, 77, 60, 18)]
+        }
     },
     # format for spawn coordinates: list(team 0 tuple, team 1 tuple) with tuple(x offset, y offset)
     'spawns': {
@@ -219,12 +258,12 @@ def mouse_move_to_game_window_coord(key: str, legacy: bool = False) -> None:
     """
 
     if legacy:
-        mouse_move_legacy(COORDINATES['clicks'][key][0], COORDINATES['clicks'][key][1])
+        mouse_move_legacy(COORDINATES[RESOLUTION]['clicks'][key][0], COORDINATES[RESOLUTION]['clicks'][key][1])
     else:
         global bf2Window
         pyautogui.moveTo(
-            bf2Window['rect'][0] + COORDINATES['clicks'][key][0],
-            bf2Window['rect'][1] + COORDINATES['clicks'][key][1]
+            bf2Window['rect'][0] + COORDINATES[RESOLUTION]['clicks'][key][0],
+            bf2Window['rect'][1] + COORDINATES[RESOLUTION]['clicks'][key][1]
         )
 
 
@@ -343,10 +382,10 @@ def ocr_screenshot_game_window_region(key: str, invert: bool = False, show: bool
     global bf2Window
 
     return ocr_screenshot_region(
-        bf2Window['rect'][0] + COORDINATES['ocr'][key][0],
-        bf2Window['rect'][1] + COORDINATES['ocr'][key][1],
-        COORDINATES['ocr'][key][2],
-        COORDINATES['ocr'][key][3],
+        bf2Window['rect'][0] + COORDINATES[RESOLUTION]['ocr'][key][0],
+        bf2Window['rect'][1] + COORDINATES[RESOLUTION]['ocr'][key][1],
+        COORDINATES[RESOLUTION]['ocr'][key][2],
+        COORDINATES[RESOLUTION]['ocr'][key][3],
         invert,
         show,
         config
@@ -476,10 +515,11 @@ def get_player_team(server_ip: str, server_port: str) -> int:
 
 def get_player_team_histogram() -> int:
     # Take team selection screenshots
-    team_selection_screenshots = [
-        screenshot_game_window_region(68, 69, 41, 13),
-        screenshot_game_window_region(209, 69, 41, 13)
-    ]
+    team_selection_screenshots = []
+    for coord_set in COORDINATES[RESOLUTION]['hists']['teams']:
+        team_selection_screenshots.append(
+            screenshot_game_window_region(coord_set[0], coord_set[1], coord_set[2], coord_set[3])
+        )
 
     # Get histograms of screenshots
     team_selection_histograms = []
@@ -488,13 +528,13 @@ def get_player_team_histogram() -> int:
 
     # Calculate histogram deltas
     histogram_deltas = {
-        'to_usmc_active': cv2.compareHist(team_selection_histograms[0], HISTOGRAMS['teams']['usmc']['active'],
+        'to_usmc_active': cv2.compareHist(team_selection_histograms[0], HISTOGRAMS[RESOLUTION]['teams']['usmc']['active'],
                                           cv2.HISTCMP_BHATTACHARYYA),
-        'to_eu_active': cv2.compareHist(team_selection_histograms[0], HISTOGRAMS['teams']['eu']['active'],
+        'to_eu_active': cv2.compareHist(team_selection_histograms[0], HISTOGRAMS[RESOLUTION]['teams']['eu']['active'],
                                         cv2.HISTCMP_BHATTACHARYYA),
-        'to_china_active': cv2.compareHist(team_selection_histograms[1], HISTOGRAMS['teams']['china']['active'],
+        'to_china_active': cv2.compareHist(team_selection_histograms[1], HISTOGRAMS[RESOLUTION]['teams']['china']['active'],
                                            cv2.HISTCMP_BHATTACHARYYA),
-        'to_mec_active': cv2.compareHist(team_selection_histograms[1], HISTOGRAMS['teams']['mec']['active'],
+        'to_mec_active': cv2.compareHist(team_selection_histograms[1], HISTOGRAMS[RESOLUTION]['teams']['mec']['active'],
                                          cv2.HISTCMP_BHATTACHARYYA),
     }
 
@@ -605,10 +645,16 @@ def init_game_instance(bf2_path: str, player_name: str, player_pass: str) -> Non
     # Init shell
     shell = win32com.client.Dispatch("WScript.Shell")
 
+    window_size = ()
+    if RESOLUTION == '720p':
+        window_size = (1280, 720)
+    elif RESOLUTION == '900p':
+        window_size = (1600, 900)
+
     # Prepare command
     command = f'cmd /c start /b /d "{bf2_path}" BF2.exe +restart 1 ' \
               f'+playerName "{player_name}" +playerPassword "{player_pass}" ' \
-              f'+szx 1280 +szy 720 +fullscreen 0 +wx 5 +wy 5 ' \
+              f'+szx {window_size[0]} +szy {window_size[1]} +fullscreen 0 +wx 5 +wy 5 ' \
               f'+multi 1 +developer 1 +disableShaderCache 1 +ignoreAsserts 1'
 
     # Run command
@@ -758,11 +804,13 @@ def disconnect_from_server() -> None:
     auto_press_key(0x01)
     time.sleep(5)
     # Make sure disconnect button is present
-    if 'disconnect' in ocr_screenshot_game_window_region('disconnect-button'):
+    if 'disconnect' in ocr_screenshot_game_window_region('disconnect-button', True):
         # Move cursor onto disconnect button and click
         mouse_move_to_game_window_coord('disconnect-button')
         time.sleep(.2)
         pyautogui.leftClick()
+
+    time.sleep(1.2)
 
 
 def close_game_message() -> None:
@@ -890,6 +938,7 @@ parser.add_argument('--server-port', help='Port of sever to join for spectating'
 parser.add_argument('--server-pass', help='Password of sever to join for spectating', type=str)
 parser.add_argument('--game-path', help='Path to BF2 install folder',
                     type=str, default='C:\\Program Files (x86)\\EA Games\\Battlefield 2\\')
+parser.add_argument('--game-res', help='Resolution to use for BF2 window', choices=['720p', '900p'], type=str, default='720p')
 parser.add_argument('--tesseract-path', help='Path to Tesseract install folder',
                     type=str, default='C:\\Program Files\\Tesseract-OCR\\')
 parser.add_argument('--instance-rtl', help='How many rounds to use a game instance for (rounds to live)', type=int, default=6)
@@ -909,6 +958,8 @@ top_windows = []
 directories = {
     'root': os.path.dirname(os.path.realpath(__file__))
 }
+
+RESOLUTION = args.game_res
 
 # Remove the top left corner from pyautogui failsafe points
 # (avoid triggering failsafe exception due to mouse moving to left left during spawn)
@@ -1269,7 +1320,6 @@ while True:
             # Map detection failed, force reconnect
             print_log('Map detection failed, disconnecting')
             disconnect_from_server()
-            time.sleep(3)
             # Update state
             gameInstanceState.set_spectator_on_server(False)
             continue

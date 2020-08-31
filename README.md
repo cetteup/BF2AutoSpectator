@@ -14,6 +14,7 @@ The goal is to provide a fully automated, fire-and-forget spectator for the game
 - automatic rotation between players of spectator's team
 - in game error detection and handling
 - game freeze detection and handling
+- support for 720p (1280x720) and 900p (1600x900) game window size/resolution
 - (optional) remote control using [bf2-auto-spectator-controller](https://github.com/cetteup/bf2-auto-spectator-controller)
 
 ## Command line arguments
@@ -26,6 +27,7 @@ Argument|Description|Default|Required
 `--server-port`|Port of server to join|16567|No
 `--server-pass`|Passwort for server to join|None|No
 `--game-path`|Path to BF2 install folder|C:\Program Files (x86)\EA Games\Battlefield 2\ |No
+`--game-res`|Resolution to use for BF2 window|720p|No
 `--tesseract-path`|Path to Tesseract install folder|C:\Program Files\Tesseract-OCR\ |No
 `--use-controller`|Use a bf2-auto-spectator-controller instance
 `--controller-base-uri`|Base uri of controller instance (format: http[s]://[hostname])
@@ -91,7 +93,6 @@ If you want to stop the spectator, hit CTRL + C in the CMD/Powershell window at 
 **Please note: You cannot (really) use the computer while the spectator is running. It relies on having control over mouse and keyboard and needs the game window to be focused and in the foreground.** You do, however, have small time windows between the spectator's actions in which you can start/stop the stream, stop the spectator etc.
 
 ## Known limitations
-- bf2-auto-spectator currently only supports running the game in 720p windowed mode
 - Windows display scaling must be set to 100%
 - auto-spawning will currently fail if the default spawn has been captured by the other team
 - game locale/language must be set to English
