@@ -924,7 +924,7 @@ def is_sufficient_action_on_screen(screenshot_count: int = 3, screenshot_sleep: 
 
 
 parser = argparse.ArgumentParser(description='Launch and control a Battlefield 2 spectator instance')
-parser.add_argument('--version', action='version', version='bf2-auto-spectator v0.2.1')
+parser.add_argument('--version', action='version', version='bf2-auto-spectator v0.2.2')
 parser.add_argument('--player-name', help='Account name of spectating player', type=str, required=True)
 parser.add_argument('--player-pass', help='Account password of spectating player', type=str, required=True)
 parser.add_argument('--server-ip', help='IP of sever to join for spectating', type=str, required=True)
