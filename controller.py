@@ -343,7 +343,10 @@ def ocr_screenshot_region(x: int, y: int, w: int, h: int, invert: bool = False, 
         screenshot = ImageOps.invert(screenshot)
     if show:
         screenshot.show()
-    ocr_result = pytesseract.image_to_string(screenshot, config=config)
+    # pytesseract stopped stripping \n\x0c from ocr results,
+    # returning raw results instead (https://github.com/madmaze/pytesseract/issues/297)
+    # so strip those characters as well as spaces after getting the result
+    ocr_result = pytesseract.image_to_string(screenshot, config=config).strip(' \n\x0c')
 
     # Save screenshot to debug directory and print ocr result if debugging is enabled
     if args.debug_screenshot:
