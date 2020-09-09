@@ -1,5 +1,6 @@
 import argparse
 import ctypes
+import logging
 import os
 import pickle
 import re
@@ -172,13 +173,6 @@ COORDINATES = {
         }
     }
 }
-
-
-# =============================================================================
-# Print a line preceded by a timestamp
-# =============================================================================
-def print_log(message: object) -> None:
-    print(f'{datetime.now().strftime("%Y-%m-%d %H:%M:%S")} # {str(message)}')
 
 
 def list_filter_zeroes(list_with_zeroes: list) -> list:
@@ -363,7 +357,7 @@ def ocr_screenshot_region(x: int, y: int, w: int, h: int, invert: bool = False, 
             )
         )
         # Print ocr result
-        print_log(f'OCR result: {ocr_result}')
+        logging.debug(f'OCR result: {ocr_result}')
 
     return ocr_result.lower()
 
@@ -775,7 +769,7 @@ def controller_update_current_server(server_ip: str, server_port: str, server_pa
         if response.status_code == 200:
             requestOk = True
     except Exception as e:
-        print_log(e)
+        logging.error(e)
 
     return requestOk
 
@@ -788,7 +782,7 @@ def controller_get_join_server() -> dict:
         if response.status_code == 200:
             join_sever = response.json()
     except Exception as e:
-        print_log(e)
+        logging.error(e)
 
     return join_sever
 
@@ -917,8 +911,7 @@ def is_sufficient_action_on_screen(screenshot_count: int = 3, screenshot_sleep: 
     # Take average of deltas
     average_delta = np.average(histogram_deltas)
 
-    if args.debug_log:
-        print_log(f'Average histogram delta: {average_delta}')
+    logging.debug(f'Average histogram delta: {average_delta}')
 
     return average_delta > min_delta
 
@@ -946,6 +939,8 @@ parser.add_argument('--debug-screenshot', dest='debug_screenshot', action='store
 parser.set_defaults(start_game=True, limit_rtl=True, debug_log=False, debug_screenshot=False, use_controller=False)
 args = parser.parse_args()
 
+logging.basicConfig(level=logging.DEBUG if args.debug_log else logging.INFO, format='%(asctime)s %(message)s')
+
 # Init global vars/settings
 pytesseract.pytesseract.tesseract_cmd = os.path.join(args.tesseract_path, 'tesseract.exe')
 top_windows = []
@@ -972,7 +967,7 @@ elif not os.path.isfile(os.path.join(args.game_path, 'BF2.exe')):
     sys.exit(f'Could not find BF2.exe in given game install folder: {args.game_path}')
 
 # Load pickles
-print_log('Loading pickles')
+logging.info('Loading pickles')
 directories['pickle'] = os.path.join(directories['root'], 'pickle')
 with open(os.path.join(directories['pickle'], 'histograms.pickle'), 'rb') as histogramFile:
     HISTOGRAMS = pickle.load(histogramFile)
@@ -989,20 +984,20 @@ gameInstanceState = GameInstanceState(args.server_ip, args.server_port, args.ser
 
 # Check whether the controller has a server join
 if args.use_controller:
-    print_log('Checking for join server on controller')
+    logging.info('Checking for join server on controller')
     joinServer = controller_get_join_server()
     if joinServer is not None and \
             (joinServer['ip'] != gameInstanceState.get_server_ip() or
              str(joinServer['gamePort']) != gameInstanceState.get_server_port()):
         # Spectator is supposed to be on different server
-        print_log('Controller has a server to join')
+        logging.info('Controller has a server to join')
         gameInstanceState.set_server_ip(joinServer['ip'])
         gameInstanceState.set_server_port(str(joinServer['gamePort']))
         gameInstanceState.set_server_password(joinServer['password'])
 
 # Init game instance if requested
 if args.start_game:
-    print_log('Initializing spectator game instance')
+    logging.info('Initializing spectator game instance')
     init_game_instance(
         args.game_path,
         args.player_name,
@@ -1010,13 +1005,13 @@ if args.start_game:
     )
 
 # Find BF2 window
-print_log('Finding BF2 window')
+logging.info('Finding BF2 window')
 bf2Window = find_window_by_title('BF2 (v1.5.3153-802.0, pid:', 'BF2')
-print_log(f'Found window: {bf2Window}')
+logging.info(f'Found window: {bf2Window}')
 
 # Make sure found window is correct size/resolution (accounting for window margins)
 if bf2Window is not None and (bf2Window['rect'][2] - 21, bf2Window['rect'][3] - 44) != WINDOW_SIZE:
-    print_log('Existing game window is a different resolution/size than expected, restarting')
+    logging.error('Existing game window is a different resolution/size than expected, restarting')
     gameInstanceState.set_error_restart_required(True)
 
 # Start with 4 to switch away from dead spectator right away
@@ -1028,52 +1023,52 @@ while True:
             win32gui.ShowWindow(bf2Window['handle'], win32con.SW_SHOW)
             win32gui.SetForegroundWindow(bf2Window['handle'])
         except Exception as e:
-            print_log('BF2 window is gone, restart required')
-            print_log(str(e))
+            logging.error('BF2 window is gone, restart required')
+            logging.error(str(e))
             gameInstanceState.set_error_restart_required(True)
 
     # Check if game froze
     if not gameInstanceState.error_restart_required() and not is_responding_pid(int(bf2Window['pid'])):
-        print_log('Game froze, checking unresponsive count')
+        logging.info('Game froze, checking unresponsive count')
         # Game will temporarily freeze when map load finishes or when joining server, so don't restart right away
         if gameInstanceState.get_error_unresponsive_count() < 3:
-            print_log('Unresponsive count below limit, giving time to recover')
+            logging.info('Unresponsive count below limit, giving time to recover')
             # Increase unresponsive count
             gameInstanceState.increase_error_unresponsive_count()
             # Check again in 2 seconds
             time.sleep(2)
             continue
         else:
-            print_log('Unresponsive count exceeded limit, scheduling restart')
+            logging.error('Unresponsive count exceeded limit, scheduling restart')
             gameInstanceState.set_error_restart_required(True)
     elif not gameInstanceState.error_restart_required() and gameInstanceState.get_error_unresponsive_count() > 0:
-        print_log('Game recovered from temp freeze, resetting unresponsive count')
+        logging.info('Game recovered from temp freeze, resetting unresponsive count')
         # Game got it together, reset unresponsive count
         gameInstanceState.reset_error_unresponsive_count()
 
     # Check for (debug assertion) error window
     if not gameInstanceState.error_restart_required() and find_window_by_title('BF2 Error') is not None:
-        print_log('BF2 Error window present, scheduling restart')
+        logging.error('BF2 Error window present, scheduling restart')
         gameInstanceState.set_error_restart_required(True)
 
     # Start a new game instance if required
     if gameInstanceState.rtl_restart_required() or gameInstanceState.error_restart_required():
         if bf2Window is not None and gameInstanceState.rtl_restart_required():
             # Quit out of current instnace
-            print_log('Quitting existing game instance')
+            logging.info('Quitting existing game instance')
             quitSuccessful = quit_game_instance()
-            print_log(f'Quit successful: {quitSuccessful}')
+            logging.debug(f'Quit successful: {quitSuccessful}')
             gameInstanceState.set_rtl_restart_required(False)
             # If quit was not successful, switch to error restart
             if not quitSuccessful:
-                print_log('Quitting existing game instance failed, switching to error restart')
+                logging.error('Quitting existing game instance failed, switching to error restart')
                 gameInstanceState.set_error_restart_required(True)
         # Don't use elif here so error restart can be executed right after a failed quit attempt
         if bf2Window is not None and gameInstanceState.error_restart_required():
             # Kill any remaining instance by pid
-            print_log('Killing existing game instance')
+            logging.info('Killing existing game instance')
             killed = taskkill_pid(int(bf2Window['pid']))
-            print_log(f'Instance killed: {killed}')
+            logging.debug(f'Instance killed: {killed}')
             # Give Windows time to actually close the window
             time.sleep(3)
 
@@ -1092,7 +1087,7 @@ while True:
             win32gui.SetForegroundWindow(bf2Window['handle'])
 
             # Connect to server
-            print_log('Connecting to server')
+            logging.info('Connecting to server')
             connected = connect_to_server(
                 gameInstanceState.get_server_ip(),
                 gameInstanceState.get_server_port(),
@@ -1103,42 +1098,42 @@ while True:
             gameInstanceState.restart_reset()
             gameInstanceState.set_spectator_on_server(connected)
         except Exception as e:
-            print_log('BF2 window is gone, restart required')
-            print_log(str(e))
+            logging.error('BF2 window is gone, restart required')
+            logging.error(str(e))
         continue
 
     # Make sure we are still in the game
     gameMessagePresent = check_for_game_message()
     if gameMessagePresent:
-        print_log('Game message present, ocr-ing message')
+        logging.info('Game message present, ocr-ing message')
         gameMessage = ocr_game_message()
 
         # Close game message to enable actions
         close_game_message()
 
         if 'full' in gameMessage:
-            print_log('Server full, trying to rejoin in 30 seconds')
+            logging.info('Server full, trying to rejoin in 30 seconds')
             # Update state
             gameInstanceState.set_spectator_on_server(False)
             # Connect to server waits 10, wait another 20 = 30
             time.sleep(20)
         elif 'kicked' in gameMessage:
-            print_log('Got kicked, trying to rejoin')
+            logging.info('Got kicked, trying to rejoin')
             # Update state
             gameInstanceState.set_spectator_on_server(False)
         elif 'banned' in gameMessage:
             sys.exit('Got banned, contact server admin')
         elif 'connection' in gameMessage and 'lost' in gameMessage or \
                 'failed to connect' in gameMessage:
-            print_log('Connection lost, trying to reconnect')
+            logging.info('Connection lost, trying to reconnect')
             # Update state
             gameInstanceState.set_spectator_on_server(False)
         elif 'modified content' in gameMessage:
-            print_log('Got kicked for modified content, trying to rejoin')
+            logging.info('Got kicked for modified content, trying to rejoin')
             # Update state
             gameInstanceState.set_spectator_on_server(False)
         elif 'invalid ip address' in gameMessage:
-            print_log('Join by ip dialogue bugged, restart required')
+            logging.info('Join by ip dialogue bugged, restart required')
             # Set restart flag
             gameInstanceState.set_error_restart_required(True)
         else:
@@ -1150,7 +1145,7 @@ while True:
     # (spectator not on server or fully in game)
     if args.use_controller and (not gameInstanceState.spectator_on_server() or
                                 (gameInstanceState.spectator_on_server() and gameInstanceState.rotation_on_map() and iterationsOnPlayer == 5)):
-        print_log('Checking for join server on controller')
+        logging.info('Checking for join server on controller')
         joinServer = controller_get_join_server()
         # Update server and switch if spectator is supposed to be on a different server of password was updated
         if joinServer is not None and \
@@ -1158,12 +1153,12 @@ while True:
                  str(joinServer['gamePort']) != gameInstanceState.get_server_port() or
                  joinServer['password'] != gameInstanceState.get_server_password()):
             # Spectator is supposed to be on different server
-            print_log('Controller has a server to join')
+            logging.info('Controller has a server to join')
             gameInstanceState.set_server_ip(joinServer['ip'])
             gameInstanceState.set_server_port(str(joinServer['gamePort']))
             gameInstanceState.set_server_password(joinServer['password'])
             gameInstanceState.set_spectator_on_server(False)
-            print_log('Queued server switch, disconnecting from current server')
+            logging.info('Queued server switch, disconnecting from current server')
             disconnect_from_server()
         elif gameInstanceState.spectator_on_server():
             controller_update_current_server(
@@ -1177,7 +1172,7 @@ while True:
         # Check number of free slots
         # TODO
         # (Re-)connect to server
-        print_log('(Re-)Connecting to server')
+        logging.info('(Re-)Connecting to server')
         connected = connect_to_server(
             gameInstanceState.get_server_ip(),
             gameInstanceState.get_server_port(),
@@ -1202,18 +1197,18 @@ while True:
     mapBriefingPresent = check_for_map_briefing()
 
     if args.limit_rtl and onRoundFinishScreen and gameInstanceState.get_round_num() >= args.instance_rtl:
-        print_log('Game instance has reached rtl limit, restart required')
+        logging.info('Game instance has reached rtl limit, restart required')
         gameInstanceState.set_rtl_restart_required(True)
     elif mapIsLoading:
-        print_log('Map is loading')
+        logging.info('Map is loading')
         # Reset state once if it still reflected to be on the (same) map
         if gameInstanceState.rotation_on_map():
-            print_log('Performing map rotation reset')
+            logging.info('Performing map rotation reset')
             gameInstanceState.map_rotation_reset()
         iterationsOnPlayer = 5
         time.sleep(3)
     elif mapBriefingPresent:
-        print_log('Map briefing present, checking map')
+        logging.info('Map briefing present, checking map')
         currentMapName = get_map_name()
         currentMapSize = get_map_size()
 
@@ -1221,17 +1216,17 @@ while True:
         if currentMapName is not None and currentMapSize != -1 and \
                 (currentMapName != gameInstanceState.get_rotation_map_name() or
                  currentMapSize != gameInstanceState.get_rotation_map_size()):
-            print_log(f'Updating map state: {currentMapName}; {currentMapSize}')
+            logging.debug(f'Updating map state: {currentMapName}; {currentMapSize}')
             gameInstanceState.set_rotation_map_name(currentMapName)
             gameInstanceState.set_rotation_map_size(currentMapSize)
 
             # Give go-ahead for active joining
-            print_log('Enabling active joining')
+            logging.info('Enabling active joining')
             gameInstanceState.set_active_join_possible(True)
 
         if gameInstanceState.active_join_possible():
             # Check if join game button is present
-            print_log('Could actively join, checking for button')
+            logging.info('Could actively join, checking for button')
             joinGameButtonPresent = check_for_join_game_button()
 
             if joinGameButtonPresent:
@@ -1240,7 +1235,7 @@ while True:
 
         time.sleep(3)
     elif onRoundFinishScreen:
-        print_log('Game is on round finish screen')
+        logging.info('Game is on round finish screen')
         # Reset state
         gameInstanceState.round_end_reset()
         # Set counter to 4 again to skip spectator
@@ -1252,7 +1247,7 @@ while True:
             # Give game time to swap teams
             time.sleep(3)
             # Re-enable hud
-            print_log('Enabling hud')
+            logging.info('Enabling hud')
             toggle_hud(1)
             # Update state
             gameInstanceState.set_hud_hidden(False)
@@ -1260,73 +1255,66 @@ while True:
 
         spawnMenuVisible = check_if_spawn_menu_visible()
         if not spawnMenuVisible:
-            print_log('Spawn menu not visible, opening with enter')
+            logging.info('Spawn menu not visible, opening with enter')
             auto_press_key(0x1c)
             time.sleep(1.5)
             # Force another attempt re-enable hud
             gameInstanceState.set_hud_hidden(True)
             continue
 
-        print_log('Determining team')
+        logging.info('Determining team')
         currentTeam = get_player_team_histogram()
         if currentTeam is not None and \
                 gameInstanceState.get_rotation_map_name() is not None and \
                 gameInstanceState.get_rotation_map_size() != -1:
             gameInstanceState.set_round_team(currentTeam)
-            print_log(f'Current team: {"USMC" if gameInstanceState.get_round_team() == 0 else "MEC/CHINA"}')
-            print_log('Spawning once')
+            logging.debug(f'Current team: {"USMC" if gameInstanceState.get_round_team() == 0 else "MEC/CHINA"}')
+            logging.info('Spawning once')
             try:
                 spawnSucceeded = spawn_suicide(
                     gameInstanceState.get_rotation_map_name(),
                     gameInstanceState.get_rotation_map_size(),
                     gameInstanceState.get_round_team()
                 )
-                print_log('Spawn succeeded' if spawnSucceeded else 'Spawn failed, retrying')
+                logging.info('Spawn succeeded' if spawnSucceeded else 'Spawn failed, retrying')
                 gameInstanceState.set_round_spawned(spawnSucceeded)
             except UnsupportedMapException as e:
-                print_log('Spawning not supported on current map/size')
+                logging.error('Spawning not supported on current map/size')
                 # Wait map out by "faking" spawn
                 gameInstanceState.set_round_spawned(True)
         elif gameInstanceState.get_rotation_map_name() is not None and \
                 gameInstanceState.get_rotation_map_size() != -1:
-            print_log('Failed to determine current team, retrying')
+            logging.error('Failed to determine current team, retrying')
             # Force another attempt re-enable hud
             gameInstanceState.set_hud_hidden(True)
             time.sleep(2)
             continue
         else:
             # Map detection failed, force reconnect
-            print_log('Map detection failed, disconnecting')
+            logging.error('Map detection failed, disconnecting')
             disconnect_from_server()
             # Update state
             gameInstanceState.set_spectator_on_server(False)
             continue
     elif not onRoundFinishScreen and not gameInstanceState.hud_hidden():
-        print_log('Hiding hud')
+        logging.info('Hiding hud')
         toggle_hud(0)
         gameInstanceState.set_hud_hidden(True)
         # Increase round number/counter
         gameInstanceState.increase_round_num()
-        print_log(f'Entering round #{gameInstanceState.get_round_num()} using this instance')
+        logging.debug(f'Entering round #{gameInstanceState.get_round_num()} using this instance')
         # Spectator has "entered" map, update state accordingly
         gameInstanceState.set_rotation_on_map(True)
     elif not onRoundFinishScreen and iterationsOnPlayer < 5:
         # Check if player is afk
         if not is_sufficient_action_on_screen():
-            print_log('Insufficient action on screen')
+            logging.info('Insufficient action on screen')
             iterationsOnPlayer = 5
         else:
-            print_log('Nothing to do, stay on player')
+            logging.info('Nothing to do, stay on player')
             iterationsOnPlayer += 1
             time.sleep(2)
     elif not onRoundFinishScreen:
-        print_log('Rotating to next player')
+        logging.info('Rotating to next player')
         auto_press_key(0x2e)
         iterationsOnPlayer = 0
-
-    # serverIsFull = get_server_player_count() == 64
-    # print_log(f'Server is full {serverIsFull}')
-    # if serverIsFull and gameInstanceState.spectator_on_server():
-    #     disconnect_from_server()
-    #     gameInstanceState.set_spectator_on_server(False)
-    #     time.sleep(30)
