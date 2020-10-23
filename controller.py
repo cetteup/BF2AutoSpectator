@@ -758,29 +758,34 @@ def connect_to_server(server_ip: str, server_port: str, server_pass: str = None)
     return True
 
 
-def controller_update_current_server(server_ip: str, server_port: str, server_pass: str = None, in_rotation: bool = False) -> bool:
-    requestOk = False
+def controller_update_current_server(server_ip: str, server_port: str, server_pass: str = None,
+                                     in_rotation: bool = False) -> bool:
+    request_ok = False
     try:
-        response = requests.post(f'{args.controller_base_uri}/servers/current', data={
-            'app_key': args.controller_app_key,
-            'ip': server_ip,
-            'port': server_port,
-            'password': server_pass,
-            'in_rotation': str(in_rotation).lower()
-        })
+        response = requests.post(
+            f'{args.controller_base_uri}/servers/current',
+            data={
+                'app_key': args.controller_app_key,
+                'ip': server_ip,
+                'port': server_port,
+                'password': server_pass,
+                'in_rotation': str(in_rotation).lower()
+            },
+            timeout=10
+        )
 
         if response.status_code == 200:
-            requestOk = True
+            request_ok = True
     except Exception as e:
         logging.error(e)
 
-    return requestOk
+    return request_ok
 
 
 def controller_get_join_server() -> dict:
     join_sever = None
     try:
-        response = requests.get(f'{args.controller_base_uri}/servers/join')
+        response = requests.get(f'{args.controller_base_uri}/servers/join', timeout=10)
 
         if response.status_code == 200:
             join_sever = response.json()
