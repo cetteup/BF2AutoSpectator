@@ -1054,8 +1054,10 @@ while True:
         # Game got it together, reset unresponsive count
         gameInstanceState.reset_error_unresponsive_count()
 
-    # Check for (debug assertion) error window
-    if not gameInstanceState.error_restart_required() and find_window_by_title('BF2 Error') is not None:
+    # Check for (debug assertion and Visual C++ Runtime) error window
+    if not gameInstanceState.error_restart_required() and \
+            (find_window_by_title('BF2 Error') is not None or
+             find_window_by_title('Microsoft Visual C++ Runtime Library') is not None):
         logging.error('BF2 Error window present, scheduling restart')
         gameInstanceState.set_error_restart_required(True)
 
