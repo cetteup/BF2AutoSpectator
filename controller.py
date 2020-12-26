@@ -795,6 +795,44 @@ def controller_get_join_server() -> dict:
     return join_sever
 
 
+def controller_get_command(cmd_key: str):
+    cmd_value = None
+    try:
+        response = requests.get(
+            f'{args.controller_base_uri}/commands',
+            params={'app_key': args.controller_app_key},
+            timeout=10
+        )
+
+        if response.status_code == 200:
+            parsed = response.json()
+            cmd_value = parsed[cmd_key] if cmd_key in parsed.keys() else None
+    except Exception as e:
+        logging.error(e)
+
+    return cmd_value
+
+
+def controller_post_commands(commands: dict) -> bool:
+    request_ok = False
+    try:
+        response = requests.post(
+            f'{args.controller_base_uri}/commands',
+            data={
+                'app_key': args.controller_app_key,
+                **commands
+            },
+            timeout=10
+        )
+
+        if response.status_code == 200:
+            request_ok = True
+    except Exception as e:
+        logging.error(e)
+
+    return request_ok
+
+
 def disconnect_from_server() -> None:
     # Press ESC
     auto_press_key(0x01)
@@ -1060,6 +1098,15 @@ while True:
              find_window_by_title('Microsoft Visual C++ Runtime Library') is not None):
         logging.error('BF2 Error window present, scheduling restart')
         gameInstanceState.set_error_restart_required(True)
+
+    # Check if a game restart command was issued to the controller
+    if args.use_controller and controller_get_command('game_restart') is True:
+        logging.info('Game restart requested via controller, unsetting command flag and queueing game restart')
+        # Reset command to false
+        commandReset = controller_post_commands({'game_restart': False})
+        if commandReset:
+            # Set restart required flag
+            gameInstanceState.set_error_restart_required(True)
 
     # Start a new game instance if required
     if gameInstanceState.rtl_restart_required() or gameInstanceState.error_restart_required():
