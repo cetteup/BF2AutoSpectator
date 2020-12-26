@@ -399,6 +399,16 @@ def check_for_game_message() -> bool:
     return 'game message' in ocr_result
 
 
+def check_if_in_menu() -> bool:
+    # Get ocr result of quit menu item area
+    ocr_result = ocr_screenshot_game_window_region(
+        'quit-menu-item',
+        True
+    )
+
+    return 'quit' in ocr_result
+
+
 def ocr_game_message() -> str:
     # Get ocr result of game message content region
     ocr_result = ocr_screenshot_game_window_region(
@@ -755,7 +765,19 @@ def connect_to_server(server_ip: str, server_port: str, server_pass: str = None)
     time.sleep(.2)
     pyautogui.leftClick()
 
-    return True
+    # Successfully joining a server means leaving the menu, so wait for menu to disappear
+    # (cancel further checks when a game/error message is present)
+    check_count = 0
+    check_limit = 8
+    in_menu = True
+    game_message_present = False
+    while in_menu and not game_message_present and check_count < check_limit:
+        in_menu = check_if_in_menu()
+        game_message_present = check_for_game_message()
+        check_count += 1
+        time.sleep(1)
+
+    return not in_menu
 
 
 def controller_update_current_server(server_ip: str, server_port: str, server_pass: str = None,
@@ -1150,7 +1172,6 @@ while True:
                 gameInstanceState.get_server_port(),
                 gameInstanceState.get_server_password()
             )
-            time.sleep(5)
             # Reset state
             gameInstanceState.restart_reset()
             gameInstanceState.set_spectator_on_server(connected)
@@ -1237,7 +1258,6 @@ while True:
         )
         # Treat re-connecting as map rotation (state wise)
         gameInstanceState.map_rotation_reset()
-        time.sleep(5)
         # Update state
         gameInstanceState.set_spectator_on_server(connected)
         # Update controller
