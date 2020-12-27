@@ -168,8 +168,9 @@ class GameInstanceState:
     def restart_reset(self):
         self.__spectator_on_server = False
         self.__hud_hidden = False
-        self.__round_num = 0
+        self.__map_loading = False
         self.__active_join_possible = False
+        self.__round_num = 0
         self.__rotation_map_name = None
         self.__rotation_map_size = -1
         self.__rotation_on_map = False
