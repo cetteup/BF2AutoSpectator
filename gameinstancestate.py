@@ -2,6 +2,7 @@ class GameInstanceState:
     # Global details
     __spectator_on_server: bool = False
     __hud_hidden: bool = False
+    __map_loading: bool = False
     __active_join_possible: bool = False
 
     # TTL details
@@ -45,6 +46,12 @@ class GameInstanceState:
 
     def hud_hidden(self) -> bool:
         return self.__hud_hidden
+
+    def set_map_loading(self, map_loading: bool):
+        self.__map_loading = map_loading
+
+    def map_loading(self) -> bool:
+        return self.__map_loading
 
     def set_active_join_possible(self, active_join_possible: bool):
         self.__active_join_possible = active_join_possible

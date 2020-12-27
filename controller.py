@@ -1175,6 +1175,7 @@ while True:
             # Reset state
             gameInstanceState.restart_reset()
             gameInstanceState.set_spectator_on_server(connected)
+            gameInstanceState.set_map_loading(connected)
         except Exception as e:
             logging.error('BF2 window is gone, restart required')
             logging.error(str(e))
@@ -1222,7 +1223,7 @@ while True:
     # If we are using a controller, check if server switch is required and possible
     # (spectator not on server or fully in game)
     if args.use_controller and (not gameInstanceState.spectator_on_server() or
-                                (gameInstanceState.spectator_on_server() and gameInstanceState.rotation_on_map() and iterationsOnPlayer == 5)):
+                                (not gameInstanceState.map_loading() and iterationsOnPlayer == 5)):
         logging.info('Checking for join server on controller')
         joinServer = controller_get_join_server()
         # Update server and switch if spectator is supposed to be on a different server of password was updated
@@ -1260,6 +1261,7 @@ while True:
         gameInstanceState.map_rotation_reset()
         # Update state
         gameInstanceState.set_spectator_on_server(connected)
+        gameInstanceState.set_map_loading(connected)
         # Update controller
         if connected and args.use_controller:
             controller_update_current_server(
@@ -1319,6 +1321,8 @@ while True:
         iterationsOnPlayer = 5
         time.sleep(3)
     elif not onRoundFinishScreen and not gameInstanceState.round_spawned():
+        # Loaded into map, now trying to start spectating
+        gameInstanceState.set_map_loading(False)
         # Re-enable hud if required
         if gameInstanceState.hud_hidden():
             # Give game time to swap teams
