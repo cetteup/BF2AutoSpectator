@@ -1275,6 +1275,11 @@ while True:
     mapIsLoading = check_if_map_is_loading()
     mapBriefingPresent = check_for_map_briefing()
 
+    # Update instance state if any map load/eor screen is present
+    # (only _set_ map loading state here, since it should only be _unset_ when attempting to spawn
+    if (onRoundFinishScreen or mapIsLoading or mapBriefingPresent) and not gameInstanceState.map_loading():
+        gameInstanceState.set_map_loading(True)
+
     if args.limit_rtl and onRoundFinishScreen and gameInstanceState.get_round_num() >= args.instance_rtl:
         logging.info('Game instance has reached rtl limit, restart required')
         gameInstanceState.set_rtl_restart_required(True)
