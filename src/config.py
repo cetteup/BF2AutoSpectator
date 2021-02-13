@@ -22,6 +22,7 @@ class Config:
     __use_controller: bool
     __controller_base_uri: str
     __controller_app_key: str
+    __controller_timeout: int
 
     __resolution: str
     __window_size: Tuple[int, int]
@@ -32,7 +33,8 @@ class Config:
 
     def __init__(self, player_name: str, player_pass: str, server_ip: str, server_port: str, server_pass: str,
                  game_path: str, limit_rtl: bool, instance_rtl: int, use_controller: bool, controller_base_uri: str,
-                 controller_app_key: str, resolution: str, debug_screenshot: bool, max_iterations_on_player: int):
+                 controller_app_key: str, controller_timeout: int, resolution: str, debug_screenshot: bool,
+                 max_iterations_on_player: int):
         self.__player_name = player_name
         self.__player_pass = player_pass
         self.__server_ip = server_ip
@@ -46,6 +48,7 @@ class Config:
         self.__use_controller = use_controller
         self.__controller_base_uri = controller_base_uri
         self.__controller_app_key = controller_app_key
+        self.__controller_timeout = controller_timeout
 
         self.__resolution = resolution
         # Set window size based on resolution
@@ -107,6 +110,9 @@ class Config:
 
     def get_controller_app_key(self) -> str:
         return self.__controller_app_key
+
+    def get_controller_timeout(self) -> int:
+        return self.__controller_timeout
 
     def get_resolution(self) -> str:
         return self.__resolution

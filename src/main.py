@@ -25,6 +25,7 @@ from config import Config
 import constants
 from exceptions import *
 from gameinstancestate import GameInstanceState
+from controller import Controller
 
 SendInput = ctypes.windll.user32.SendInput
 
@@ -641,81 +642,6 @@ def connect_to_server(server_ip: str, server_port: str, server_pass: str = None)
     return not in_menu
 
 
-def controller_update_current_server(server_ip: str, server_port: str, server_pass: str = None,
-                                     in_rotation: bool = False) -> bool:
-    request_ok = False
-    try:
-        response = requests.post(
-            f'{config.get_controller_base_uri()}/servers/current',
-            data={
-                'app_key': config.get_controller_app_key(),
-                'ip': server_ip,
-                'port': server_port,
-                'password': server_pass,
-                'in_rotation': str(in_rotation).lower()
-            },
-            timeout=10
-        )
-
-        if response.status_code == 200:
-            request_ok = True
-    except Exception as e:
-        logging.error(e)
-
-    return request_ok
-
-
-def controller_get_join_server() -> dict:
-    join_sever = None
-    try:
-        response = requests.get(f'{config.get_controller_base_uri()}/servers/join', timeout=10)
-
-        if response.status_code == 200:
-            join_sever = response.json()
-    except Exception as e:
-        logging.error(e)
-
-    return join_sever
-
-
-def controller_get_command(cmd_key: str):
-    cmd_value = None
-    try:
-        response = requests.get(
-            f'{config.get_controller_base_uri()}/commands',
-            params={'app_key': config.get_controller_app_key()},
-            timeout=10
-        )
-
-        if response.status_code == 200:
-            parsed = response.json()
-            cmd_value = parsed[cmd_key] if cmd_key in parsed.keys() else None
-    except Exception as e:
-        logging.error(e)
-
-    return cmd_value
-
-
-def controller_post_commands(commands: dict) -> bool:
-    request_ok = False
-    try:
-        response = requests.post(
-            f'{config.get_controller_base_uri()}/commands',
-            data={
-                'app_key': config.get_controller_app_key(),
-                **commands
-            },
-            timeout=10
-        )
-
-        if response.status_code == 200:
-            request_ok = True
-    except Exception as e:
-        logging.error(e)
-
-    return request_ok
-
-
 def disconnect_from_server() -> None:
     # Press ESC
     auto_press_key(0x01)
@@ -861,6 +787,8 @@ parser.add_argument('--instance-rtl', help='How many rounds to use a game instan
 parser.add_argument('--use-controller', dest='use_controller', action='store_true')
 parser.add_argument('--controller-base-uri', help='Base uri of web controller', type=str)
 parser.add_argument('--controller-app-key', help='App key for web controller', type=str)
+parser.add_argument('--controller-timeout', help='Timeout to use for requests to controller (in seconds)', type=int,
+                    default=2)
 parser.add_argument('--no-start', dest='start_game', action='store_false')
 parser.add_argument('--no-rtl-limit', dest='limit_rtl', action='store_false')
 parser.add_argument('--debug-log', dest='debug_log', action='store_true')
@@ -887,6 +815,7 @@ config = Config(
     use_controller=args.use_controller,
     controller_base_uri=args.controller_base_uri,
     controller_app_key=args.controller_app_key,
+    controller_timeout=args.controller_timeout,
     resolution=args.game_res,
     debug_screenshot=args.debug_screenshot,
     max_iterations_on_player=5
@@ -915,16 +844,21 @@ if config.debug_screenshot():
 
 # Init game instance state store
 gameInstanceState = GameInstanceState(config.get_server_ip(), config.get_server_port(), config.get_server_pass())
+controller = Controller(
+    config.get_controller_base_uri(),
+    config.get_controller_app_key(),
+    config.get_controller_timeout()
+)
 
 # Check whether the controller has a server join
 if config.use_controller():
     logging.info('Checking for join server on controller')
-    joinServer = controller_get_join_server()
+    joinServer = controller.get_join_server()
     if joinServer is not None and \
             (joinServer['ip'] != config.get_server_ip() or
              str(joinServer['gamePort']) != config.get_server_port()):
         # Spectator is supposed to be on different server
-        logging.info('Controller has a server to join')
+        logging.info('Controller has a server to join, updating config')
         config.set_server(joinServer['ip'], joinServer['gamePort'], joinServer['password'])
 
 # Init game instance if requested
@@ -986,13 +920,15 @@ while True:
         gameInstanceState.set_error_restart_required(True)
 
     # Check if a game restart command was issued to the controller
-    if config.use_controller() and controller_get_command('game_restart') is True:
-        logging.info('Game restart requested via controller, unsetting command flag and queueing game restart')
-        # Reset command to false
-        commandReset = controller_post_commands({'game_restart': False})
-        if commandReset:
-            # Set restart required flag
-            gameInstanceState.set_error_restart_required(True)
+    if config.use_controller():
+        commands = controller.get_commands()
+        if commands.get('game_restart') is True:
+            logging.info('Game restart requested via controller, unsetting command flag and queueing game restart')
+            # Reset command to false
+            commandReset = controller.post_commands({'game_restart': False})
+            if commandReset:
+                # Set restart required flag
+                gameInstanceState.set_error_restart_required(True)
 
     # Start a new game instance if required
     if gameInstanceState.rtl_restart_required() or gameInstanceState.error_restart_required():
@@ -1087,29 +1023,35 @@ while True:
     # If we are using a controller, check if server switch is required and possible
     # (spectator not on server or fully in game)
     if config.use_controller() and (not gameInstanceState.spectator_on_server() or
-                                (not gameInstanceState.map_loading() and
-                                 iterationsOnPlayer == config.get_max_iterations_on_player())):
+                                    (not gameInstanceState.map_loading() and
+                                     iterationsOnPlayer == config.get_max_iterations_on_player())):
         logging.info('Checking for join server on controller')
-        joinServer = controller_get_join_server()
+        joinServer = controller.get_join_server()
         # Update server and switch if spectator is supposed to be on a different server of password was updated
         if joinServer is not None and \
                 (joinServer['ip'] != config.get_server_ip() or
                  str(joinServer['gamePort']) != config.get_server_port() or
-                 joinServer['password'] != config.get_server_password()):
+                 joinServer['password'] != config.get_server_pass()):
             # Spectator is supposed to be on different server
-            logging.info('Controller has a server to join')
+            logging.info('Controller has a server to join, updating config')
             config.set_server_ip(joinServer['ip'])
             config.set_server_port(str(joinServer['gamePort']))
             config.set_server_pass(joinServer['password'])
-            gameInstanceState.set_spectator_on_server(False)
-            logging.info('Queued server switch, disconnecting from current server')
-            disconnect_from_server()
+
         elif gameInstanceState.spectator_on_server():
-            controller_update_current_server(
+            controller.post_current_server(
                 gameInstanceState.get_server_ip(),
                 gameInstanceState.get_server_port(),
                 gameInstanceState.get_server_password()
             )
+
+    # Queue server switch if spectator is supposed to be on a different server (or the password changed)
+    if config.get_server_ip() != gameInstanceState.get_server_ip() or \
+        config.get_server_port() != gameInstanceState.get_server_port() or \
+            config.get_server_pass() != gameInstanceState.get_server_password():
+        logging.info('Queued server switch, disconnecting from current server')
+        gameInstanceState.set_spectator_on_server(False)
+        disconnect_from_server()
 
     # Player is not on server, check if rejoining is possible and makes sense
     if not gameInstanceState.spectator_on_server():
@@ -1129,7 +1071,7 @@ while True:
         gameInstanceState.set_map_loading(connected)
         # Update controller
         if connected and config.use_controller():
-            controller_update_current_server(
+            controller.post_current_server(
                 gameInstanceState.get_server_ip(),
                 gameInstanceState.get_server_port(),
                 gameInstanceState.get_server_password()
