@@ -82,7 +82,7 @@ if config.debug_screenshot():
 
 # Init game instance state store
 gim = GameInstanceManager(config.get_game_path(), config.get_player_name(), config.get_player_pass(), histograms)
-gameInstanceState = gim.get_state()
+gis = gim.get_state()
 controller = Controller(
     config.get_controller_base_uri(),
     config.get_controller_app_key(),
@@ -111,46 +111,46 @@ else:
 
 # Schedule restart if no instance was started/found
 if not gotInstance:
-    gameInstanceState.set_error_restart_required(True)
+    gis.set_error_restart_required(True)
 
 # Start with max to switch away from dead spectator right away
 iterationsOnPlayer = config.get_max_iterations_on_player()
 while True:
     bf2Window = gim.get_game_window()
     # Try to bring BF2 window to foreground
-    if not gameInstanceState.error_restart_required():
+    if not gis.error_restart_required():
         try:
             gim.bring_to_foreground()
         except Exception as e:
             logging.error('BF2 window is gone, restart required')
             logging.error(str(e))
-            gameInstanceState.set_error_restart_required(True)
+            gis.set_error_restart_required(True)
 
     # Check if game froze
-    if not gameInstanceState.error_restart_required() and not is_responding_pid(int(bf2Window.pid)):
+    if not gis.error_restart_required() and not is_responding_pid(int(bf2Window.pid)):
         logging.info('Game froze, checking unresponsive count')
         # Game will temporarily freeze when map load finishes or when joining server, so don't restart right away
-        if gameInstanceState.get_error_unresponsive_count() < 3:
+        if gis.get_error_unresponsive_count() < 3:
             logging.info('Unresponsive count below limit, giving time to recover')
             # Increase unresponsive count
-            gameInstanceState.increase_error_unresponsive_count()
+            gis.increase_error_unresponsive_count()
             # Check again in 2 seconds
             time.sleep(2)
             continue
         else:
             logging.error('Unresponsive count exceeded limit, scheduling restart')
-            gameInstanceState.set_error_restart_required(True)
-    elif not gameInstanceState.error_restart_required() and gameInstanceState.get_error_unresponsive_count() > 0:
+            gis.set_error_restart_required(True)
+    elif not gis.error_restart_required() and gis.get_error_unresponsive_count() > 0:
         logging.info('Game recovered from temp freeze, resetting unresponsive count')
         # Game got it together, reset unresponsive count
-        gameInstanceState.reset_error_unresponsive_count()
+        gis.reset_error_unresponsive_count()
 
     # Check for (debug assertion and Visual C++ Runtime) error window
-    if not gameInstanceState.error_restart_required() and \
+    if not gis.error_restart_required() and \
             (find_window_by_title('BF2 Error') is not None or
              find_window_by_title('Microsoft Visual C++ Runtime Library') is not None):
         logging.error('BF2 Error window present, scheduling restart')
-        gameInstanceState.set_error_restart_required(True)
+        gis.set_error_restart_required(True)
 
     # Check if a game restart command was issued to the controller
     if config.use_controller():
@@ -161,22 +161,22 @@ while True:
             commandReset = controller.post_commands({'game_restart': False})
             if commandReset:
                 # Set restart required flag
-                gameInstanceState.set_error_restart_required(True)
+                gis.set_error_restart_required(True)
 
     # Start a new game instance if required
-    if gameInstanceState.rtl_restart_required() or gameInstanceState.error_restart_required():
-        if bf2Window is not None and gameInstanceState.rtl_restart_required():
+    if gis.rtl_restart_required() or gis.error_restart_required():
+        if bf2Window is not None and gis.rtl_restart_required():
             # Quit out of current instnace
             logging.info('Quitting existing game instance')
             quitSuccessful = gim.quit_game_instance()
             logging.debug(f'Quit successful: {quitSuccessful}')
-            gameInstanceState.set_rtl_restart_required(False)
+            gis.set_rtl_restart_required(False)
             # If quit was not successful, switch to error restart
             if not quitSuccessful:
                 logging.error('Quitting existing game instance failed, switching to error restart')
-                gameInstanceState.set_error_restart_required(True)
+                gis.set_error_restart_required(True)
         # Don't use elif here so error restart can be executed right after a failed quit attempt
-        if bf2Window is not None and gameInstanceState.error_restart_required():
+        if bf2Window is not None and gis.error_restart_required():
             # Kill any remaining instance by pid
             logging.info('Killing existing game instance')
             killed = taskkill_pid(int(bf2Window.pid))
@@ -202,11 +202,11 @@ while True:
         serverIp, serverPort, serverPass = config.get_server()
         connected = gim.connect_to_server(serverIp, serverPort, serverPass)
         # Reset state
-        gameInstanceState.restart_reset()
-        gameInstanceState.set_spectator_on_server(connected)
-        gameInstanceState.set_map_loading(connected)
+        gis.restart_reset()
+        gis.set_spectator_on_server(connected)
+        gis.set_map_loading(connected)
         if connected:
-            gameInstanceState.set_server(serverIp, serverPort, serverPass)
+            gis.set_server(serverIp, serverPort, serverPass)
 
         continue
 
@@ -222,28 +222,28 @@ while True:
         if 'full' in gameMessage:
             logging.info('Server full, trying to rejoin in 30 seconds')
             # Update state
-            gameInstanceState.set_spectator_on_server(False)
+            gis.set_spectator_on_server(False)
             # Connect to server waits 10, wait another 20 = 30
             time.sleep(20)
         elif 'kicked' in gameMessage:
             logging.info('Got kicked, trying to rejoin')
             # Update state
-            gameInstanceState.set_spectator_on_server(False)
+            gis.set_spectator_on_server(False)
         elif 'banned' in gameMessage:
             sys.exit('Got banned, contact server admin')
         elif 'connection' in gameMessage and 'lost' in gameMessage or \
                 'failed to connect' in gameMessage:
             logging.info('Connection lost, trying to reconnect')
             # Update state
-            gameInstanceState.set_spectator_on_server(False)
+            gis.set_spectator_on_server(False)
         elif 'modified content' in gameMessage:
             logging.info('Got kicked for modified content, trying to rejoin')
             # Update state
-            gameInstanceState.set_spectator_on_server(False)
+            gis.set_spectator_on_server(False)
         elif 'invalid ip address' in gameMessage:
             logging.info('Join by ip dialogue bugged, restart required')
             # Set restart flag
-            gameInstanceState.set_error_restart_required(True)
+            gis.set_error_restart_required(True)
         else:
             sys.exit(gameMessage)
 
@@ -251,8 +251,8 @@ while True:
 
     # If we are using a controller, check if server switch is required and possible
     # (spectator not on server or fully in game)
-    if config.use_controller() and (not gameInstanceState.spectator_on_server() or
-                                    (not gameInstanceState.map_loading() and
+    if config.use_controller() and (not gis.spectator_on_server() or
+                                    (not gis.map_loading() and
                                      iterationsOnPlayer == config.get_max_iterations_on_player())):
         logging.info('Checking for join server on controller')
         joinServer = controller.get_join_server()
@@ -266,28 +266,28 @@ while True:
             config.set_server_ip(joinServer['ip'])
             config.set_server_port(str(joinServer['gamePort']))
             config.set_server_pass(joinServer['password'])
-        elif gameInstanceState.spectator_on_server():
+        elif gis.spectator_on_server():
             controller.post_current_server(
-                gameInstanceState.get_server_ip(),
-                gameInstanceState.get_server_port(),
-                gameInstanceState.get_server_password()
+                gis.get_server_ip(),
+                gis.get_server_port(),
+                gis.get_server_password()
             )
 
     # Queue server switch if spectator is supposed to be on a different server (or the password changed)
-    if gameInstanceState.spectator_on_server() and \
-            (config.get_server_ip() != gameInstanceState.get_server_ip() or
-             config.get_server_port() != gameInstanceState.get_server_port() or
-             config.get_server_pass() != gameInstanceState.get_server_password()):
+    if gis.spectator_on_server() and \
+            (config.get_server_ip() != gis.get_server_ip() or
+             config.get_server_port() != gis.get_server_port() or
+             config.get_server_pass() != gis.get_server_password()):
         logging.info('Queued server switch, disconnecting from current server')
-        gameInstanceState.set_spectator_on_server(False)
+        gis.set_spectator_on_server(False)
         gim.disconnect_from_server()
         # If game instance is about to replaced, add one more round on the new server
-        if gameInstanceState.get_round_num() + 1 >= config.get_instance_trl():
+        if gis.get_round_num() + 1 >= config.get_instance_trl():
             logging.info('Extending instance lifetime by one round on the new server')
-            gameInstanceState.decrease_round_num()
+            gis.decrease_round_num()
 
     # Player is not on server, check if rejoining is possible and makes sense
-    if not gameInstanceState.spectator_on_server():
+    if not gis.spectator_on_server():
         # Check number of free slots
         # TODO
         # (Re-)connect to server
@@ -295,12 +295,12 @@ while True:
         serverIp, serverPort, serverPass = config.get_server()
         connected = gim.connect_to_server(serverIp, serverPort, serverPass)
         # Treat re-connecting as map rotation (state wise)
-        gameInstanceState.map_rotation_reset()
+        gis.map_rotation_reset()
         # Update state
-        gameInstanceState.set_spectator_on_server(connected)
-        gameInstanceState.set_map_loading(connected)
+        gis.set_spectator_on_server(connected)
+        gis.set_map_loading(connected)
         if connected:
-            gameInstanceState.set_server(serverIp, serverPort, serverPass)
+            gis.set_server(serverIp, serverPort, serverPass)
         # Update controller
         if connected and config.use_controller():
             controller.post_current_server(serverIp, serverPort, serverPass)
@@ -312,18 +312,18 @@ while True:
 
     # Update instance state if any map load/eor screen is present
     # (only _set_ map loading state here, since it should only be _unset_ when attempting to spawn
-    if (onRoundFinishScreen or mapIsLoading or mapBriefingPresent) and not gameInstanceState.map_loading():
-        gameInstanceState.set_map_loading(True)
+    if (onRoundFinishScreen or mapIsLoading or mapBriefingPresent) and not gis.map_loading():
+        gis.set_map_loading(True)
 
-    if config.limit_rtl() and onRoundFinishScreen and gameInstanceState.get_round_num() >= config.get_instance_trl():
+    if config.limit_rtl() and onRoundFinishScreen and gis.get_round_num() >= config.get_instance_trl():
         logging.info('Game instance has reached rtl limit, restart required')
-        gameInstanceState.set_rtl_restart_required(True)
+        gis.set_rtl_restart_required(True)
     elif mapIsLoading:
         logging.info('Map is loading')
         # Reset state once if it still reflected to be on the (same) map
-        if gameInstanceState.rotation_on_map():
+        if gis.rotation_on_map():
             logging.info('Performing map rotation reset')
-            gameInstanceState.map_rotation_reset()
+            gis.map_rotation_reset()
         iterationsOnPlayer = config.get_max_iterations_on_player()
         time.sleep(3)
     elif mapBriefingPresent:
@@ -333,17 +333,17 @@ while True:
 
         # Update map state if relevant and required
         if currentMapName is not None and currentMapSize != -1 and \
-                (currentMapName != gameInstanceState.get_rotation_map_name() or
-                 currentMapSize != gameInstanceState.get_rotation_map_size()):
+                (currentMapName != gis.get_rotation_map_name() or
+                 currentMapSize != gis.get_rotation_map_size()):
             logging.debug(f'Updating map state: {currentMapName}; {currentMapSize}')
-            gameInstanceState.set_rotation_map_name(currentMapName)
-            gameInstanceState.set_rotation_map_size(currentMapSize)
+            gis.set_rotation_map_name(currentMapName)
+            gis.set_rotation_map_size(currentMapSize)
 
             # Give go-ahead for active joining
             logging.info('Enabling active joining')
-            gameInstanceState.set_active_join_possible(True)
+            gis.set_active_join_possible(True)
 
-        if gameInstanceState.active_join_possible():
+        if gis.active_join_possible():
             # Check if join game button is present
             logging.info('Could actively join, checking for button')
             joinGameButtonPresent = gim.check_for_join_game_button()
@@ -356,22 +356,22 @@ while True:
     elif onRoundFinishScreen:
         logging.info('Game is on round finish screen')
         # Reset state
-        gameInstanceState.round_end_reset()
+        gis.round_end_reset()
         # Set counter to max again to skip spectator
         iterationsOnPlayer = config.get_max_iterations_on_player()
         time.sleep(3)
-    elif not onRoundFinishScreen and not gameInstanceState.round_spawned():
+    elif not onRoundFinishScreen and not gis.round_spawned():
         # Loaded into map, now trying to start spectating
-        gameInstanceState.set_map_loading(False)
+        gis.set_map_loading(False)
         # Re-enable hud if required
-        if gameInstanceState.hud_hidden():
+        if gis.hud_hidden():
             # Give game time to swap teams
             time.sleep(3)
             # Re-enable hud
             logging.info('Enabling hud')
             gim.toggle_hud(1)
             # Update state
-            gameInstanceState.set_hud_hidden(False)
+            gis.set_hud_hidden(False)
             time.sleep(1)
 
         spawnMenuVisible = gim.check_if_spawn_menu_visible()
@@ -379,30 +379,30 @@ while True:
             logging.info('Spawn menu not visible, opening with enter')
             gim.open_spawn_menu()
             # Force another attempt re-enable hud
-            gameInstanceState.set_hud_hidden(True)
+            gis.set_hud_hidden(True)
             continue
 
         logging.info('Determining team')
         currentTeam = gim.get_player_team()
         if currentTeam is not None and \
-                gameInstanceState.get_rotation_map_name() is not None and \
-                gameInstanceState.get_rotation_map_size() != -1:
-            gameInstanceState.set_round_team(currentTeam)
-            logging.debug(f'Current team: {"USMC" if gameInstanceState.get_round_team() == 0 else "MEC/CHINA"}')
+                gis.get_rotation_map_name() is not None and \
+                gis.get_rotation_map_size() != -1:
+            gis.set_round_team(currentTeam)
+            logging.debug(f'Current team: {"USMC" if gis.get_round_team() == 0 else "MEC/CHINA"}')
             logging.info('Spawning once')
             try:
                 spawnSucceeded = gim.spawn_suicide()
                 logging.info('Spawn succeeded' if spawnSucceeded else 'Spawn failed, retrying')
-                gameInstanceState.set_round_spawned(spawnSucceeded)
+                gis.set_round_spawned(spawnSucceeded)
             except UnsupportedMapException as e:
                 logging.error('Spawning not supported on current map/size')
                 # Wait map out by "faking" spawn
-                gameInstanceState.set_round_spawned(True)
-        elif gameInstanceState.get_rotation_map_name() is not None and \
-                gameInstanceState.get_rotation_map_size() != -1:
+                gis.set_round_spawned(True)
+        elif gis.get_rotation_map_name() is not None and \
+                gis.get_rotation_map_size() != -1:
             logging.error('Failed to determine current team, retrying')
             # Force another attempt re-enable hud
-            gameInstanceState.set_hud_hidden(True)
+            gis.set_hud_hidden(True)
             time.sleep(2)
             continue
         else:
@@ -410,17 +410,17 @@ while True:
             logging.error('Map detection failed, disconnecting')
             gim.disconnect_from_server()
             # Update state
-            gameInstanceState.set_spectator_on_server(False)
+            gis.set_spectator_on_server(False)
             continue
-    elif not onRoundFinishScreen and not gameInstanceState.hud_hidden():
+    elif not onRoundFinishScreen and not gis.hud_hidden():
         logging.info('Hiding hud')
         gim.toggle_hud(0)
-        gameInstanceState.set_hud_hidden(True)
+        gis.set_hud_hidden(True)
         # Increase round number/counter
-        gameInstanceState.increase_round_num()
-        logging.debug(f'Entering round #{gameInstanceState.get_round_num()} using this instance')
+        gis.increase_round_num()
+        logging.debug(f'Entering round #{gis.get_round_num()} using this instance')
         # Spectator has "entered" map, update state accordingly
-        gameInstanceState.set_rotation_on_map(True)
+        gis.set_rotation_on_map(True)
     elif not onRoundFinishScreen and iterationsOnPlayer < config.get_max_iterations_on_player():
         # Check if player is afk
         if not gim.is_sufficient_action_on_screen():
