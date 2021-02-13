@@ -60,6 +60,9 @@ class GameInstanceState:
     def increase_round_num(self):
         self.__round_num += 1
 
+    def decrease_round_num(self):
+        self.__round_num -= 1
+
     def get_round_num(self) -> int:
         return self.__round_num
 

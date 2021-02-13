@@ -281,6 +281,10 @@ while True:
         logging.info('Queued server switch, disconnecting from current server')
         gameInstanceState.set_spectator_on_server(False)
         gim.disconnect_from_server()
+        # If game instance is about to replaced, add one more round on the new server
+        if gameInstanceState.get_round_num() + 1 >= config.get_instance_trl():
+            logging.info('Extending instance lifetime by one round on the new server')
+            gameInstanceState.decrease_round_num()
 
     # Player is not on server, check if rejoining is possible and makes sense
     if not gameInstanceState.spectator_on_server():
