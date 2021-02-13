@@ -21,6 +21,7 @@ import win32gui
 from PIL import Image, ImageOps
 from bs4 import BeautifulSoup
 
+import config
 import constants
 from exceptions import *
 from gameinstancestate import GameInstanceState
@@ -194,7 +195,7 @@ def screenshot_game_window_region(x: int, y: int, w: int, h: int) -> Image:
 
 # Take a screenshot of the given region and run the result through OCR
 def ocr_screenshot_region(x: int, y: int, w: int, h: int, invert: bool = False, show: bool = False,
-                          config: str = r'--oem 3 --psm 7') -> str:
+                          ocr_config: str = r'--oem 3 --psm 7') -> str:
     screenshot = pyautogui.screenshot(region=(x, y, w, h))
     if invert:
         screenshot = ImageOps.invert(screenshot)
@@ -203,16 +204,14 @@ def ocr_screenshot_region(x: int, y: int, w: int, h: int, invert: bool = False, 
     # pytesseract stopped stripping \n\x0c from ocr results,
     # returning raw results instead (https://github.com/madmaze/pytesseract/issues/297)
     # so strip those characters as well as spaces after getting the result
-    ocr_result = pytesseract.image_to_string(screenshot, config=config).strip(' \n\x0c')
+    ocr_result = pytesseract.image_to_string(screenshot, config=ocr_config).strip(' \n\x0c')
 
     # Save screenshot to debug directory and print ocr result if debugging is enabled
     if args.debug_screenshot:
-        # Reference global variable
-        global directories
         # Save screenshot
         screenshot.save(
             os.path.join(
-                directories['debug'],
+                config.DEBUG_DIR,
                 f'ocr_screenshot-{datetime.now().strftime("%Y-%m-%d-%H-%M-%S-%f")}.jpg'
             )
         )
@@ -842,7 +841,7 @@ def is_sufficient_action_on_screen(screenshot_count: int = 3, screenshot_sleep: 
 
 
 parser = argparse.ArgumentParser(description='Launch and control a Battlefield 2 spectator instance')
-parser.add_argument('--version', action='version', version='bf2-auto-spectator v0.2.3')
+parser.add_argument('--version', action='version', version=f'{constants.APP_NAME} v{constants.APP_VERSION}')
 parser.add_argument('--player-name', help='Account name of spectating player', type=str, required=True)
 parser.add_argument('--player-pass', help='Account password of spectating player', type=str, required=True)
 parser.add_argument('--server-ip', help='IP of sever to join for spectating', type=str, required=True)
@@ -869,9 +868,6 @@ logging.basicConfig(level=logging.DEBUG if args.debug_log else logging.INFO, for
 # Init global vars/settings
 pytesseract.pytesseract.tesseract_cmd = os.path.join(args.tesseract_path, 'tesseract.exe')
 top_windows = []
-directories = {
-    'root': os.path.dirname(os.path.realpath(__file__))
-}
 
 # Copy resolution to constant and set dependent values
 RESOLUTION = args.game_res
@@ -893,16 +889,14 @@ elif not os.path.isfile(os.path.join(args.game_path, 'BF2.exe')):
 
 # Load pickles
 logging.info('Loading pickles')
-directories['pickle'] = os.path.join(directories['root'], '../pickle')
-with open(os.path.join(directories['pickle'], 'histograms.pickle'), 'rb') as histogramFile:
+with open(os.path.join(config.ROOT_DIR, 'pickle', 'histograms.pickle'), 'rb') as histogramFile:
     HISTOGRAMS = pickle.load(histogramFile)
 
 # Init debug directory if debugging is enabled
 if args.debug_screenshot:
-    directories['debug'] = os.path.join(directories['root'], '../debug')
     # Create debug output dir if needed
-    if not os.path.isdir(directories['debug']):
-        os.mkdir(directories['debug'])
+    if not os.path.isdir(config.DEBUG_DIR):
+        os.mkdir(config.DEBUG_DIR)
 
 # Init game instance state store
 gameInstanceState = GameInstanceState(args.server_ip, args.server_port, args.server_pass)

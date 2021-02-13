@@ -1,3 +1,5 @@
+APP_NAME = 'bf2-auto-spectator'
+APP_VERSION = '0.2.3'
 HISTCMP_MAX_DELTA = 0.2
 COORDINATES = {
     '720p': {
