@@ -21,7 +21,7 @@ import win32gui
 from PIL import Image, ImageOps
 from bs4 import BeautifulSoup
 
-import config
+from config import Config
 import constants
 from exceptions import *
 from gameinstancestate import GameInstanceState
@@ -107,15 +107,15 @@ def mouse_move_to_game_window_coord(key: str, legacy: bool = False) -> None:
     :param legacy: whether to use legacy mouse move instead of pyautogui move
     :return:
     """
-
+    resolution = config.get_resolution()
     if legacy:
-        mouse_move_legacy(constants.COORDINATES[RESOLUTION]['clicks'][key][0],
-                          constants.COORDINATES[RESOLUTION]['clicks'][key][1])
+        mouse_move_legacy(constants.COORDINATES[resolution]['clicks'][key][0],
+                          constants.COORDINATES[resolution]['clicks'][key][1])
     else:
         global bf2Window
         pyautogui.moveTo(
-            bf2Window['rect'][0] + constants.COORDINATES[RESOLUTION]['clicks'][key][0],
-            bf2Window['rect'][1] + constants.COORDINATES[RESOLUTION]['clicks'][key][1]
+            bf2Window['rect'][0] + constants.COORDINATES[resolution]['clicks'][key][0],
+            bf2Window['rect'][1] + constants.COORDINATES[resolution]['clicks'][key][1]
         )
 
 
@@ -207,11 +207,11 @@ def ocr_screenshot_region(x: int, y: int, w: int, h: int, invert: bool = False, 
     ocr_result = pytesseract.image_to_string(screenshot, config=ocr_config).strip(' \n\x0c')
 
     # Save screenshot to debug directory and print ocr result if debugging is enabled
-    if args.debug_screenshot:
+    if config.debug_screenshot():
         # Save screenshot
         screenshot.save(
             os.path.join(
-                config.DEBUG_DIR,
+                Config.DEBUG_DIR,
                 f'ocr_screenshot-{datetime.now().strftime("%Y-%m-%d-%H-%M-%S-%f")}.jpg'
             )
         )
@@ -222,7 +222,7 @@ def ocr_screenshot_region(x: int, y: int, w: int, h: int, invert: bool = False, 
 
 
 def ocr_screenshot_game_window_region(key: str, invert: bool = False, show: bool = False,
-                                      config: str = r'--oem 3 --psm 7') -> str:
+                                      ocr_config: str = r'--oem 3 --psm 7') -> str:
     """
     Run a region of a game window through OCR (wrapper for ocr_screenshot_region)
     :param key: key of region in coordinates dict
@@ -234,14 +234,16 @@ def ocr_screenshot_game_window_region(key: str, invert: bool = False, show: bool
 
     global bf2Window
 
+    resolution = config.get_resolution()
+
     return ocr_screenshot_region(
-        bf2Window['rect'][0] + constants.COORDINATES[RESOLUTION]['ocr'][key][0],
-        bf2Window['rect'][1] + constants.COORDINATES[RESOLUTION]['ocr'][key][1],
-        constants.COORDINATES[RESOLUTION]['ocr'][key][2],
-        constants.COORDINATES[RESOLUTION]['ocr'][key][3],
+        bf2Window['rect'][0] + constants.COORDINATES[resolution]['ocr'][key][0],
+        bf2Window['rect'][1] + constants.COORDINATES[resolution]['ocr'][key][1],
+        constants.COORDINATES[resolution]['ocr'][key][2],
+        constants.COORDINATES[resolution]['ocr'][key][3],
         invert,
         show,
-        config
+        ocr_config
     )
 
 
@@ -377,9 +379,10 @@ def get_player_team(server_ip: str, server_port: str) -> int:
 
 
 def get_player_team_histogram() -> int:
+    resolution = config.get_resolution()
     # Take team selection screenshots
     team_selection_screenshots = []
-    for coord_set in constants.COORDINATES[RESOLUTION]['hists']['teams']:
+    for coord_set in constants.COORDINATES[resolution]['hists']['teams']:
         team_selection_screenshots.append(
             screenshot_game_window_region(coord_set[0], coord_set[1], coord_set[2], coord_set[3])
         )
@@ -391,13 +394,13 @@ def get_player_team_histogram() -> int:
 
     # Calculate histogram deltas
     histogram_deltas = {
-        'to_usmc_active': cv2.compareHist(team_selection_histograms[0], HISTOGRAMS[RESOLUTION]['teams']['usmc']['active'],
+        'to_usmc_active': cv2.compareHist(team_selection_histograms[0], HISTOGRAMS[resolution]['teams']['usmc']['active'],
                                           cv2.HISTCMP_BHATTACHARYYA),
-        'to_eu_active': cv2.compareHist(team_selection_histograms[0], HISTOGRAMS[RESOLUTION]['teams']['eu']['active'],
+        'to_eu_active': cv2.compareHist(team_selection_histograms[0], HISTOGRAMS[resolution]['teams']['eu']['active'],
                                         cv2.HISTCMP_BHATTACHARYYA),
-        'to_china_active': cv2.compareHist(team_selection_histograms[1], HISTOGRAMS[RESOLUTION]['teams']['china']['active'],
+        'to_china_active': cv2.compareHist(team_selection_histograms[1], HISTOGRAMS[resolution]['teams']['china']['active'],
                                            cv2.HISTCMP_BHATTACHARYYA),
-        'to_mec_active': cv2.compareHist(team_selection_histograms[1], HISTOGRAMS[RESOLUTION]['teams']['mec']['active'],
+        'to_mec_active': cv2.compareHist(team_selection_histograms[1], HISTOGRAMS[resolution]['teams']['mec']['active'],
                                          cv2.HISTCMP_BHATTACHARYYA),
     }
 
@@ -508,10 +511,12 @@ def init_game_instance(bf2_path: str, player_name: str, player_pass: str) -> Non
     # Init shell
     shell = win32com.client.Dispatch("WScript.Shell")
 
+    window_size = config.get_window_size()
+
     # Prepare command
     command = f'cmd /c start /b /d "{bf2_path}" BF2.exe +restart 1 ' \
               f'+playerName "{player_name}" +playerPassword "{player_pass}" ' \
-              f'+szx {WINDOW_SIZE[0]} +szy {WINDOW_SIZE[1]} +fullscreen 0 +wx 5 +wy 5 ' \
+              f'+szx {window_size[0]} +szy {window_size[1]} +fullscreen 0 +wx 5 +wy 5 ' \
               f'+multi 1 +developer 1 +disableShaderCache 1 +ignoreAsserts 1'
 
     # Run command
@@ -641,9 +646,9 @@ def controller_update_current_server(server_ip: str, server_port: str, server_pa
     request_ok = False
     try:
         response = requests.post(
-            f'{args.controller_base_uri}/servers/current',
+            f'{config.get_controller_base_uri()}/servers/current',
             data={
-                'app_key': args.controller_app_key,
+                'app_key': config.get_controller_app_key(),
                 'ip': server_ip,
                 'port': server_port,
                 'password': server_pass,
@@ -663,7 +668,7 @@ def controller_update_current_server(server_ip: str, server_port: str, server_pa
 def controller_get_join_server() -> dict:
     join_sever = None
     try:
-        response = requests.get(f'{args.controller_base_uri}/servers/join', timeout=10)
+        response = requests.get(f'{config.get_controller_base_uri()}/servers/join', timeout=10)
 
         if response.status_code == 200:
             join_sever = response.json()
@@ -677,8 +682,8 @@ def controller_get_command(cmd_key: str):
     cmd_value = None
     try:
         response = requests.get(
-            f'{args.controller_base_uri}/commands',
-            params={'app_key': args.controller_app_key},
+            f'{config.get_controller_base_uri()}/commands',
+            params={'app_key': config.get_controller_app_key()},
             timeout=10
         )
 
@@ -695,9 +700,9 @@ def controller_post_commands(commands: dict) -> bool:
     request_ok = False
     try:
         response = requests.post(
-            f'{args.controller_base_uri}/commands',
+            f'{config.get_controller_base_uri()}/commands',
             data={
-                'app_key': args.controller_app_key,
+                'app_key': config.get_controller_app_key(),
                 **commands
             },
             timeout=10
@@ -869,13 +874,23 @@ logging.basicConfig(level=logging.DEBUG if args.debug_log else logging.INFO, for
 pytesseract.pytesseract.tesseract_cmd = os.path.join(args.tesseract_path, 'tesseract.exe')
 top_windows = []
 
-# Copy resolution to constant and set dependent values
-RESOLUTION = args.game_res
-WINDOW_SIZE = ()
-if RESOLUTION == '720p':
-    WINDOW_SIZE = (1280, 720)
-elif RESOLUTION == '900p':
-    WINDOW_SIZE = (1600, 900)
+# Transfer argument values to config
+config = Config(
+    player_name=args.player_name,
+    player_pass=args.player_pass,
+    server_ip=args.server_ip,
+    server_port=args.server_port,
+    server_pass=args.server_pass,
+    game_path=args.game_path,
+    limit_rtl=args.limit_rtl,
+    instance_rtl=args.instance_rtl,
+    use_controller=args.use_controller,
+    controller_base_uri=args.controller_base_uri,
+    controller_app_key=args.controller_app_key,
+    resolution=args.game_res,
+    debug_screenshot=args.debug_screenshot,
+    max_iterations_on_player=5
+)
 
 # Remove the top left corner from pyautogui failsafe points
 # (avoid triggering failsafe exception due to mouse moving to left left during spawn)
@@ -884,43 +899,41 @@ del pyautogui.FAILSAFE_POINTS[0]
 # Make sure provided paths are valid
 if not os.path.isfile(pytesseract.pytesseract.tesseract_cmd):
     sys.exit(f'Could not find tesseract.exe in given install folder: {args.tesseract_path}')
-elif not os.path.isfile(os.path.join(args.game_path, 'BF2.exe')):
-    sys.exit(f'Could not find BF2.exe in given game install folder: {args.game_path}')
+elif not os.path.isfile(os.path.join(config.get_game_path(), 'BF2.exe')):
+    sys.exit(f'Could not find BF2.exe in given game install folder: {config.get_game_path()}')
 
 # Load pickles
 logging.info('Loading pickles')
-with open(os.path.join(config.ROOT_DIR, 'pickle', 'histograms.pickle'), 'rb') as histogramFile:
+with open(os.path.join(Config.ROOT_DIR, 'pickle', 'histograms.pickle'), 'rb') as histogramFile:
     HISTOGRAMS = pickle.load(histogramFile)
 
 # Init debug directory if debugging is enabled
-if args.debug_screenshot:
+if config.debug_screenshot():
     # Create debug output dir if needed
-    if not os.path.isdir(config.DEBUG_DIR):
-        os.mkdir(config.DEBUG_DIR)
+    if not os.path.isdir(Config.DEBUG_DIR):
+        os.mkdir(Config.DEBUG_DIR)
 
 # Init game instance state store
-gameInstanceState = GameInstanceState(args.server_ip, args.server_port, args.server_pass)
+gameInstanceState = GameInstanceState(config.get_server_ip(), config.get_server_port(), config.get_server_pass())
 
 # Check whether the controller has a server join
-if args.use_controller:
+if config.use_controller():
     logging.info('Checking for join server on controller')
     joinServer = controller_get_join_server()
     if joinServer is not None and \
-            (joinServer['ip'] != gameInstanceState.get_server_ip() or
-             str(joinServer['gamePort']) != gameInstanceState.get_server_port()):
+            (joinServer['ip'] != config.get_server_ip() or
+             str(joinServer['gamePort']) != config.get_server_port()):
         # Spectator is supposed to be on different server
         logging.info('Controller has a server to join')
-        gameInstanceState.set_server_ip(joinServer['ip'])
-        gameInstanceState.set_server_port(str(joinServer['gamePort']))
-        gameInstanceState.set_server_password(joinServer['password'])
+        config.set_server(joinServer['ip'], joinServer['gamePort'], joinServer['password'])
 
 # Init game instance if requested
 if args.start_game:
     logging.info('Initializing spectator game instance')
     init_game_instance(
-        args.game_path,
-        args.player_name,
-        args.player_pass
+        config.get_game_path(),
+        config.get_player_name(),
+        config.get_player_pass()
     )
 
 # Find BF2 window
@@ -929,12 +942,12 @@ bf2Window = find_window_by_title('BF2 (v1.5.3153-802.0, pid:', 'BF2')
 logging.info(f'Found window: {bf2Window}')
 
 # Make sure found window is correct size/resolution (accounting for window margins)
-if bf2Window is not None and (bf2Window['rect'][2] - 21, bf2Window['rect'][3] - 44) != WINDOW_SIZE:
+if bf2Window is not None and (bf2Window['rect'][2] - 21, bf2Window['rect'][3] - 44) != config.get_window_size():
     logging.error('Existing game window is a different resolution/size than expected, restarting')
     gameInstanceState.set_error_restart_required(True)
 
-# Start with 4 to switch away from dead spectator right away
-iterationsOnPlayer = 5
+# Start with max to switch away from dead spectator right away
+iterationsOnPlayer = config.get_max_iterations_on_player()
 while True:
     # Try to bring BF2 window to foreground
     if not gameInstanceState.error_restart_required():
@@ -973,7 +986,7 @@ while True:
         gameInstanceState.set_error_restart_required(True)
 
     # Check if a game restart command was issued to the controller
-    if args.use_controller and controller_get_command('game_restart') is True:
+    if config.use_controller() and controller_get_command('game_restart') is True:
         logging.info('Game restart requested via controller, unsetting command flag and queueing game restart')
         # Reset command to false
         commandReset = controller_post_commands({'game_restart': False})
@@ -1004,9 +1017,9 @@ while True:
 
         # Init game new game instance
         init_game_instance(
-            args.game_path,
-            args.player_name,
-            args.player_pass
+            config.get_game_path(),
+            config.get_player_name(),
+            config.get_player_pass()
         )
         # Update window dict
         bf2Window = find_window_by_title('BF2 (v1.5.3153-802.0, pid:', 'BF2')
@@ -1019,9 +1032,9 @@ while True:
             # Connect to server
             logging.info('Connecting to server')
             connected = connect_to_server(
-                gameInstanceState.get_server_ip(),
-                gameInstanceState.get_server_port(),
-                gameInstanceState.get_server_password()
+                config.get_server_ip(),
+                config.get_server_port(),
+                config.get_server_pass()
             )
             # Reset state
             gameInstanceState.restart_reset()
@@ -1073,20 +1086,21 @@ while True:
 
     # If we are using a controller, check if server switch is required and possible
     # (spectator not on server or fully in game)
-    if args.use_controller and (not gameInstanceState.spectator_on_server() or
-                                (not gameInstanceState.map_loading() and iterationsOnPlayer == 5)):
+    if config.use_controller() and (not gameInstanceState.spectator_on_server() or
+                                (not gameInstanceState.map_loading() and
+                                 iterationsOnPlayer == config.get_max_iterations_on_player())):
         logging.info('Checking for join server on controller')
         joinServer = controller_get_join_server()
         # Update server and switch if spectator is supposed to be on a different server of password was updated
         if joinServer is not None and \
-                (joinServer['ip'] != gameInstanceState.get_server_ip() or
-                 str(joinServer['gamePort']) != gameInstanceState.get_server_port() or
-                 joinServer['password'] != gameInstanceState.get_server_password()):
+                (joinServer['ip'] != config.get_server_ip() or
+                 str(joinServer['gamePort']) != config.get_server_port() or
+                 joinServer['password'] != config.get_server_password()):
             # Spectator is supposed to be on different server
             logging.info('Controller has a server to join')
-            gameInstanceState.set_server_ip(joinServer['ip'])
-            gameInstanceState.set_server_port(str(joinServer['gamePort']))
-            gameInstanceState.set_server_password(joinServer['password'])
+            config.set_server_ip(joinServer['ip'])
+            config.set_server_port(str(joinServer['gamePort']))
+            config.set_server_pass(joinServer['password'])
             gameInstanceState.set_spectator_on_server(False)
             logging.info('Queued server switch, disconnecting from current server')
             disconnect_from_server()
@@ -1104,9 +1118,9 @@ while True:
         # (Re-)connect to server
         logging.info('(Re-)Connecting to server')
         connected = connect_to_server(
-            gameInstanceState.get_server_ip(),
-            gameInstanceState.get_server_port(),
-            gameInstanceState.get_server_password()
+            config.get_server_ip(),
+            config.get_server_port(),
+            config.get_server_pass()
         )
         # Treat re-connecting as map rotation (state wise)
         gameInstanceState.map_rotation_reset()
@@ -1114,7 +1128,7 @@ while True:
         gameInstanceState.set_spectator_on_server(connected)
         gameInstanceState.set_map_loading(connected)
         # Update controller
-        if connected and args.use_controller:
+        if connected and config.use_controller():
             controller_update_current_server(
                 gameInstanceState.get_server_ip(),
                 gameInstanceState.get_server_port(),
@@ -1131,7 +1145,7 @@ while True:
     if (onRoundFinishScreen or mapIsLoading or mapBriefingPresent) and not gameInstanceState.map_loading():
         gameInstanceState.set_map_loading(True)
 
-    if args.limit_rtl and onRoundFinishScreen and gameInstanceState.get_round_num() >= args.instance_rtl:
+    if config.limit_rtl() and onRoundFinishScreen and gameInstanceState.get_round_num() >= config.get_instance_trl():
         logging.info('Game instance has reached rtl limit, restart required')
         gameInstanceState.set_rtl_restart_required(True)
     elif mapIsLoading:
@@ -1140,7 +1154,7 @@ while True:
         if gameInstanceState.rotation_on_map():
             logging.info('Performing map rotation reset')
             gameInstanceState.map_rotation_reset()
-        iterationsOnPlayer = 5
+        iterationsOnPlayer = config.get_max_iterations_on_player()
         time.sleep(3)
     elif mapBriefingPresent:
         logging.info('Map briefing present, checking map')
@@ -1173,8 +1187,8 @@ while True:
         logging.info('Game is on round finish screen')
         # Reset state
         gameInstanceState.round_end_reset()
-        # Set counter to 4 again to skip spectator
-        iterationsOnPlayer = 5
+        # Set counter to max again to skip spectator
+        iterationsOnPlayer = config.get_max_iterations_on_player()
         time.sleep(3)
     elif not onRoundFinishScreen and not gameInstanceState.round_spawned():
         # Loaded into map, now trying to start spectating
@@ -1242,11 +1256,11 @@ while True:
         logging.debug(f'Entering round #{gameInstanceState.get_round_num()} using this instance')
         # Spectator has "entered" map, update state accordingly
         gameInstanceState.set_rotation_on_map(True)
-    elif not onRoundFinishScreen and iterationsOnPlayer < 5:
+    elif not onRoundFinishScreen and iterationsOnPlayer < config.get_max_iterations_on_player():
         # Check if player is afk
         if not is_sufficient_action_on_screen():
             logging.info('Insufficient action on screen')
-            iterationsOnPlayer = 5
+            iterationsOnPlayer = config.get_max_iterations_on_player()
         else:
             logging.info('Nothing to do, stay on player')
             iterationsOnPlayer += 1
