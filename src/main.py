@@ -803,13 +803,15 @@ pytesseract.pytesseract.tesseract_cmd = os.path.join(args.tesseract_path, 'tesse
 top_windows = []
 
 # Transfer argument values to config
-config = Config(
+config = Config()
+config.set_options(
     player_name=args.player_name,
     player_pass=args.player_pass,
     server_ip=args.server_ip,
     server_port=args.server_port,
     server_pass=args.server_pass,
     game_path=args.game_path,
+    tesseract_path=args.tesseract_path,
     limit_rtl=args.limit_rtl,
     instance_rtl=args.instance_rtl,
     use_controller=args.use_controller,

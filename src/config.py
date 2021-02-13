@@ -4,7 +4,16 @@ from typing import Tuple
 import constants
 
 
-class Config:
+class Singleton(type):
+    _instances = {}
+
+    def __call__(cls, *args, **kwargs):
+        if cls not in cls._instances:
+            cls._instances[cls] = super(Singleton, cls).__call__(*args, **kwargs)
+        return cls._instances[cls]
+
+
+class Config(metaclass=Singleton):
     ROOT_DIR: str = os.path.dirname(__file__).replace('\\src', '')
     PWD: str = os.getcwd()
     DEBUG_DIR: str = os.path.join(PWD, f'{constants.APP_NAME}-debug')
@@ -16,6 +25,7 @@ class Config:
     __server_pass: str
 
     __game_path: str
+    __tesseract_path: str
     __limit_rtl: bool
     __instance_rtl: int
 
@@ -25,16 +35,15 @@ class Config:
     __controller_timeout: int
 
     __resolution: str
-    __window_size: Tuple[int, int]
     __debug_screenshot: bool
 
     __iterations_on_player: int
     __max_iterations_on_player: int
 
-    def __init__(self, player_name: str, player_pass: str, server_ip: str, server_port: str, server_pass: str,
-                 game_path: str, limit_rtl: bool, instance_rtl: int, use_controller: bool, controller_base_uri: str,
-                 controller_app_key: str, controller_timeout: int, resolution: str, debug_screenshot: bool,
-                 max_iterations_on_player: int):
+    def set_options(self, player_name: str, player_pass: str, server_ip: str, server_port: str, server_pass: str,
+                     game_path: str, tesseract_path: str, limit_rtl: bool, instance_rtl: int, use_controller: bool,
+                     controller_base_uri: str, controller_app_key: str, controller_timeout: int, resolution: str,
+                     debug_screenshot: bool, max_iterations_on_player: int):
         self.__player_name = player_name
         self.__player_pass = player_pass
         self.__server_ip = server_ip
@@ -42,6 +51,7 @@ class Config:
         self.__server_pass = server_pass
 
         self.__game_path = game_path
+        self.__tesseract_path = tesseract_path
         self.__limit_rtl = limit_rtl
         self.__instance_rtl = instance_rtl
 
@@ -51,11 +61,6 @@ class Config:
         self.__controller_timeout = controller_timeout
 
         self.__resolution = resolution
-        # Set window size based on resolution
-        if self.__resolution == '720p':
-            self.__window_size = (1280, 720)
-        elif self.__resolution == '900p':
-            self.__window_size = (1600, 900)
 
         self.__debug_screenshot = debug_screenshot
 
@@ -96,6 +101,9 @@ class Config:
     def get_game_path(self) -> str:
         return self.__game_path
 
+    def get_tesseract_path(self) -> str:
+        return self.__tesseract_path
+
     def limit_rtl(self) -> bool:
         return self.__limit_rtl
 
@@ -116,9 +124,6 @@ class Config:
 
     def get_resolution(self) -> str:
         return self.__resolution
-
-    def get_window_size(self) -> Tuple[int, int]:
-        return self.__window_size
 
     def debug_screenshot(self) -> bool:
         return self.__debug_screenshot
