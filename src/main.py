@@ -527,7 +527,7 @@ def init_game_instance(bf2_path: str, player_name: str, player_pass: str) -> Non
     check_count = 0
     check_limit = 5
     while not game_window_present and check_count < check_limit:
-        game_window_present = find_window_by_title('BF2 (v1.5.3153-802.0, pid:', 'BF2') is not None
+        game_window_present = find_window_by_title(constants.BF2_WINDOW_TITLE, 'BF2') is not None
         check_count += 1
         time.sleep(4)
 
@@ -938,7 +938,7 @@ if args.start_game:
 
 # Find BF2 window
 logging.info('Finding BF2 window')
-bf2Window = find_window_by_title('BF2 (v1.5.3153-802.0, pid:', 'BF2')
+bf2Window = find_window_by_title(constants.BF2_WINDOW_TITLE, 'BF2')
 logging.info(f'Found window: {bf2Window}')
 
 # Make sure found window is correct size/resolution (accounting for window margins)
@@ -1022,7 +1022,7 @@ while True:
             config.get_player_pass()
         )
         # Update window dict
-        bf2Window = find_window_by_title('BF2 (v1.5.3153-802.0, pid:', 'BF2')
+        bf2Window = find_window_by_title(constants.BF2_WINDOW_TITLE, 'BF2')
 
         # Connect to server
         try:
