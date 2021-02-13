@@ -186,8 +186,6 @@ while True:
 
         # Init game new game instance
         gim.launch_instance(config.get_resolution())
-        # Update window dict
-        bf2Window = gim.get_game_window()
 
         # Bring window to foreground
         try:
