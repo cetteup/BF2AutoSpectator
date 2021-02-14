@@ -1,4 +1,5 @@
 import os
+from datetime import datetime, timedelta
 from typing import Tuple
 
 import constants
@@ -37,13 +38,15 @@ class Config(metaclass=Singleton):
     __resolution: str
     __debug_screenshot: bool
 
-    __iterations_on_player: int
     __max_iterations_on_player: int
 
+    __player_rotation_paused: bool = False
+    __player_rotation_paused_until: datetime = None
+
     def set_options(self, player_name: str, player_pass: str, server_ip: str, server_port: str, server_pass: str,
-                     game_path: str, tesseract_path: str, limit_rtl: bool, instance_rtl: int, use_controller: bool,
-                     controller_base_uri: str, controller_app_key: str, controller_timeout: int, resolution: str,
-                     debug_screenshot: bool, max_iterations_on_player: int):
+                    game_path: str, tesseract_path: str, limit_rtl: bool, instance_rtl: int, use_controller: bool,
+                    controller_base_uri: str, controller_app_key: str, controller_timeout: int, resolution: str,
+                    debug_screenshot: bool, max_iterations_on_player: int):
         self.__player_name = player_name
         self.__player_pass = player_pass
         self.__server_ip = server_ip
@@ -130,3 +133,16 @@ class Config(metaclass=Singleton):
 
     def get_max_iterations_on_player(self) -> int:
         return self.__max_iterations_on_player
+
+    def player_rotation_paused(self) -> bool:
+        return self.__player_rotation_paused
+
+    def get_player_rotation_paused_until(self) -> datetime:
+        return self.__player_rotation_paused_until
+
+    def pause_player_rotation(self, pause_for_minutes: int) -> None:
+        self.__player_rotation_paused = True
+        self.__player_rotation_paused_until = datetime.now() + timedelta(minutes=pause_for_minutes)
+
+    def unpause_player_rotation(self) -> None:
+        self.__player_rotation_paused = False

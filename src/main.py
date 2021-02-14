@@ -4,6 +4,7 @@ import os
 import pickle
 import sys
 import time
+from datetime import datetime
 
 import constants
 from config import Config
@@ -153,15 +154,39 @@ while True:
         gis.set_error_restart_required(True)
 
     # Check if a game restart command was issued to the controller
+    forceNextPlayer = False
     if config.use_controller():
         commands = controller.get_commands()
         if commands.get('game_restart') is True:
-            logging.info('Game restart requested via controller, unsetting command flag and queueing game restart')
+            logging.info('Game restart requested via controller, queueing game restart')
             # Reset command to false
             commandReset = controller.post_commands({'game_restart': False})
             if commandReset:
                 # Set restart required flag
                 gis.set_error_restart_required(True)
+
+        if commands.get('pause_rotation') is True:
+            logging.info('Player rotation pause requested via controller, pausing rotation')
+            # Reset command to false
+            commandReset = controller.post_commands({'pause_rotation': False})
+            if commandReset:
+                # Set pause via config
+                config.pause_player_rotation(constants.PLAYER_ROTATION_PAUSE_DURATION)
+
+        if commands.get('resume_rotation') is True:
+            logging.info('Player rotation resume requested via controller, resuming rotation')
+            # Reset command flag
+            commandReset = controller.post_commands({'resume_rotation': False})
+            if commandReset:
+                # Unpause via config
+                config.unpause_player_rotation()
+
+        if commands.get('next_player') is True:
+            logging.info('Manual switch to next player requested via controller, queueing switch')
+            # Reset command to false
+            commandReset = controller.post_commands({'next_player': False})
+            if commandReset:
+                forceNextPlayer = True
 
     # Start a new game instance if required
     if gis.rtl_restart_required() or gis.error_restart_required():
@@ -419,7 +444,7 @@ while True:
         logging.debug(f'Entering round #{gis.get_round_num()} using this instance')
         # Spectator has "entered" map, update state accordingly
         gis.set_rotation_on_map(True)
-    elif not onRoundFinishScreen and iterationsOnPlayer < config.get_max_iterations_on_player():
+    elif not onRoundFinishScreen and iterationsOnPlayer < config.get_max_iterations_on_player() and not forceNextPlayer:
         # Check if player is afk
         if not gim.is_sufficient_action_on_screen():
             logging.info('Insufficient action on screen')
@@ -428,6 +453,14 @@ while True:
             logging.info('Nothing to do, stay on player')
             iterationsOnPlayer += 1
             time.sleep(2)
+    elif not onRoundFinishScreen and config.player_rotation_paused() and not forceNextPlayer:
+        logging.info(f'Player rotation is paused until {config.get_player_rotation_paused_until().isoformat()}')
+        # If rotation pause flag is still set even though the pause expired, remove the flag
+        if config.get_player_rotation_paused_until() < datetime.now():
+            logging.info('Player rotation pause expired, re-enabling rotation')
+            config.unpause_player_rotation()
+        else:
+            time.sleep(4)
     elif not onRoundFinishScreen:
         logging.info('Rotating to next player')
         gim.rotate_to_next_player()

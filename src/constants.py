@@ -4,6 +4,7 @@ BF2_EXE = 'BF2.exe'
 BF2_WINDOW_TITLE = 'BF2 (v1.5.3153-802.0, pid:'
 TESSERACT_EXE = 'tesseract.exe'
 HISTCMP_MAX_DELTA = 0.2
+PLAYER_ROTATION_PAUSE_DURATION = 5
 COORDINATES = {
     '720p': {
         # format for click coordinates: tuple(x coordinate, y coordinate)
