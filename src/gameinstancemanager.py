@@ -118,7 +118,7 @@ class GameInstanceManager:
 
         time.sleep(2)
 
-        return not is_responding_pid(int(self.__game_window.pid))
+        return not is_responding_pid(self.__game_window.pid)
 
     """
     Functions for detecting game state elements

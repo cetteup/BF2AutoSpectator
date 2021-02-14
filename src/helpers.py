@@ -1,7 +1,6 @@
 import ctypes
 import logging
 import os
-import re
 import subprocess
 import time
 from datetime import datetime
@@ -14,6 +13,7 @@ import pytesseract
 import win32api
 import win32con
 import win32gui
+import win32process
 from PIL import Image, ImageOps
 
 import constants
@@ -29,9 +29,9 @@ class Window:
     title: str
     rect: Tuple[int, int, int, int]
     class_name: str
-    pid: str
+    pid: int
 
-    def __init__(self, handle: int, title: str, rect: Tuple[int, int, int, int], class_name: str, pid: str):
+    def __init__(self, handle: int, title: str, rect: Tuple[int, int, int, int], class_name: str, pid: int):
         self.handle = handle
         self.title = title
         self.rect = rect
@@ -116,12 +116,13 @@ def auto_press_key(key_code: int) -> None:
 
 def window_enumeration_handler(hwnd: int, top_windows: list):
     """Add window title and ID to array."""
+    tid, pid = win32process.GetWindowThreadProcessId(hwnd)
     window = Window(
         hwnd,
         win32gui.GetWindowText(hwnd),
         win32gui.GetWindowRect(hwnd),
         win32gui.GetClassName(hwnd),
-        re.sub(r'^.*pid: ([0-9]+)\)$', '\\1', win32gui.GetWindowText(hwnd))
+        pid
     )
 
     top_windows.append(window)

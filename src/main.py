@@ -127,7 +127,7 @@ while True:
             gis.set_error_restart_required(True)
 
     # Check if game froze
-    if not gis.error_restart_required() and not is_responding_pid(int(bf2Window.pid)):
+    if not gis.error_restart_required() and not is_responding_pid(bf2Window.pid):
         logging.info('Game froze, checking unresponsive count')
         # Game will temporarily freeze when map load finishes or when joining server, so don't restart right away
         if gis.get_error_unresponsive_count() < 3:
@@ -179,7 +179,7 @@ while True:
         if bf2Window is not None and gis.error_restart_required():
             # Kill any remaining instance by pid
             logging.info('Killing existing game instance')
-            killed = taskkill_pid(int(bf2Window.pid))
+            killed = taskkill_pid(bf2Window.pid)
             logging.debug(f'Instance killed: {killed}')
             # Give Windows time to actually close the window
             time.sleep(3)
