@@ -53,7 +53,13 @@ class GameInstanceManager:
     """
     Functions for launching, finding and destroying/quitting a game instance
     """
-    def launch_instance(self, resolution: str):
+    def launch_instance(self, resolution: str) -> bool:
+        """
+        Launch a new game instance via a shell (launching via shell "detaches" game process from spectator process,
+        so that spectator can be restarted without having to restart the game)
+        :param resolution: resolution to use for the game window [720p, 900p]
+        :return:
+        """
         # Init shell
         shell = win32com.client.Dispatch("WScript.Shell")
 
@@ -101,7 +107,7 @@ class GameInstanceManager:
 
         return self.__find_instance()
 
-    def quit_game_instance(self) -> bool:
+    def quit_instance(self) -> bool:
         # Spam press ESC if menu is not already visible
         attempt = 0
         max_attempts = 5

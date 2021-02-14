@@ -168,7 +168,7 @@ while True:
         if bf2Window is not None and gis.rtl_restart_required():
             # Quit out of current instnace
             logging.info('Quitting existing game instance')
-            quitSuccessful = gim.quit_game_instance()
+            quitSuccessful = gim.quit_instance()
             logging.debug(f'Quit successful: {quitSuccessful}')
             gis.set_rtl_restart_required(False)
             # If quit was not successful, switch to error restart
