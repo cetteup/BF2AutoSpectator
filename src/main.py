@@ -444,7 +444,8 @@ while True:
         logging.debug(f'Entering round #{gis.get_round_num()} using this instance')
         # Spectator has "entered" map, update state accordingly
         gis.set_rotation_on_map(True)
-    elif not onRoundFinishScreen and iterationsOnPlayer < config.get_max_iterations_on_player() and not forceNextPlayer:
+    elif not onRoundFinishScreen and iterationsOnPlayer < config.get_max_iterations_on_player() and \
+            not config.player_rotation_paused() and not forceNextPlayer:
         # Check if player is afk
         if not gim.is_sufficient_action_on_screen():
             logging.info('Insufficient action on screen')
