@@ -405,7 +405,7 @@ class GameInstanceManager:
         # Successfully joining a server means leaving the menu, so wait for menu to disappear
         # (cancel further checks when a game/error message is present)
         check_count = 0
-        check_limit = 8
+        check_limit = 16
         in_menu = True
         game_message_present = False
         while in_menu and not game_message_present and check_count < check_limit:
