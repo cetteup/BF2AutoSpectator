@@ -461,7 +461,7 @@ while True:
             logging.info('Player rotation pause expired, re-enabling rotation')
             config.unpause_player_rotation()
         else:
-            time.sleep(4)
+            time.sleep(2)
     elif not onRoundFinishScreen:
         logging.info('Rotating to next player')
         gim.rotate_to_next_player()
