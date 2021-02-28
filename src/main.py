@@ -165,18 +165,18 @@ while True:
                 # Set restart required flag
                 gis.set_error_restart_required(True)
 
-        if commands.get('pause_rotation') is True:
+        if commands.get('rotation_pause') is True:
             logging.info('Player rotation pause requested via controller, pausing rotation')
             # Reset command to false
-            commandReset = controller.post_commands({'pause_rotation': False})
+            commandReset = controller.post_commands({'rotation_pause': False})
             if commandReset:
                 # Set pause via config
                 config.pause_player_rotation(constants.PLAYER_ROTATION_PAUSE_DURATION)
 
-        if commands.get('resume_rotation') is True:
+        if commands.get('rotation_resume') is True:
             logging.info('Player rotation resume requested via controller, resuming rotation')
             # Reset command flag
-            commandReset = controller.post_commands({'resume_rotation': False})
+            commandReset = controller.post_commands({'rotation_resume': False})
             if commandReset:
                 # Unpause via config
                 config.unpause_player_rotation()
