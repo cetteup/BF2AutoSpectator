@@ -1,4 +1,4 @@
-Pillow == 8.1.1
+Pillow == 8.2.0
 PyAutoGUI == 0.9.50
 beautifulsoup4 == 4.9.1
 numpy == 1.19.1
