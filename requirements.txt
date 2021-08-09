@@ -5,4 +5,4 @@ numpy == 1.19.1
 opencv_python == 4.4.0.42
 pytesseract == 0.3.6
 requests == 2.24.0
-pywin32 == 300
+pywin32 == 301
