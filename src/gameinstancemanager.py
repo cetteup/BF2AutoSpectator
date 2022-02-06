@@ -14,7 +14,7 @@ from gameinstancestate import GameInstanceState
 from helpers import Window, find_window_by_title, get_resolution_window_size, mouse_move_to_game_window_coord, \
     ocr_screenshot_game_window_region, auto_press_key, screenshot_game_window_region, calc_cv2_hist_from_pil_image, \
     mouse_reset_legacy, mouse_move_legacy, mouse_click_legacy, is_responding_pid
-from src import constants
+import constants
 
 # Remove the top left corner from pyautogui failsafe points
 # (avoid triggering failsafe exception due to mouse moving to left left during spawn)

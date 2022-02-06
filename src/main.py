@@ -9,7 +9,7 @@ from datetime import datetime
 import constants
 from config import Config
 from controller import Controller
-from exceptions import *
+from exceptions import UnsupportedMapException
 from gameinstancemanager import GameInstanceManager
 from helpers import is_responding_pid, find_window_by_title, taskkill_pid, init_pytesseract
 
@@ -61,7 +61,7 @@ config.set_options(
     max_iterations_on_player=5
 )
 
-# Make sure provided paths are valid
+# Make sure provided paths.py are valid
 if not os.path.isfile(os.path.join(config.get_tesseract_path(), constants.TESSERACT_EXE)):
     sys.exit(f'Could not find {constants.TESSERACT_EXE} in given install folder: {args.tesseract_path}')
 elif not os.path.isfile(os.path.join(config.get_game_path(), constants.BF2_EXE)):
