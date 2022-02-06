@@ -18,51 +18,51 @@ The goal is to provide a fully automated, fire-and-forget spectator for the game
 - (optional) remote control using [bf2-auto-spectator-controller](https://github.com/cetteup/bf2-auto-spectator-controller)
 
 ## Command line arguments
-Argument|Description|Default|Required
---------|-----------|-------|--------
-`--version`|Output version information
-`--player-name`|Name of bf2hub account|None|Yes
-`--player-password`|Passwort for bf2hub account|None|Yes
-`--server-ip`|IP of server to join|None|Yes
-`--server-port`|Port of server to join|16567|No
-`--server-pass`|Passwort for server to join|None|No
-`--game-path`|Path to BF2 install folder|C:\Program Files (x86)\EA Games\Battlefield 2\ |No
-`--game-res`|Resolution to use for BF2 window|720p|No
-`--tesseract-path`|Path to Tesseract install folder|C:\Program Files\Tesseract-OCR\ |No
-`--use-controller`|Use a bf2-auto-spectator-controller instance
-`--controller-base-uri`|Base uri of controller instance (format: http[s]://[hostname])
-`--controller-app-key`|App key for controller instance
-`--no-start`|Do not start a new game instance (use existing)
-`--debug-log`|Add debugging information to log output
-`--debug-screenshot`|Write any screenshots to disk for debugging
+| Argument                | Description                                                    | Default                                        | Required |
+|-------------------------|----------------------------------------------------------------|------------------------------------------------|----------|
+| `--version`             | Output version information                                     |                                                |          |
+| `--player-name`         | Name of bf2hub account                                         | None                                           | Yes      |
+| `--player-password`     | Passwort for bf2hub account                                    | None                                           | Yes      |
+| `--server-ip`           | IP of server to join                                           | None                                           | Yes      |
+| `--server-port`         | Port of server to join                                         | 16567                                          | No       |
+| `--server-pass`         | Passwort for server to join                                    | None                                           | No       |
+| `--game-path`           | Path to BF2 install folder                                     | C:\Program Files (x86)\EA Games\Battlefield 2\ | No       |
+| `--game-res`            | Resolution to use for BF2 window                               | 720p                                           | No       |
+| `--tesseract-path`      | Path to Tesseract install folder                               | C:\Program Files\Tesseract-OCR\                | No       |
+| `--use-controller`      | Use a bf2-auto-spectator-controller instance                   |                                                |          |
+| `--controller-base-uri` | Base uri of controller instance (format: http[s]://[hostname]) |                                                |          |
+| `--controller-app-key`  | App key for controller instance                                |                                                |          |
+| `--no-start`            | Do not start a new game instance (use existing)                |                                                |          |
+| `--debug-log`           | Add debugging information to log output                        |                                                |          |
+| `--debug-screenshot`    | Write any screenshots to disk for debugging                    |                                                |          |
 
 You can always get these details locally by providing the `--help` argument.
 
 ## Supported maps for auto-spawning
-Map name|16 size|32 size|64 size
---------|-------|-------|-------
-Dalian Plant|No|No|Yes
-Daqing Oilfields|No|No|Yes
-Dragon Valley|No|No|Yes
-FuShe Pass|No|No|Yes
-Great Wall|No|Yes|n/a
-Gulf of Oman|Yes|No|Yes
-Highway Tampa|No|No|Yes
-Kubra Dam|No|No|Yes
-Mashtuur City|Yes|No|Yes
-Midnight Sun|No|No|Yes
-Operation Blue Pearl|No|No|Yes
-Operation Clean Sweep|No|No|Yes
-Operation Harvest|No|No|Yes
-Operation Road Rage|No|No|Yes
-Operation Smoke Screen|No|No|Yes
-Road to Jalalabad|Yes|No|Yes
-Sharqi Peninsula|Yes|No|Yes
-Songhua Stalemate|No|No|Yes
-Strike at Karkand|Yes|No|Yes
-Taraba Quarry|No|Yes|n/a
-Wake Island 2007|No|No|Yes
-Zatar Wetlands|No|No|Yes
+| Map name               | 16 size | 32 size | 64 size |
+|------------------------|---------|---------|---------|
+| Dalian Plant           | No      | No      | Yes     |
+| Daqing Oilfields       | No      | No      | Yes     |
+| Dragon Valley          | No      | No      | Yes     |
+| FuShe Pass             | No      | No      | Yes     |
+| Great Wall             | No      | Yes     | n/a     |
+| Gulf of Oman           | Yes     | No      | Yes     |
+| Highway Tampa          | No      | No      | Yes     |
+| Kubra Dam              | No      | No      | Yes     |
+| Mashtuur City          | Yes     | No      | Yes     |
+| Midnight Sun           | No      | No      | Yes     |
+| Operation Blue Pearl   | No      | No      | Yes     |
+| Operation Clean Sweep  | No      | No      | Yes     |
+| Operation Harvest      | No      | No      | Yes     |
+| Operation Road Rage    | No      | No      | Yes     |
+| Operation Smoke Screen | No      | No      | Yes     |
+| Road to Jalalabad      | Yes     | No      | Yes     |
+| Sharqi Peninsula       | Yes     | No      | Yes     |
+| Songhua Stalemate      | No      | No      | Yes     |
+| Strike at Karkand      | Yes     | No      | Yes     |
+| Taraba Quarry          | No      | Yes     | n/a     |
+| Wake Island 2007       | No      | No      | Yes     |
+| Zatar Wetlands         | No      | No      | Yes     |
 
 ## Setup
 ### Download and install software
