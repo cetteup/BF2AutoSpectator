@@ -41,28 +41,28 @@ You can always get these details locally by providing the `--help` argument.
 ## Supported maps for auto-spawning
 | Map name               | 16 size | 32 size | 64 size |
 |------------------------|---------|---------|---------|
-| Dalian Plant           | Yes     | No      | Yes     |
-| Daqing Oilfields       | Yes     | No      | Yes     |
-| Dragon Valley          | Yes     | No      | Yes     |
-| FuShe Pass             | Yes     | No      | Yes     |
+| Dalian Plant           | Yes     | Yes     | Yes     |
+| Daqing Oilfields       | Yes     | Yes     | Yes     |
+| Dragon Valley          | Yes     | Yes     | Yes     |
+| FuShe Pass             | Yes     | Yes     | Yes     |
 | Great Wall             | Yes     | Yes     | n/a     |
-| Gulf of Oman           | Yes     | No      | Yes     |
-| Highway Tampa          | Yes     | No      | Yes     |
-| Kubra Dam              | Yes     | No      | Yes     |
-| Mashtuur City          | Yes     | No      | Yes     |
-| Midnight Sun           | Yes     | No      | Yes     |
-| Operation Blue Pearl   | Yes     | No      | Yes     |
-| Operation Clean Sweep  | Yes     | No      | Yes     |
-| Operation Harvest      | Yes     | No      | Yes     |
-| Operation Road Rage    | Yes     | No      | Yes     |
-| Operation Smoke Screen | Yes     | No      | Yes     |
-| Road to Jalalabad      | Yes     | No      | Yes     |
-| Sharqi Peninsula       | Yes     | No      | Yes     |
-| Songhua Stalemate      | Yes     | No      | Yes     |
-| Strike at Karkand      | Yes     | No      | Yes     |
+| Gulf of Oman           | Yes     | Yes     | Yes     |
+| Highway Tampa          | Yes     | Yes     | Yes     |
+| Kubra Dam              | Yes     | Yes     | Yes     |
+| Mashtuur City          | Yes     | Yes     | Yes     |
+| Midnight Sun           | Yes     | Yes     | Yes     |
+| Operation Blue Pearl   | Yes     | Yes     | Yes     |
+| Operation Clean Sweep  | Yes     | Yes     | Yes     |
+| Operation Harvest      | Yes     | Yes     | Yes     |
+| Operation Road Rage    | Yes     | Yes     | Yes     |
+| Operation Smoke Screen | Yes     | Yes     | n/a     |
+| Road to Jalalabad      | Yes     | Yes     | Yes     |
+| Sharqi Peninsula       | Yes     | Yes     | Yes     |
+| Songhua Stalemate      | Yes     | Yes     | Yes     |
+| Strike at Karkand      | Yes     | Yes     | Yes     |
 | Taraba Quarry          | Yes     | Yes     | n/a     |
 | Wake Island 2007       | n/a     | n/a     | Yes     |
-| Zatar Wetlands         | Yes     | No      | Yes     |
+| Zatar Wetlands         | Yes     | Yes     | Yes     |
 
 ## Setup
 ### Download and install software
