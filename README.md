@@ -4,7 +4,7 @@ An automated spectator for Battlefield 2 written in Python 🐍
 Battefield 2 might be an old game that is known for sometimes having more dust than hit registration. But it's still around after 15 years and people still play it. So, why not support this game and community with an automated spectator that makes it easy to, for example, stream this game around the clock so people can (re-)discover it via a [live stream](https://twitch.tv/allidoisspectate).
 
 ## Project state
-The goal is to provide a fully automated, fire-and-forget spectator for the game. However, this project is currently in an beta-like state. *Thus, some monitoring of the spectator and any live stream is strongly recommended.*
+The goal is to provide a fully automated, fire-and-forget spectator for the game. However, this project is currently in a beta-like state. *Thus, some monitoring of the spectator and any live stream is strongly recommended.*
 
 ## Features
 - automatic start of a BF2 game instance (can be disabled to attach to an existing instance)
@@ -90,12 +90,12 @@ Any settings not explicitly mentioned here can be changed however you like.
 
 If you want to stop the spectator, hit CTRL + C in the CMD/Powershell window at any time.
 
-**Please note: You cannot (really) use the computer while the spectator is running. It relies on having control over mouse and keyboard and needs the game window to be focused and in the foreground.** You do, however, have small time windows between the spectator's actions in which you can start/stop the stream, stop the spectator etc.
+**Please note: You cannot (really) use the computer while the spectator is running. It relies on having control over mouse and keyboard and needs the game window to be focused and in the foreground.** You do, however, have small time-windows between the spectator's actions in which you can start/stop the stream, stop the spectator etc.
 
 ## Known limitations
 - Windows display scaling must be set to 100%
 - auto-spawning will currently fail if the default spawn has been captured by the other team
 - game locale/language must be set to English
-- some elements of your English locale must be somewhat standard (team names, kick messages, menu items etc)
+- some elements of your English locale must be somewhat standard (team names, kick messages, menu items etc.)
 - the camera and it's movement around the player are controlled by the game
 - the spectator is taking up a slot on the server, since it is technically a regular player

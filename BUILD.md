@@ -1,8 +1,8 @@
 # Bulding the executable
-In order to provide a simple way of running the specator without having to install Python, releases as standalone executables can be found under [releases](https://github.com/cetteup/bf2-auto-spectator/releases).
+In order to provide a simple way of running the spectator without having to install Python, releases as standalone executables can be found under [releases](https://github.com/cetteup/bf2-auto-spectator/releases).
 
 ## Prerequisites
-Make you sure you have all depedencies (see `requirements.txt`) as well as [pyinstaller](https://www.pyinstaller.org/) installed, before you run the build command.
+Make you sure you have all dependencies (see `requirements.txt`) as well as [pyinstaller](https://www.pyinstaller.org/) installed, before you run the build command.
 
 ## Build command
 Run the following command to build the standalone executable.
