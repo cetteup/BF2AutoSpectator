@@ -41,28 +41,28 @@ You can always get these details locally by providing the `--help` argument.
 ## Supported maps for auto-spawning
 | Map name               | 16 size | 32 size | 64 size |
 |------------------------|---------|---------|---------|
-| Dalian Plant           | No      | No      | Yes     |
-| Daqing Oilfields       | No      | No      | Yes     |
-| Dragon Valley          | No      | No      | Yes     |
-| FuShe Pass             | No      | No      | Yes     |
-| Great Wall             | No      | Yes     | n/a     |
+| Dalian Plant           | Yes     | No      | Yes     |
+| Daqing Oilfields       | Yes     | No      | Yes     |
+| Dragon Valley          | Yes     | No      | Yes     |
+| FuShe Pass             | Yes     | No      | Yes     |
+| Great Wall             | Yes     | Yes     | n/a     |
 | Gulf of Oman           | Yes     | No      | Yes     |
-| Highway Tampa          | No      | No      | Yes     |
-| Kubra Dam              | No      | No      | Yes     |
+| Highway Tampa          | Yes     | No      | Yes     |
+| Kubra Dam              | Yes     | No      | Yes     |
 | Mashtuur City          | Yes     | No      | Yes     |
-| Midnight Sun           | No      | No      | Yes     |
-| Operation Blue Pearl   | No      | No      | Yes     |
-| Operation Clean Sweep  | No      | No      | Yes     |
-| Operation Harvest      | No      | No      | Yes     |
-| Operation Road Rage    | No      | No      | Yes     |
-| Operation Smoke Screen | No      | No      | Yes     |
+| Midnight Sun           | Yes     | No      | Yes     |
+| Operation Blue Pearl   | Yes     | No      | Yes     |
+| Operation Clean Sweep  | Yes     | No      | Yes     |
+| Operation Harvest      | Yes     | No      | Yes     |
+| Operation Road Rage    | Yes     | No      | Yes     |
+| Operation Smoke Screen | Yes     | No      | Yes     |
 | Road to Jalalabad      | Yes     | No      | Yes     |
 | Sharqi Peninsula       | Yes     | No      | Yes     |
-| Songhua Stalemate      | No      | No      | Yes     |
+| Songhua Stalemate      | Yes     | No      | Yes     |
 | Strike at Karkand      | Yes     | No      | Yes     |
-| Taraba Quarry          | No      | Yes     | n/a     |
-| Wake Island 2007       | No      | No      | Yes     |
-| Zatar Wetlands         | No      | No      | Yes     |
+| Taraba Quarry          | Yes     | Yes     | n/a     |
+| Wake Island 2007       | n/a     | n/a     | Yes     |
+| Zatar Wetlands         | Yes     | No      | Yes     |
 
 ## Setup
 ### Download and install software
