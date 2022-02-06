@@ -66,7 +66,7 @@ You can always get these details locally by providing the `--help` argument.
 
 ## Setup
 ### Download and install software
-1. Download and install Tesseract v4.1.0.20190314 from the [Uni Mannheim server](https://digi.bib.uni-mannheim.de/tesseract/) (be sure to use the 64 bit version, [direct link](https://digi.bib.uni-mannheim.de/tesseract/tesseract-ocr-w64-setup-v4.1.0.20190314.exe))
+1. Download and install Tesseract v5.0.1.20220118 from the [Uni Mannheim server](https://digi.bib.uni-mannheim.de/tesseract/) (be sure to use the 64 bit version, [direct link](https://digi.bib.uni-mannheim.de/tesseract/tesseract-ocr-w64-setup-v5.0.1.20220118.exe))
 2. Download and extract the [latest release](https://github.com/cetteup/bf2-auto-spectator/releases/latest)
 
 ### In-game setup
