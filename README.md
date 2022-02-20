@@ -1,7 +1,7 @@
 # bf2-auto-spectator
 An automated spectator for Battlefield 2 written in Python 🐍
 
-Battefield 2 might be an old game that is known for sometimes having more dust than hit registration. But it's still around after 15 years and people still play it. So, why not support this game and community with an automated spectator that makes it easy to, for example, stream this game around the clock so people can (re-)discover it via a [live stream](https://twitch.tv/allidoisspectate).
+Battefield 2 might be an old game that is known for sometimes having more dust than hit registration. But it's still around after 15 years and people still play it. So, why not support this game and community with an automated spectator that makes it easy to, for example, stream this game around the clock so people can (re-)discover it via a [live stream](https://www.twitch.tv/bf2tv).
 
 ## Project state
 The goal is to provide a fully automated, fire-and-forget spectator for the game. However, this project is currently in a beta-like state. *Thus, some monitoring of the spectator and any live stream is strongly recommended.*
