@@ -1,6 +1,5 @@
 Pillow==9.1.0
 PyAutoGUI==0.9.53
-beautifulsoup4 == 4.9.1
 numpy == 1.19.1
 opencv_python == 4.4.0.42
 pytesseract == 0.3.6
