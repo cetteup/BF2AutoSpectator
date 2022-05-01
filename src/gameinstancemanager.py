@@ -162,6 +162,21 @@ class GameInstanceManager:
 
         return 'quit' in ocr_result
 
+    def is_multiplayer_menu_active(self) -> bool:
+        screenshot = screenshot_game_window_region(
+            self.__game_window,
+            *constants.COORDINATES[self.__resolution]['hists']['menu']['multiplayer']
+        )
+
+        histogram = calc_cv2_hist_from_pil_image(screenshot)
+        delta = cv2.compareHist(
+            histogram,
+            self.__histograms[self.__resolution]['menu']['multiplayer']['active'],
+            cv2.HISTCMP_BHATTACHARYYA
+        )
+
+        return delta < constants.HISTCMP_MAX_DELTA
+
     def is_round_end_screen_visible(self) -> bool:
         ocr_result = ocr_screenshot_game_window_region(
             self.__game_window,
@@ -334,18 +349,11 @@ class GameInstanceManager:
         win32gui.SetForegroundWindow(self.__game_window.handle)
 
     def connect_to_server(self, server_ip: str, server_port: str, server_pass: str = None) -> bool:
-        # Move cursor onto bfhq menu item and click
-        # Required to reset multiplayer menu
-        mouse_move_to_game_window_coord(self.__game_window, self.__resolution, 'bfhq-menu-item')
-        time.sleep(.2)
-        pyautogui.leftClick()
-
-        time.sleep(3)
-
-        # Move cursor onto multiplayer menu item and click
-        mouse_move_to_game_window_coord(self.__game_window, self.__resolution, 'multiplayer-menu-item')
-        time.sleep(.2)
-        pyautogui.leftClick()
+        if not self.is_multiplayer_menu_active():
+            # Move cursor onto multiplayer menu item and click
+            mouse_move_to_game_window_coord(self.__game_window, self.__resolution, 'multiplayer-menu-item')
+            time.sleep(.2)
+            pyautogui.leftClick()
 
         check_count = 0
         check_limit = 10

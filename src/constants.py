@@ -37,7 +37,10 @@ COORDINATES = {
             'suicide-button': (940, 678, 75, 19)
         },
         'hists': {
-            'teams': [(68, 69, 41, 13), (209, 69, 41, 13)]
+            'teams': [(68, 69, 41, 13), (209, 69, 41, 13)],
+            'menu': {
+                'multiplayer': (229, 34, 200, 1)
+            }
         }
     },
     '900p': {
@@ -71,7 +74,10 @@ COORDINATES = {
             'suicide-button': (1173, 841, 88, 20)
         },
         'hists': {
-            'teams': [(81, 77, 60, 18), (257, 77, 60, 18)]
+            'teams': [(81, 77, 60, 18), (257, 77, 60, 18)],
+            'menu': {
+                'multiplayer': (285, 34, 249, 1)
+            }
         }
     },
     # format for spawn coordinates: list(team 0 tuple, team 1 tuple) with tuple(x offset, y offset)
