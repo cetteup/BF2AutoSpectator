@@ -220,6 +220,12 @@ while True:
             logging.error(str(e))
             continue
 
+        # Ensure game menu is open, try to open it if not
+        if not gim.is_in_menu() and not gim.open_menu():
+            logging.error('Game menu is not visible and could not be opened, restart required')
+            gis.set_error_restart_required(True)
+            continue
+
         # Connect to server
         logging.info('Connecting to server')
         serverIp, serverPort, serverPass = config.get_server()
@@ -313,6 +319,18 @@ while True:
     if not gis.spectator_on_server():
         # Check number of free slots
         # TODO
+
+        # Ensure game menu is open, try to open it if not
+        if not gim.is_in_menu() and not gim.open_menu():
+            logging.error('Game menu is not visible and could not be opened, restart required')
+            gis.set_error_restart_required(True)
+            continue
+
+        # Disconnect from server if still connected according to menu
+        if gim.is_disconnect_button_visible():
+            logging.warning('Game is still connected to a server, disconnecting')
+            gim.disconnect_from_server()
+
         # (Re-)connect to server
         logging.info('(Re-)Connecting to server')
         serverIp, serverPort, serverPass = config.get_server()

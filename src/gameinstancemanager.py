@@ -108,14 +108,10 @@ class GameInstanceManager:
         return self.__find_instance()
 
     def quit_instance(self) -> bool:
-        # Spam press ESC if menu is not already visible
-        attempt = 0
-        max_attempts = 5
-        while 'quit' not in ocr_screenshot_game_window_region(self.__game_window, self.__resolution,
-                                                              'quit-menu-item', True) and attempt < max_attempts:
-            auto_press_key(0x01)
-            attempt += 1
-            time.sleep(1)
+        menu_open = self.open_menu()
+
+        if not menu_open:
+            return False
 
         # Click quit menu item
         mouse_move_to_game_window_coord(self.__game_window, self.__resolution, 'quit-menu-item')
@@ -125,6 +121,17 @@ class GameInstanceManager:
         time.sleep(2)
 
         return not is_responding_pid(self.__game_window.pid)
+
+    def open_menu(self) -> bool:
+        # Spam press ESC if menu is not already visible
+        attempt = 0
+        max_attempts = 5
+        while not self.is_in_menu() and attempt < max_attempts:
+            auto_press_key(0x01)
+            attempt += 1
+            time.sleep(1)
+
+        return self.is_in_menu()
 
     """
     Functions for detecting game state elements
@@ -176,6 +183,16 @@ class GameInstanceManager:
         )
 
         return delta < constants.HISTCMP_MAX_DELTA
+
+    def is_disconnect_button_visible(self) -> bool:
+        ocr_result = ocr_screenshot_game_window_region(
+            self.__game_window,
+            self.__resolution,
+            'disconnect-button',
+            True
+        )
+
+        return 'disconnect' in ocr_result
 
     def is_round_end_screen_visible(self) -> bool:
         ocr_result = ocr_screenshot_game_window_region(
@@ -429,8 +446,7 @@ class GameInstanceManager:
         auto_press_key(0x01)
         time.sleep(5)
         # Make sure disconnect button is present
-        if 'disconnect' in ocr_screenshot_game_window_region(self.__game_window, self.__resolution,
-                                                             'disconnect-button', True):
+        if self.is_disconnect_button_visible():
             # Move cursor onto disconnect button and click
             mouse_move_to_game_window_coord(self.__game_window, self.__resolution, 'disconnect-button')
             time.sleep(.2)
