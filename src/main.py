@@ -38,7 +38,8 @@ parser.add_argument('--debug-screenshot', dest='debug_screenshot', action='store
 parser.set_defaults(start_game=True, limit_rtl=True, debug_log=False, debug_screenshot=False, use_controller=False)
 args = parser.parse_args()
 
-logging.basicConfig(level=logging.DEBUG if args.debug_log else logging.INFO, format='%(asctime)s %(message)s')
+logging.basicConfig(level=logging.DEBUG if args.debug_log else logging.INFO,
+                    format='%(asctime)s %(levelname)-8s %(message)s')
 
 # Transfer argument values to config
 config = Config()
