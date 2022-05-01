@@ -17,7 +17,7 @@ from helpers import Window, find_window_by_title, get_resolution_window_size, mo
 import constants
 
 # Remove the top left corner from pyautogui failsafe points
-# (avoid triggering failsafe exception due to mouse moving to left left during spawn)
+# (avoid triggering failsafe exception due to mouse moving to top left during spawn)
 del pyautogui.FAILSAFE_POINTS[0]
 
 
@@ -129,7 +129,7 @@ class GameInstanceManager:
     """
     Functions for detecting game state elements
     """
-    def check_for_game_message(self) -> bool:
+    def is_game_message_visible(self) -> bool:
         # Get ocr result of game message area
         ocr_result = ocr_screenshot_game_window_region(
             self.__game_window,
@@ -151,7 +151,7 @@ class GameInstanceManager:
 
         return ocr_result
 
-    def check_if_in_menu(self) -> bool:
+    def is_in_menu(self) -> bool:
         # Get ocr result of quit menu item area
         ocr_result = ocr_screenshot_game_window_region(
             self.__game_window,
@@ -162,7 +162,7 @@ class GameInstanceManager:
 
         return 'quit' in ocr_result
 
-    def check_if_round_ended(self) -> bool:
+    def is_round_end_screen_visible(self) -> bool:
         ocr_result = ocr_screenshot_game_window_region(
             self.__game_window,
             self.__resolution,
@@ -174,7 +174,7 @@ class GameInstanceManager:
 
         return any(round_end_label in ocr_result for round_end_label in round_end_labels)
 
-    def check_for_join_game_button(self) -> bool:
+    def is_join_game_button_visible(self) -> bool:
         # Get ocr result of bottom left corner where "join game"-button would be
         ocr_result = ocr_screenshot_game_window_region(
             self.__game_window,
@@ -185,16 +185,16 @@ class GameInstanceManager:
 
         return 'join game' in ocr_result
 
-    def check_if_map_is_loading(self) -> bool:
+    def is_map_loading(self) -> bool:
         # Check if game is on round end screen
-        on_round_end_screen = self.check_if_round_ended()
+        on_round_end_screen = self.is_round_end_screen_visible()
 
         # Check if join game button is present
-        join_game_button_present = self.check_for_join_game_button()
+        join_game_button_present = self.is_join_game_button_visible()
 
         return on_round_end_screen and not join_game_button_present
 
-    def check_for_map_briefing(self) -> bool:
+    def is_map_briefing_visible(self) -> bool:
         # Get ocr result of top left "map briefing" area
         map_briefing_present = 'map briefing' in ocr_screenshot_game_window_region(
             self.__game_window,
@@ -205,7 +205,7 @@ class GameInstanceManager:
 
         return map_briefing_present
 
-    def check_if_spawn_menu_visible(self) -> bool:
+    def is_spawn_menu_visible(self) -> bool:
         # Get ocr result of "special forces" class label/name
         ocr_result = ocr_screenshot_game_window_region(
             self.__game_window,
@@ -409,8 +409,8 @@ class GameInstanceManager:
         in_menu = True
         game_message_present = False
         while in_menu and not game_message_present and check_count < check_limit:
-            in_menu = self.check_if_in_menu()
-            game_message_present = self.check_for_game_message()
+            in_menu = self.is_in_menu()
+            game_message_present = self.is_game_message_visible()
             check_count += 1
             time.sleep(1)
 
@@ -430,7 +430,8 @@ class GameInstanceManager:
 
         time.sleep(1.2)
 
-    def toggle_hud(self, direction: int) -> None:
+    @staticmethod
+    def toggle_hud(direction: int) -> None:
         # Open/toggle console
         auto_press_key(0x1d)
         time.sleep(.1)
@@ -450,7 +451,8 @@ class GameInstanceManager:
         auto_press_key(0x1d)
         time.sleep(.1)
 
-    def open_spawn_menu(self) -> None:
+    @staticmethod
+    def open_spawn_menu() -> None:
         auto_press_key(0x1c)
         time.sleep(1.5)
 
@@ -506,7 +508,8 @@ class GameInstanceManager:
 
         return suicide_button_present
 
-    def rotate_to_next_player(self):
+    @staticmethod
+    def rotate_to_next_player():
         auto_press_key(0x2e)
 
     def join_game(self) -> None:

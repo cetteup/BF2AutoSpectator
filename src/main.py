@@ -234,7 +234,7 @@ while True:
         continue
 
     # Make sure we are still in the game
-    gameMessagePresent = gim.check_for_game_message()
+    gameMessagePresent = gim.is_game_message_visible()
     if gameMessagePresent:
         logging.info('Game message present, ocr-ing message')
         gameMessage = gim.ocr_game_message()
@@ -329,9 +329,9 @@ while True:
             controller.post_current_server(serverIp, serverPort, serverPass)
         continue
 
-    onRoundFinishScreen = gim.check_if_round_ended()
-    mapIsLoading = gim.check_if_map_is_loading()
-    mapBriefingPresent = gim.check_for_map_briefing()
+    onRoundFinishScreen = gim.is_round_end_screen_visible()
+    mapIsLoading = gim.is_map_loading()
+    mapBriefingPresent = gim.is_map_briefing_visible()
 
     # Update instance state if any map load/eor screen is present
     # (only _set_ map loading state here, since it should only be _unset_ when attempting to spawn
@@ -369,7 +369,7 @@ while True:
         if gis.active_join_possible():
             # Check if join game button is present
             logging.info('Could actively join, checking for button')
-            joinGameButtonPresent = gim.check_for_join_game_button()
+            joinGameButtonPresent = gim.is_join_game_button_visible()
 
             if joinGameButtonPresent:
                 # TODO
@@ -397,7 +397,7 @@ while True:
             gis.set_hud_hidden(False)
             time.sleep(1)
 
-        spawnMenuVisible = gim.check_if_spawn_menu_visible()
+        spawnMenuVisible = gim.is_spawn_menu_visible()
         if not spawnMenuVisible:
             logging.info('Spawn menu not visible, opening with enter')
             gim.open_spawn_menu()
