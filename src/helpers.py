@@ -15,6 +15,7 @@ import win32con
 import win32gui
 import win32process
 from PIL import Image, ImageOps
+from numpy import ndarray
 
 import constants
 from config import Config
@@ -251,12 +252,22 @@ def ocr_screenshot_game_window_region(game_window: Window, resolution: str, key:
     )
 
 
-def calc_cv2_hist_from_pil_image(pil_image: Image):
+def histogram_screenshot_region(game_window: Window, x: int, y: int, w: int, h: int) -> ndarray:
+    screenshot = screenshot_game_window_region(game_window, x, y, w, h)
+
+    return calc_cv2_hist_from_pil_image(screenshot)
+
+
+def calc_cv2_hist_from_pil_image(pil_image: Image) -> ndarray:
     # Convert PIL to cv2 image
     cv_image = cv2.cvtColor(np.asarray(pil_image), cv2.COLOR_RGB2BGR)
     histogram = cv2.calcHist([cv_image], [0], None, [256], [0, 256])
 
     return histogram
+
+
+def calc_cv2_hist_delta(a: ndarray, b: ndarray) -> float:
+    return cv2.compareHist(a, b, cv2.HISTCMP_BHATTACHARYYA)
 
 
 def get_resolution_window_size(resolution: str) -> Tuple[int, int]:

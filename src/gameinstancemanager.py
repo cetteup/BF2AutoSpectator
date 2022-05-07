@@ -2,19 +2,19 @@ import logging
 import re
 import time
 
-import cv2
 import numpy as np
 import pyautogui
 import win32com.client
 import win32con
 import win32gui
 
+import constants
 from exceptions import UnsupportedMapException
 from gameinstancestate import GameInstanceState
 from helpers import Window, find_window_by_title, get_resolution_window_size, mouse_move_to_game_window_coord, \
-    ocr_screenshot_game_window_region, auto_press_key, screenshot_game_window_region, calc_cv2_hist_from_pil_image, \
-    mouse_reset_legacy, mouse_move_legacy, mouse_click_legacy, is_responding_pid
-import constants
+    ocr_screenshot_game_window_region, auto_press_key, mouse_reset_legacy, mouse_move_legacy, mouse_click_legacy, \
+    is_responding_pid, histogram_screenshot_region, \
+    calc_cv2_hist_delta
 
 # Remove the top left corner from pyautogui failsafe points
 # (avoid triggering failsafe exception due to mouse moving to top left during spawn)
@@ -170,16 +170,13 @@ class GameInstanceManager:
         return 'quit' in ocr_result
 
     def is_multiplayer_menu_active(self) -> bool:
-        screenshot = screenshot_game_window_region(
+        histogram = histogram_screenshot_region(
             self.__game_window,
             *constants.COORDINATES[self.__resolution]['hists']['menu']['multiplayer']
         )
-
-        histogram = calc_cv2_hist_from_pil_image(screenshot)
-        delta = cv2.compareHist(
+        delta = calc_cv2_hist_delta(
             histogram,
-            self.__histograms[self.__resolution]['menu']['multiplayer']['active'],
-            cv2.HISTCMP_BHATTACHARYYA
+            self.__histograms[self.__resolution]['menu']['multiplayer']['active']
         )
 
         return delta < constants.HISTCMP_MAX_DELTA
@@ -287,33 +284,33 @@ class GameInstanceManager:
         return map_size
 
     def get_player_team(self) -> int:
-        # Take team selection screenshots
-        team_selection_screenshots = []
-        for coord_set in constants.COORDINATES[self.__resolution]['hists']['teams']:
-            team_selection_screenshots.append(
-                screenshot_game_window_region(self.__game_window,
-                                              coord_set[0], coord_set[1], coord_set[2], coord_set[3])
-            )
-
-        # Get histograms of screenshots
+        # Get histograms of team selection areas
         team_selection_histograms = []
-        for team_selection_screenshot in team_selection_screenshots:
-            team_selection_histograms.append(calc_cv2_hist_from_pil_image(team_selection_screenshot))
+        for coord_set in constants.COORDINATES[self.__resolution]['hists']['teams']:
+            histogram = histogram_screenshot_region(
+                self.__game_window,
+                *coord_set
+            )
+            team_selection_histograms.append(histogram)
 
         # Calculate histogram deltas
         histogram_deltas = {
-            'to_usmc_active': cv2.compareHist(team_selection_histograms[0],
-                                              self.__histograms[self.__resolution]['teams']['usmc']['active'],
-                                              cv2.HISTCMP_BHATTACHARYYA),
-            'to_eu_active': cv2.compareHist(team_selection_histograms[0],
-                                            self.__histograms[self.__resolution]['teams']['eu']['active'],
-                                            cv2.HISTCMP_BHATTACHARYYA),
-            'to_china_active': cv2.compareHist(team_selection_histograms[1],
-                                               self.__histograms[self.__resolution]['teams']['china']['active'],
-                                               cv2.HISTCMP_BHATTACHARYYA),
-            'to_mec_active': cv2.compareHist(team_selection_histograms[1],
-                                             self.__histograms[self.__resolution]['teams']['mec']['active'],
-                                             cv2.HISTCMP_BHATTACHARYYA),
+            'to_usmc_active': calc_cv2_hist_delta(
+                team_selection_histograms[0],
+                self.__histograms[self.__resolution]['teams']['usmc']['active']
+            ),
+            'to_eu_active': calc_cv2_hist_delta(
+                team_selection_histograms[0],
+                self.__histograms[self.__resolution]['teams']['eu']['active']
+            ),
+            'to_china_active': calc_cv2_hist_delta(
+                team_selection_histograms[1],
+                self.__histograms[self.__resolution]['teams']['china']['active'],
+            ),
+            'to_mec_active': calc_cv2_hist_delta(
+                team_selection_histograms[1],
+                self.__histograms[self.__resolution]['teams']['mec']['active']
+            ),
         }
 
         # Compare histograms to constant to determine team
@@ -337,10 +334,9 @@ class GameInstanceManager:
 
         # Take screenshots and calculate histograms
         for i in range(0, screenshot_count):
-            # Take screenshot
-            screenshot = pyautogui.screenshot(region=(left + 168, top + 31, right - left - 336, bottom - top - 40))
-            # Calculate histogram
-            histograms.append(calc_cv2_hist_from_pil_image(screenshot))
+            # Take screenshot and calculate histogram
+            histogram = histogram_screenshot_region(self.__game_window, 168, 31, right - left - 336, bottom - top - 40)
+            histograms.append(histogram)
 
             # Sleep before taking next screenshot
             if i + 1 < screenshot_count:
@@ -349,7 +345,7 @@ class GameInstanceManager:
         histogram_deltas = []
         # Calculate histogram differences
         for j in range(0, len(histograms) - 1):
-            histogram_deltas.append(cv2.compareHist(histograms[j], histograms[j + 1], cv2.HISTCMP_BHATTACHARYYA))
+            histogram_deltas.append(calc_cv2_hist_delta(histograms[j], histograms[j + 1]))
 
         # Take average of deltas
         average_delta = np.average(histogram_deltas)
