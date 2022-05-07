@@ -75,8 +75,8 @@ Setting up an extra bf2hub account for the spectator is strongly recommended in 
 Any settings not explicitly mentioned here can be changed however you like.
 1. Under "game options"
     1. Enable "auto ready"
-    2. Enable "opt out of voting" (optional)
-    3. Set all transparency values to 100 (optional)
+    2. Enable "opt out of voting"
+    3. Set all transparency values to 0
 2. Under "controls"
     1. Remove crouch binding and airplane/helicopter free look binding (and/or any other `left ctrl` bindings)
     2. Bind `left ctrl` to console

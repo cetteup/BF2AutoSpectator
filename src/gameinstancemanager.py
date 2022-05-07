@@ -471,21 +471,9 @@ class GameInstanceManager:
         time.sleep(1.5)
 
     def spawn_suicide(self) -> bool:
-        # Make sure spawning on map and size is supported
-        map_name = self.state.get_rotation_map_name()
-        map_size = str(self.state.get_rotation_map_size())
-        if map_name not in constants.COORDINATES['spawns'].keys() or \
-                map_size not in constants.COORDINATES['spawns'][map_name].keys():
-            raise UnsupportedMapException('No coordinates for current map/size')
-
-        # Reset mouse to top left corner
-        mouse_reset_legacy()
-
-        # Select default spawn based on current team
-        spawn_coordinates = constants.COORDINATES['spawns'][map_name][str(map_size)][self.state.get_round_team()]
-        mouse_move_legacy(spawn_coordinates[0], spawn_coordinates[1])
-        time.sleep(.3)
-        mouse_click_legacy()
+        # Treat spawn attempt as failed if no spawn point could be selected
+        if not self.select_spawn_point():
+            return False
 
         # Hit enter to spawn
         auto_press_key(0x1c)
@@ -521,6 +509,55 @@ class GameInstanceManager:
             time.sleep(.5)
 
         return suicide_button_present
+
+    def select_spawn_point(self) -> bool:
+        # Make sure spawning on map and size is supported
+        map_name = self.state.get_rotation_map_name()
+        map_size = str(self.state.get_rotation_map_size())
+        if map_name not in constants.COORDINATES['spawns'].keys() or \
+                map_size not in constants.COORDINATES['spawns'][map_name].keys():
+            raise UnsupportedMapException('No coordinates for current map/size')
+
+        # Reset mouse to top left corner
+        mouse_reset_legacy()
+
+        # Select default spawn based on current team
+        spawn_coordinates = constants.COORDINATES['spawns'][map_name][map_size][self.state.get_round_team()]
+        mouse_move_legacy(spawn_coordinates[0], spawn_coordinates[1])
+        time.sleep(.3)
+        mouse_click_legacy()
+
+        # Try any alternate spawns if primary one is not available
+        alternate_spawns = constants.COORDINATES['spawns'][map_name][str(map_size)][2:]
+        if not self.is_spawn_point_selected() and len(alternate_spawns) > 0:
+            logging.warning('Default spawn point could not be selected, trying alternate spawn points')
+            # Iterate over alternate spawns in reverse order for team 1
+            # (spawns are ordered by "likeliness" of team 0 having control over them)
+            if self.state.get_round_team() == 1:
+                alternate_spawns.reverse()
+
+            # Try to select any of the alternate spawn points
+            for coordinates in alternate_spawns:
+                logging.debug(f'Trying spawn coordinates {coordinates}')
+                mouse_reset_legacy()
+                mouse_move_legacy(*coordinates)
+                time.sleep(.1)
+                mouse_click_legacy()
+                time.sleep(.1)
+                if self.is_spawn_point_selected():
+                    break
+
+        return self.is_spawn_point_selected()
+
+    def is_spawn_point_selected(self) -> bool:
+        ocr_result = ocr_screenshot_game_window_region(
+            self.game_window,
+            self.resolution,
+            'spawn-selected-text',
+            image_ops=[(ImageOperation.invert, None)]
+        )
+
+        return 'done' in ocr_result
 
     @staticmethod
     def rotate_to_next_player():
