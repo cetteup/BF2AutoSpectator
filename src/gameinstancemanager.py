@@ -14,7 +14,7 @@ from gameinstancestate import GameInstanceState
 from helpers import Window, find_window_by_title, get_resolution_window_size, mouse_move_to_game_window_coord, \
     ocr_screenshot_game_window_region, auto_press_key, mouse_reset_legacy, mouse_move_legacy, mouse_click_legacy, \
     is_responding_pid, histogram_screenshot_region, \
-    calc_cv2_hist_delta
+    calc_cv2_hist_delta, ImageOperation
 
 # Remove the top left corner from pyautogui failsafe points
 # (avoid triggering failsafe exception due to mouse moving to top left during spawn)
@@ -136,7 +136,7 @@ class GameInstanceManager:
             self.game_window,
             self.resolution,
             'game-message-header',
-            True
+            image_ops=[(ImageOperation.invert, None)]
         )
 
         return 'game message' in ocr_result
@@ -147,7 +147,7 @@ class GameInstanceManager:
             self.game_window,
             self.resolution,
             'game-message-text',
-            True
+            image_ops=[(ImageOperation.invert, None)]
         )
 
         return ocr_result
@@ -158,7 +158,7 @@ class GameInstanceManager:
             self.game_window,
             self.resolution,
             'quit-menu-item',
-            True
+            image_ops=[(ImageOperation.invert, None)]
         )
 
         return 'quit' in ocr_result
@@ -180,7 +180,7 @@ class GameInstanceManager:
             self.game_window,
             self.resolution,
             'disconnect-button',
-            True
+            image_ops=[(ImageOperation.invert, None)]
         )
 
         return 'disconnect' in ocr_result
@@ -190,7 +190,7 @@ class GameInstanceManager:
             self.game_window,
             self.resolution,
             'eor-header-items',
-            True
+            image_ops=[(ImageOperation.invert, None)]
         )
 
         round_end_labels = ['score list', 'top players', 'top scores', 'map briefing']
@@ -203,7 +203,7 @@ class GameInstanceManager:
             self.game_window,
             self.resolution,
             'join-game-button',
-            True
+            image_ops=[(ImageOperation.invert, None)]
         )
 
         return 'join game' in ocr_result
@@ -223,7 +223,7 @@ class GameInstanceManager:
             self.game_window,
             self.resolution,
             'map-briefing-header',
-            True
+            image_ops=[(ImageOperation.invert, None)]
         )
 
         return map_briefing_present
@@ -234,7 +234,7 @@ class GameInstanceManager:
             self.game_window,
             self.resolution,
             'special-forces-class-label',
-            True
+            image_ops=[(ImageOperation.invert, None)]
         )
 
         return 'special forces' in ocr_result
@@ -245,7 +245,7 @@ class GameInstanceManager:
             self.game_window,
             self.resolution,
             'eor-map-name',
-            True
+            image_ops=[(ImageOperation.invert, None)]
         )
 
         # Replace spaces with dashes
@@ -267,7 +267,7 @@ class GameInstanceManager:
             self.game_window,
             self.resolution,
             'eor-map-size',
-            True
+            image_ops=[(ImageOperation.invert, None)]
         )
 
         map_size = -1
@@ -370,7 +370,7 @@ class GameInstanceManager:
                 self.game_window,
                 self.resolution,
                 'connect-to-ip-button',
-                True
+                image_ops=[(ImageOperation.invert, None)]
             )
             check_count += 1
             time.sleep(1)
@@ -510,7 +510,7 @@ class GameInstanceManager:
             self.game_window,
             self.resolution,
             'suicide-button',
-            True
+            image_ops=[(ImageOperation.invert, None)]
         )
 
         if suicide_button_present:

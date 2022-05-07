@@ -4,7 +4,8 @@ import os
 import subprocess
 import time
 from datetime import datetime
-from typing import Optional, Tuple
+from enum import Enum
+from typing import Optional, Tuple, List
 
 import cv2
 import numpy as np
@@ -72,6 +73,11 @@ class Input_I(ctypes.Union):
 class Input(ctypes.Structure):
     _fields_ = [("type", ctypes.c_ulong),
                 ("ii", Input_I)]
+
+
+class ImageOperation(Enum):
+    invert = 1
+    solarize = 2
 
 
 def list_filter_zeroes(list_with_zeroes: list) -> list:
@@ -200,11 +206,17 @@ def init_pytesseract(tesseract_path: str) -> None:
 
 
 # Take a screenshot of the given region and run the result through OCR
-def ocr_screenshot_region(x: int, y: int, w: int, h: int, invert: bool = False, show: bool = False,
-                          ocr_config: str = r'--oem 3 --psm 7') -> str:
+def ocr_screenshot_region(x: int, y: int, w: int, h: int,
+                          image_ops: Optional[List[Tuple[ImageOperation, Optional[dict]]]] = None,
+                          show: bool = False, ocr_config: str = r'--oem 3 --psm 7') -> str:
     screenshot = pyautogui.screenshot(region=(x, y, w, h))
-    if invert:
-        screenshot = ImageOps.invert(screenshot)
+    if image_ops is not None:
+        for operation in image_ops:
+            method, args = operation
+            if method is ImageOperation.invert:
+                screenshot = ImageOps.invert(screenshot)
+            elif method is ImageOperation.solarize:
+                screenshot = ImageOps.solarize(screenshot, **(args if args is not None else {}))
     if show:
         screenshot.show()
     # pytesseract stopped stripping \n\x0c from ocr results,
@@ -228,14 +240,15 @@ def ocr_screenshot_region(x: int, y: int, w: int, h: int, invert: bool = False, 
     return ocr_result.lower()
 
 
-def ocr_screenshot_game_window_region(game_window: Window, resolution: str, key: str, invert: bool = False,
+def ocr_screenshot_game_window_region(game_window: Window, resolution: str, key: str,
+                                      image_ops: Optional[List[Tuple[ImageOperation, Optional[dict]]]] = None,
                                       show: bool = False, ocr_config: str = r'--oem 3 --psm 7') -> str:
     """
     Run a region of a game window through OCR (wrapper for ocr_screenshot_region)
     :param game_window: game window to take screenshot of
     :param resolution: resolution to get/use coordinates for
+    :param image_ops: List of image operation tuples (format: (operation, arguments)
     :param key: key of region in coordinates dict
-    :param invert: whether to invert the screenshot
     :param show: whether to show the screenshot
     :param ocr_config: config/parameters for Tesseract OCR
     :return:
@@ -246,7 +259,7 @@ def ocr_screenshot_game_window_region(game_window: Window, resolution: str, key:
         game_window.rect[1] + constants.COORDINATES[resolution]['ocr'][key][1],
         constants.COORDINATES[resolution]['ocr'][key][2],
         constants.COORDINATES[resolution]['ocr'][key][3],
-        invert,
+        image_ops,
         show,
         ocr_config
     )
