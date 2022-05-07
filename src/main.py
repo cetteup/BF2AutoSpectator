@@ -83,7 +83,13 @@ if config.debug_screenshot():
         os.mkdir(Config.DEBUG_DIR)
 
 # Init game instance state store
-gim = GameInstanceManager(config.get_game_path(), config.get_player_name(), config.get_player_pass(), histograms)
+gim = GameInstanceManager(
+    config.get_game_path(),
+    config.get_player_name(),
+    config.get_player_pass(),
+    config.get_resolution(),
+    histograms
+)
 gis = gim.get_state()
 controller = Controller(
     config.get_controller_base_uri(),
@@ -106,10 +112,10 @@ if config.use_controller():
 gotInstance = False
 if args.start_game:
     logging.info('Initializing spectator game instance')
-    gotInstance = gim.launch_instance(config.get_resolution())
+    gotInstance = gim.launch_instance()
 else:
     logging.info('"Attaching" to existing game instance')
-    gotInstance = gim.find_instance(config.get_resolution())
+    gotInstance = gim.find_instance()
 
 # Schedule restart if no instance was started/found
 if not gotInstance:
@@ -211,7 +217,7 @@ while True:
             time.sleep(3)
 
         # Init game new game instance
-        gim.launch_instance(config.get_resolution())
+        gim.launch_instance()
 
         # Bring window to foreground
         try:
