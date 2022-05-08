@@ -12,6 +12,7 @@ COORDINATES = {
         'clicks': {
             'bfhq-menu-item': (111, 50),
             'multiplayer-menu-item': (331, 50),
+            'join-internet-menu-item': (111, 85),
             'quit-menu-item': (1182, 50),
             'connect-to-ip-button': (111, 452),
             'connect-to-ip-ok-button': (777, 362),
@@ -40,7 +41,8 @@ COORDINATES = {
         'hists': {
             'teams': [(68, 69, 41, 13), (209, 69, 41, 13)],
             'menu': {
-                'multiplayer': (229, 34, 200, 1)
+                'multiplayer': (229, 34, 200, 1),
+                'join-internet': (18, 73, 199, 1)
             }
         }
     },
@@ -50,6 +52,7 @@ COORDINATES = {
         'clicks': {
             'bfhq-menu-item': (138, 52),
             'multiplayer-menu-item': (410, 52),
+            'join-internet-menu-item': (138, 97),
             'quit-menu-item': (1468, 52),
             'connect-to-ip-button': (122, 558),
             'connect-to-ip-ok-button': (958, 440),
@@ -78,7 +81,8 @@ COORDINATES = {
         'hists': {
             'teams': [(81, 77, 60, 18), (257, 77, 60, 18)],
             'menu': {
-                'multiplayer': (285, 34, 249, 1)
+                'multiplayer': (285, 34, 249, 1),
+                'join-internet': (20, 84, 249, 1)
             }
         }
     },

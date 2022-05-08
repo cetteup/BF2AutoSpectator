@@ -161,13 +161,19 @@ class GameInstanceManager:
         )
 
     def is_multiplayer_menu_active(self) -> bool:
+        return self.is_menu_item_active('multiplayer')
+
+    def is_join_internet_menu_active(self) -> bool:
+        return self.is_menu_item_active('join-internet')
+
+    def is_menu_item_active(self, menu_item: str) -> bool:
         histogram = histogram_screenshot_region(
             self.game_window,
-            *constants.COORDINATES[self.resolution]['hists']['menu']['multiplayer']
+            *constants.COORDINATES[self.resolution]['hists']['menu'][menu_item]
         )
         delta = calc_cv2_hist_delta(
             histogram,
-            self.histograms[self.resolution]['menu']['multiplayer']['active']
+            self.histograms[self.resolution]['menu'][menu_item]['active']
         )
 
         return delta < constants.HISTCMP_MAX_DELTA
@@ -357,6 +363,12 @@ class GameInstanceManager:
         if not self.is_multiplayer_menu_active():
             # Move cursor onto multiplayer menu item and click
             mouse_move_to_game_window_coord(self.game_window, self.resolution, 'multiplayer-menu-item')
+            time.sleep(.2)
+            pyautogui.leftClick()
+
+        if not self.is_join_internet_menu_active():
+            # Move cursor onto join internet menu item and click
+            mouse_move_to_game_window_coord(self.game_window, self.resolution, 'join-internet-menu-item')
             time.sleep(.2)
             pyautogui.leftClick()
 
