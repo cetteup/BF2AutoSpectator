@@ -135,8 +135,8 @@ class GameInstanceState:
     def round_spawned(self) -> bool:
         return self.__round_spawned
 
-    def set_round_started_spectation(self, startet_spectation: bool):
-        self.__round_started_spectation = startet_spectation
+    def set_round_started_spectation(self, started_spectation: bool):
+        self.__round_started_spectation = started_spectation
 
     def round_started_spectation(self) -> bool:
         return self.__round_started_spectation
