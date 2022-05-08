@@ -131,37 +131,30 @@ class GameInstanceManager:
     Functions for detecting game state elements
     """
     def is_game_message_visible(self) -> bool:
-        # Get ocr result of game message area
-        ocr_result = ocr_screenshot_game_window_region(
+        return 'game message' in ocr_screenshot_game_window_region(
             self.game_window,
             self.resolution,
             'game-message-header',
             image_ops=[(ImageOperation.invert, None)]
         )
 
-        return 'game message' in ocr_result
-
     def ocr_game_message(self) -> str:
         # Get ocr result of game message content region
-        ocr_result = ocr_screenshot_game_window_region(
+        return ocr_screenshot_game_window_region(
             self.game_window,
             self.resolution,
             'game-message-text',
             image_ops=[(ImageOperation.invert, None)]
         )
 
-        return ocr_result
-
     def is_in_menu(self) -> bool:
         # Get ocr result of quit menu item area
-        ocr_result = ocr_screenshot_game_window_region(
+        return 'quit' in ocr_screenshot_game_window_region(
             self.game_window,
             self.resolution,
             'quit-menu-item',
             image_ops=[(ImageOperation.invert, None)]
         )
-
-        return 'quit' in ocr_result
 
     def is_multiplayer_menu_active(self) -> bool:
         histogram = histogram_screenshot_region(
@@ -176,14 +169,12 @@ class GameInstanceManager:
         return delta < constants.HISTCMP_MAX_DELTA
 
     def is_disconnect_button_visible(self) -> bool:
-        ocr_result = ocr_screenshot_game_window_region(
+        return 'disconnect' in ocr_screenshot_game_window_region(
             self.game_window,
             self.resolution,
             'disconnect-button',
             image_ops=[(ImageOperation.invert, None)]
         )
-
-        return 'disconnect' in ocr_result
 
     def is_round_end_screen_visible(self) -> bool:
         ocr_result = ocr_screenshot_game_window_region(
@@ -197,16 +188,22 @@ class GameInstanceManager:
 
         return any(round_end_label in ocr_result for round_end_label in round_end_labels)
 
+    def is_connect_to_ip_button_visible(self) -> bool:
+        return 'connect to ip' in ocr_screenshot_game_window_region(
+            self.game_window,
+            self.resolution,
+            'connect-to-ip-button',
+            image_ops=[(ImageOperation.invert, None)]
+        )
+
     def is_join_game_button_visible(self) -> bool:
         # Get ocr result of bottom left corner where "join game"-button would be
-        ocr_result = ocr_screenshot_game_window_region(
+        return 'join game' in ocr_screenshot_game_window_region(
             self.game_window,
             self.resolution,
             'join-game-button',
             image_ops=[(ImageOperation.invert, None)]
         )
-
-        return 'join game' in ocr_result
 
     def is_map_loading(self) -> bool:
         # Check if game is on round end screen
@@ -218,26 +215,21 @@ class GameInstanceManager:
         return on_round_end_screen and not join_game_button_present
 
     def is_map_briefing_visible(self) -> bool:
-        # Get ocr result of top left "map briefing" area
-        map_briefing_present = 'map briefing' in ocr_screenshot_game_window_region(
+        return 'map briefing' in ocr_screenshot_game_window_region(
             self.game_window,
             self.resolution,
             'map-briefing-header',
             image_ops=[(ImageOperation.invert, None)]
         )
 
-        return map_briefing_present
-
     def is_spawn_menu_visible(self) -> bool:
         # Get ocr result of "special forces" class label/name
-        ocr_result = ocr_screenshot_game_window_region(
+        return 'special forces' in  ocr_screenshot_game_window_region(
             self.game_window,
             self.resolution,
             'special-forces-class-label',
             image_ops=[(ImageOperation.invert, None)]
         )
-
-        return 'special forces' in ocr_result
 
     def get_map_name(self) -> str:
         # Screenshot and OCR map name area
@@ -364,18 +356,11 @@ class GameInstanceManager:
 
         check_count = 0
         check_limit = 10
-        connect_to_ip_button_present = False
-        while not connect_to_ip_button_present and check_count < check_limit:
-            connect_to_ip_button_present = 'connect to ip' in ocr_screenshot_game_window_region(
-                self.game_window,
-                self.resolution,
-                'connect-to-ip-button',
-                image_ops=[(ImageOperation.invert, None)]
-            )
+        while not self.is_connect_to_ip_button_visible() and check_count < check_limit:
             check_count += 1
             time.sleep(1)
 
-        if not connect_to_ip_button_present:
+        if not self.is_connect_to_ip_button_visible():
             return False
 
         # Move cursor onto connect to ip button and click
@@ -466,9 +451,9 @@ class GameInstanceManager:
         time.sleep(.1)
 
     @staticmethod
-    def open_spawn_menu() -> None:
+    def open_spawn_menu(sleep: float = 1.5) -> None:
         auto_press_key(0x1c)
-        time.sleep(1.5)
+        time.sleep(sleep)
 
     def spawn_suicide(self) -> bool:
         # Treat spawn attempt as failed if no spawn point could be selected
@@ -477,9 +462,8 @@ class GameInstanceManager:
             auto_press_key(0x1c)
             time.sleep(1)
 
-            # Hit enter again to re-open spawn menu
-            auto_press_key(0x1c)
-            time.sleep(.3)
+            # Re-open spawn menu
+            self.open_spawn_menu(.3)
 
             # Reset cursor again
             mouse_reset_legacy()
@@ -552,7 +536,7 @@ class GameInstanceManager:
         )
 
     def is_spawn_point_selected(self) -> bool:
-        ocr_result = ocr_screenshot_game_window_region(
+        return 'done' in ocr_screenshot_game_window_region(
             self.game_window,
             self.resolution,
             'spawn-selected-text',
