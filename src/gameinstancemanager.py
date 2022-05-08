@@ -472,43 +472,37 @@ class GameInstanceManager:
 
     def spawn_suicide(self) -> bool:
         # Treat spawn attempt as failed if no spawn point could be selected
-        if not self.select_spawn_point():
-            return False
+        if self.is_spawn_point_selectable() and self.select_spawn_point():
+            # Hit enter to spawn
+            auto_press_key(0x1c)
+            time.sleep(1)
 
-        # Hit enter to spawn
-        auto_press_key(0x1c)
-        time.sleep(1)
+            # Hit enter again to re-open spawn menu
+            auto_press_key(0x1c)
+            time.sleep(.3)
 
-        # Hit enter again to re-open spawn menu
-        auto_press_key(0x1c)
-        time.sleep(.3)
+            # Reset cursor again
+            mouse_reset_legacy()
 
-        # Reset cursor again
-        mouse_reset_legacy()
+            # De-select spawn point
+            mouse_move_to_game_window_coord(self.game_window, self.resolution, 'spawnpoint-deselect', True)
+            time.sleep(0.3)
+            mouse_click_legacy()
 
-        # De-select spawn point
-        mouse_move_to_game_window_coord(self.game_window, self.resolution, 'spawnpoint-deselect', True)
-        time.sleep(0.3)
-        mouse_click_legacy()
-
-        # Reset cursor once more
-        mouse_reset_legacy()
-
-        suicide_button_present = 'suicide' in ocr_screenshot_game_window_region(
-            self.game_window,
-            self.resolution,
-            'suicide-button',
-            image_ops=[(ImageOperation.invert, None)]
-        )
-
-        if suicide_button_present:
+        # Suicide button may be visible even though we did not detect a spawn as selected
+        # e.g. when spectator is still alive from a previous spawn-suicide attempt
+        if self.is_suicide_button_visible():
+            mouse_reset_legacy()
             # Click suicide button
             mouse_move_to_game_window_coord(self.game_window, self.resolution, 'suicide-button', True)
             time.sleep(.3)
             mouse_click_legacy()
             time.sleep(.5)
 
-        return suicide_button_present
+        # Reset mouse again to make sure it does not block any OCR attempts
+        mouse_reset_legacy()
+
+        return not self.is_suicide_button_visible()
 
     def select_spawn_point(self) -> bool:
         # Make sure spawning on map and size is supported
@@ -549,6 +543,14 @@ class GameInstanceManager:
 
         return self.is_spawn_point_selected()
 
+    def is_spawn_point_selectable(self) -> bool:
+        return 'select' in ocr_screenshot_game_window_region(
+            self.game_window,
+            self.resolution,
+            'spawn-selected-text',
+            image_ops=[(ImageOperation.invert, None)]
+        )
+
     def is_spawn_point_selected(self) -> bool:
         ocr_result = ocr_screenshot_game_window_region(
             self.game_window,
@@ -557,7 +559,13 @@ class GameInstanceManager:
             image_ops=[(ImageOperation.invert, None)]
         )
 
-        return 'done' in ocr_result
+    def is_suicide_button_visible(self) -> bool:
+        return 'suicide' in ocr_screenshot_game_window_region(
+            self.game_window,
+            self.resolution,
+            'suicide-button',
+            image_ops=[(ImageOperation.invert, None)]
+        )
 
     @staticmethod
     def rotate_to_next_player():
