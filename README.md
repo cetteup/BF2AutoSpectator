@@ -39,6 +39,7 @@ The goal is to provide a fully automated, fire-and-forget spectator for the game
 You can always get these details locally by providing the `--help` argument.
 
 ## Supported maps for auto-spawning
+### Vanilla maps
 | Map name               | 16 size | 32 size | 64 size |
 |------------------------|---------|---------|---------|
 | Dalian Plant           | Yes     | Yes     | Yes     |
@@ -63,6 +64,16 @@ You can always get these details locally by providing the `--help` argument.
 | Taraba Quarry          | Yes     | Yes     | n/a     |
 | Wake Island 2007       | n/a     | n/a     | Yes     |
 | Zatar Wetlands         | Yes     | Yes     | Yes     |
+
+### Custom maps
+| Map name   | 16 size | 32 size | 64 size |
+|------------|---------|---------|---------|
+| Dalian 2v2 | Yes     | Yes     | Yes     |
+| Daqing 2v2 | Yes     | Yes     | Yes     |
+| Dragon 2v2 | Yes     | n/a ¹   | n/a ¹   |
+| Sharqi 2v2 | Yes     | Yes     | Yes     |
+
+¹ the spawn menu is broken on these sizes of the map
 
 ## Setup
 ### Download and install software
