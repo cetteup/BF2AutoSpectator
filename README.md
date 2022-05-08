@@ -105,7 +105,6 @@ If you want to stop the spectator, hit CTRL + C in the CMD/Powershell window at 
 
 ## Known limitations
 - Windows display scaling must be set to 100%
-- auto-spawning will currently fail if the default spawn has been captured by the other team
 - game locale/language must be set to English
 - some elements of your English locale must be somewhat standard (team names, kick messages, menu items etc.)
 - the camera and it's movement around the player are controlled by the game
