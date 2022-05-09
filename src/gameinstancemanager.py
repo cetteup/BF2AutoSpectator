@@ -493,7 +493,8 @@ class GameInstanceManager:
 
         # Suicide button may be visible even though we did not detect a spawn as selected
         # e.g. when spectator is still alive from a previous spawn-suicide attempt
-        if self.is_suicide_button_visible():
+        suicide_button_visible = self.is_suicide_button_visible()
+        if suicide_button_visible:
             mouse_reset_legacy()
             # Click suicide button
             mouse_move_to_game_window_coord(self.game_window, self.resolution, 'suicide-button', True)
@@ -504,7 +505,8 @@ class GameInstanceManager:
         # Reset mouse again to make sure it does not block any OCR attempts
         mouse_reset_legacy()
 
-        return not self.is_suicide_button_visible()
+        # Make sure the button was visible before but is not any longer
+        return suicide_button_visible and not self.is_suicide_button_visible()
 
     def select_spawn_point(self) -> bool:
         # Make sure spawning on map and size is supported
