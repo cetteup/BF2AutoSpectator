@@ -22,7 +22,7 @@ del pyautogui.FAILSAFE_POINTS[0]
 
 
 MAP_NAME_REGEX_NvN = re.compile(r'(\d+).?v.?(\d+)')
-MAP_NAME_REGEX_SEPARATORS = re.compile(r'[_\s]')
+MAP_NAME_REGEX_SEPARATORS = re.compile(r'[_.\s]')
 
 
 class GameInstanceManager:
@@ -252,7 +252,7 @@ class GameInstanceManager:
 
         # Make sure any weird OCR result for 2v2/NvN maps are turned into just NvN
         ocr_result = MAP_NAME_REGEX_NvN.sub('\\1v\\2', ocr_result)
-        # Replace spaces/underscores with dashes
+        # Replace spaces/underscores/dots with dashes
         ocr_result = MAP_NAME_REGEX_SEPARATORS.sub('-', ocr_result)
 
         map_name = None
