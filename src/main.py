@@ -442,6 +442,24 @@ while True:
     elif not defaultCameraViewVisible and iterationsOnDefaultCameraView > 0:
         logging.info('Game is no longer on default camera view, resetting counter')
         iterationsOnDefaultCameraView = 0
+    elif defaultCameraViewVisible and not gis.round_spawned() and not gis.round_freecam_toggle_spawn_attempted():
+        # Try to restart spectating without suiciding on consecutive rounds (only works on freecam-enabled servers)
+        logging.info('Game is on default camera view, trying to (re-)start spectating via freecam toggle')
+        gim.start_spectating_via_freecam_toggle()
+        gis.set_round_freecam_toggle_spawn_attempted(True)
+        time.sleep(.5)
+        # Set round spawned to true of default camera view is no longer visible, else enable hud for spawn-suicide
+        if not gim.is_default_camera_view_visible():
+            logging.info('Started spectating via freecam toggle, skipping spawn-suicide')
+            gis.set_round_spawned(True)
+            # Increase round number/counter
+            gis.increase_round_num()
+            logging.debug(f'Entering round #{gis.get_round_num()} using this instance')
+            # Spectator has "entered" map, update state accordingly
+            gis.set_rotation_on_map(True)
+        else:
+            # Don't log this as an error since it's totally normal
+            logging.info('Failed to start spectating via freecam toggle, continuing to spawn-suicide')
     elif not onRoundFinishScreen and not gis.round_spawned():
         # Loaded into map, now trying to start spectating
         gis.set_map_loading(False)
