@@ -195,6 +195,13 @@ while True:
             if commandReset:
                 forceNextPlayer = True
 
+        if commands.get('respawn') is True:
+            logging.info('Respawn requested via controller, queueing respawn')
+            # Reset command
+            commandReset = controller.post_commands({'respawn': False})
+            if commandReset:
+                gis.set_round_spawned(False)
+
     # Start a new game instance if required
     if gis.rtl_restart_required() or gis.error_restart_required():
         if bf2Window is not None and gis.rtl_restart_required():
