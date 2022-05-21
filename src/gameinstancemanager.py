@@ -324,6 +324,21 @@ class GameInstanceManager:
 
         return team
 
+    def is_default_camera_view_visible(self) -> bool:
+        map_name = self.state.get_rotation_map_name()
+        # Return false if map has not been determined (yet) or is not supported
+        if map_name is None or map_name not in self.histograms[self.resolution]['maps']['default-camera-view']:
+            return False
+
+        left, top, right, bottom = self.game_window.rect
+        histogram = histogram_screenshot_region(self.game_window, 168, 31, right - left - 336, bottom - top - 40)
+        delta = calc_cv2_hist_delta(
+            histogram,
+            self.histograms[self.resolution]['maps']['default-camera-view'][map_name]
+        )
+
+        return delta < constants.DEFAULT_CAMERA_VIEW_HISTCMP_MAX_DELTA
+
     def is_sufficient_action_on_screen(self, screenshot_count: int = 3, screenshot_sleep: float = .55,
                                        min_delta: float = .022) -> bool:
         histograms = []
@@ -546,6 +561,11 @@ class GameInstanceManager:
                     break
 
         return self.is_spawn_point_selected()
+
+    @staticmethod
+    def start_spectating_via_freecam_toggle() -> None:
+        auto_press_key(0x39)
+        time.sleep(.2)
 
     def is_spawn_point_selectable(self) -> bool:
         return 'select' in ocr_screenshot_game_window_region(

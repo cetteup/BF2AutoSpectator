@@ -39,6 +39,7 @@ class Config(metaclass=Singleton):
     __debug_screenshot: bool
 
     __max_iterations_on_player: int
+    __max_iterations_on_default_camera_view: int
 
     __player_rotation_paused: bool = False
     __player_rotation_paused_until: datetime = None
@@ -46,7 +47,7 @@ class Config(metaclass=Singleton):
     def set_options(self, player_name: str, player_pass: str, server_ip: str, server_port: str, server_pass: str,
                     game_path: str, tesseract_path: str, limit_rtl: bool, instance_rtl: int, use_controller: bool,
                     controller_base_uri: str, controller_app_key: str, controller_timeout: int, resolution: str,
-                    debug_screenshot: bool, max_iterations_on_player: int):
+                    debug_screenshot: bool, max_iterations_on_player: int, max_iterations_on_default_camera_view: int):
         self.__player_name = player_name
         self.__player_pass = player_pass
         self.__server_ip = server_ip
@@ -68,6 +69,7 @@ class Config(metaclass=Singleton):
         self.__debug_screenshot = debug_screenshot
 
         self.__max_iterations_on_player = max_iterations_on_player
+        self.__max_iterations_on_default_camera_view = max_iterations_on_default_camera_view
 
     def get_player_name(self) -> str:
         return self.__player_name
@@ -133,6 +135,9 @@ class Config(metaclass=Singleton):
 
     def get_max_iterations_on_player(self) -> int:
         return self.__max_iterations_on_player
+
+    def get_max_iterations_on_default_camera_view(self) -> int:
+        return self.__max_iterations_on_default_camera_view
 
     def player_rotation_paused(self) -> bool:
         return self.__player_rotation_paused

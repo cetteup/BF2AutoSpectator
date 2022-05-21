@@ -59,7 +59,8 @@ config.set_options(
     controller_timeout=args.controller_timeout,
     resolution=args.game_res,
     debug_screenshot=args.debug_screenshot,
-    max_iterations_on_player=5
+    max_iterations_on_player=5,
+    max_iterations_on_default_camera_view=6
 )
 
 # Make sure provided paths.py are valid
@@ -123,6 +124,7 @@ if not gotInstance:
 
 # Start with max to switch away from dead spectator right away
 iterationsOnPlayer = config.get_max_iterations_on_player()
+iterationsOnDefaultCameraView = 0
 while True:
     bf2Window = gim.get_game_window()
     # Try to bring BF2 window to foreground
@@ -364,6 +366,7 @@ while True:
     onRoundFinishScreen = gim.is_round_end_screen_visible()
     mapIsLoading = gim.is_map_loading()
     mapBriefingPresent = gim.is_map_briefing_visible()
+    defaultCameraViewVisible = gim.is_default_camera_view_visible()
 
     # Update instance state if any map load/eor screen is present
     # (only _set_ map loading state here, since it should only be _unset_ when attempting to spawn
@@ -415,6 +418,30 @@ while True:
         # Set counter to max again to skip spectator
         iterationsOnPlayer = config.get_max_iterations_on_player()
         time.sleep(3)
+    elif defaultCameraViewVisible and gis.round_spawned() and \
+            iterationsOnDefaultCameraView < config.get_max_iterations_on_default_camera_view():
+        # Default camera view is visible after spawning once, either after a round restart or after the round ended
+        logging.info('Game is on default camera view, waiting to see if round ended')
+        iterationsOnDefaultCameraView += 1
+        time.sleep(3)
+    elif defaultCameraViewVisible and gis.round_spawned() and \
+            iterationsOnDefaultCameraView == config.get_max_iterations_on_default_camera_view():
+        # Default camera view has been visible for a while, most likely due to a round restart
+        # => try to restart spectating by pressing space (only works on freecam-enabled servers)
+        logging.info('Game is still on default camera view, trying to (re-)start spectating via freecam toggle')
+        gim.start_spectating_via_freecam_toggle()
+        iterationsOnDefaultCameraView += 1
+        time.sleep(3)
+    elif defaultCameraViewVisible and gis.round_spawned() and \
+            iterationsOnDefaultCameraView > config.get_max_iterations_on_default_camera_view():
+        # Default camera view has been visible for a while, failde to restart spectating by pressing space
+        # => spawn-suicide again to restart spectating
+        logging.info('Game is still on default camera view, queueing another spawn-suicide to restart spectating')
+        gis.set_round_spawned(False)
+        iterationsOnDefaultCameraView = 0
+    elif not defaultCameraViewVisible and iterationsOnDefaultCameraView > 0:
+        logging.info('Game is no longer on default camera view, resetting counter')
+        iterationsOnDefaultCameraView = 0
     elif not onRoundFinishScreen and not gis.round_spawned():
         # Loaded into map, now trying to start spectating
         gis.set_map_loading(False)
