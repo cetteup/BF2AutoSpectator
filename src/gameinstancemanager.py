@@ -178,6 +178,14 @@ class GameInstanceManager:
 
         return delta < constants.HISTCMP_MAX_DELTA
 
+    def is_disconnect_prompt_visible(self) -> bool:
+        return 'disconnect' in ocr_screenshot_game_window_region(
+            self.game_window,
+            self.resolution,
+            'disconnect-prompt-header',
+            image_ops=[(ImageOperation.invert, None)]
+        )
+
     def is_disconnect_button_visible(self) -> bool:
         return 'disconnect' in ocr_screenshot_game_window_region(
             self.game_window,
@@ -440,10 +448,20 @@ class GameInstanceManager:
         check_count = 0
         check_limit = 16
         in_menu = True
-        game_message_present = False
-        while in_menu and not game_message_present and check_count < check_limit:
+        game_message_visible = False
+        while in_menu and not game_message_visible and check_count < check_limit:
             in_menu = self.is_in_menu()
-            game_message_present = self.is_game_message_visible()
+            game_message_visible = self.is_game_message_visible()
+            # Game will show a "you need to disconnect first" prompt if it was still connected to a server
+            if self.is_disconnect_prompt_visible():
+                logging.warning('Disconnect prompt is visible, clicking "Yes" to disconnect')
+                # Click "yes" in order to disconnect
+                mouse_move_to_game_window_coord(self.game_window, self.resolution, 'disconnect-prompt-yes-button')
+                time.sleep(.2)
+                pyautogui.leftClick()
+                time.sleep(.5)
+                # Stop checking, since we will stay in menu (game only disconnects here, we need to retry connecting)
+                break
             check_count += 1
             time.sleep(1)
 
