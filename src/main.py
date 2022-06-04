@@ -324,12 +324,16 @@ while True:
              config.get_server_port() != gis.get_server_port() or
              config.get_server_pass() != gis.get_server_password()):
         logging.info('Queued server switch, disconnecting from current server')
-        gis.set_spectator_on_server(False)
-        gim.disconnect_from_server()
-        # If game instance is about to replaced, add one more round on the new server
-        if gis.get_round_num() + 1 >= config.get_instance_trl():
-            logging.info('Extending instance lifetime by one round on the new server')
-            gis.decrease_round_num()
+        if (gim.is_in_menu() or gim.open_menu()) and gim.disconnect_from_server():
+            gis.set_spectator_on_server(False)
+
+            # If game instance is about to be replaced, add one more round on the new server
+            if gis.get_round_num() + 1 >= config.get_instance_trl():
+                logging.info('Extending instance lifetime by one round on the new server')
+                gis.decrease_round_num()
+        else:
+            logging.error('Failed to disconnect from server')
+            continue
 
     # Player is not on server, check if rejoining is possible and makes sense
     if not gis.spectator_on_server():
@@ -345,7 +349,10 @@ while True:
         # Disconnect from server if still connected according to menu
         if gim.is_disconnect_button_visible():
             logging.warning('Game is still connected to a server, disconnecting')
-            gim.disconnect_from_server()
+            disconnected = gim.disconnect_from_server()
+            if not disconnected:
+                logging.error('Failed to disconnect from server, skipping joining server for now')
+                continue
 
         # (Re-)connect to server
         logging.info('(Re-)Connecting to server')
@@ -508,9 +515,11 @@ while True:
         else:
             # Map detection failed, force reconnect
             logging.error('Map detection failed, disconnecting')
-            gim.disconnect_from_server()
-            # Update state
-            gis.set_spectator_on_server(False)
+            if (gim.is_in_menu() or gim.open_menu()) and gim.disconnect_from_server():
+                # Update state
+                gis.set_spectator_on_server(False)
+            else:
+                logging.error('Failed to disconnect from server')
             continue
     elif not onRoundFinishScreen and not gis.hud_hidden():
         logging.info('Hiding hud')

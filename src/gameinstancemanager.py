@@ -449,10 +449,7 @@ class GameInstanceManager:
 
         return not in_menu
 
-    def disconnect_from_server(self) -> None:
-        # Press ESC
-        auto_press_key(0x01)
-        time.sleep(5)
+    def disconnect_from_server(self) -> bool:
         # Make sure disconnect button is present
         if self.is_disconnect_button_visible():
             # Move cursor onto disconnect button and click
@@ -460,7 +457,10 @@ class GameInstanceManager:
             time.sleep(.2)
             pyautogui.leftClick()
 
-        time.sleep(1.2)
+            time.sleep(1.2)
+
+        # Disconnect button should no longer be visible, but we should still be in the menu
+        return self.is_in_menu() and not self.is_connect_to_ip_button_visible()
 
     @staticmethod
     def toggle_hud(direction: int) -> None:
