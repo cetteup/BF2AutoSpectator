@@ -120,14 +120,13 @@ class GameInstanceManager:
 
         return not is_responding_pid(self.game_window.pid)
 
-    def open_menu(self) -> bool:
+    def open_menu(self, max_attempts: int = 5, sleep: float = 1.0) -> bool:
         # Spam press ESC if menu is not already visible
         attempt = 0
-        max_attempts = 5
         while not self.is_in_menu() and attempt < max_attempts:
             auto_press_key(0x01)
             attempt += 1
-            time.sleep(1)
+            time.sleep(sleep)
 
         return self.is_in_menu()
 

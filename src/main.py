@@ -324,7 +324,12 @@ while True:
              config.get_server_port() != gis.get_server_port() or
              config.get_server_pass() != gis.get_server_password()):
         logging.info('Queued server switch, disconnecting from current server')
-        if (gim.is_in_menu() or gim.open_menu()) and gim.disconnect_from_server():
+        """
+        Don't spam press ESC before disconnecting. It can lead to the game opening the menu again after the map has 
+        loaded when (re-)joining a server. Instead, press ESC once and wait a bit longer. Fail and retry next 
+        iteration if menu does not open in time.
+        """
+        if (gim.is_in_menu() or gim.open_menu(max_attempts=1, sleep=3.0)) and gim.disconnect_from_server():
             gis.set_spectator_on_server(False)
 
             # If game instance is about to be replaced, add one more round on the new server
@@ -341,7 +346,11 @@ while True:
         # TODO
 
         # Ensure game menu is open, try to open it if not
-        if not gim.is_in_menu() and not gim.open_menu():
+        """
+        Don't spam press ESC before (re-)joining. It can lead to the game opening the menu again after the map has
+        loaded. Instead, press ESC once and wait a bit longer. Fail and restart game if menu does not open in time.
+        """
+        if not gim.is_in_menu() and not gim.open_menu(max_attempts=1, sleep=3.0):
             logging.error('Game menu is not visible and could not be opened, restart required')
             gis.set_error_restart_required(True)
             continue
@@ -365,6 +374,8 @@ while True:
         gis.set_map_loading(connected)
         if connected:
             gis.set_server(serverIp, serverPort, serverPass)
+        else:
+            logging.error('Failed to (re-)connect to server')
         # Update controller
         if connected and config.use_controller():
             controller.post_current_server(serverIp, serverPort, serverPass)
@@ -516,7 +527,12 @@ while True:
         else:
             # Map detection failed, force reconnect
             logging.error('Map detection failed, disconnecting')
-            if (gim.is_in_menu() or gim.open_menu()) and gim.disconnect_from_server():
+            """
+            Don't spam press ESC before disconnecting. It can lead to the game opening the menu again after the map has 
+            loaded when (re-)joining a server. Instead, press ESC once and wait a bit longer. Fail and retry next 
+            iteration if menu does not open in time.
+            """
+            if (gim.is_in_menu() or gim.open_menu(max_attempts=1, sleep=3.0)) and gim.disconnect_from_server():
                 # Update state
                 gis.set_spectator_on_server(False)
             else:
