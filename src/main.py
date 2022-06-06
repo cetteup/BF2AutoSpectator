@@ -452,6 +452,7 @@ while True:
     elif defaultCameraViewVisible and not gis.round_spawned() and not gis.round_freecam_toggle_spawn_attempted():
         # Try to restart spectating without suiciding on consecutive rounds (only works on freecam-enabled servers)
         logging.info('Game is on default camera view, trying to (re-)start spectating via freecam toggle')
+        gis.set_map_loading(False)
         gim.start_spectating_via_freecam_toggle()
         gis.set_round_freecam_toggle_spawn_attempted(True)
         time.sleep(.5)
