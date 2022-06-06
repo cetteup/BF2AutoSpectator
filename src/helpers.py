@@ -159,10 +159,10 @@ def mouse_move_legacy(dx: int, dy: int) -> None:
 def mouse_move_to_game_window_coord(game_window: Window, resolution: str, key: str, legacy: bool = False) -> None:
     """
     Move mouse cursor to specified game window coordinates
+    :param game_window: Game window to move mouse in/on
     :param resolution: resolution to get/use coordinates for
     :param key: key of click target in coordinates dict
     :param legacy: whether to use legacy mouse move instead of pyautogui move
-    :param game_window: Game window to move mouse in/on
     :return:
     """
     if legacy:
@@ -185,6 +185,16 @@ def mouse_click_legacy() -> None:
 def mouse_reset_legacy() -> None:
     win32api.mouse_event(win32con.MOUSEEVENTF_MOVE, -10000, -10000)
     time.sleep(.5)
+
+
+def mouse_reset(game_window: Window) -> None:
+    """
+    Reset mouse cursor to the center of the game window (via pyautogui)
+    :param game_window: Game window to move mouse in/on
+    :return:
+    """
+    left, top, right, bottom = game_window.rect
+    pyautogui.moveTo((right - left)/2, (bottom - top - 40)/2)
 
 
 def screenshot_game_window_region(game_window: Window, x: int, y: int, w: int, h: int) -> Image:

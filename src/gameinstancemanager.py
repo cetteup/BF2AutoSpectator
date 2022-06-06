@@ -14,7 +14,7 @@ from gameinstancestate import GameInstanceState
 from helpers import Window, find_window_by_title, get_resolution_window_size, mouse_move_to_game_window_coord, \
     ocr_screenshot_game_window_region, auto_press_key, mouse_reset_legacy, mouse_move_legacy, mouse_click_legacy, \
     is_responding_pid, histogram_screenshot_region, \
-    calc_cv2_hist_delta, ImageOperation
+    calc_cv2_hist_delta, ImageOperation, mouse_reset
 
 # Remove the top left corner from pyautogui failsafe points
 # (avoid triggering failsafe exception due to mouse moving to top left during spawn)
@@ -190,6 +190,14 @@ class GameInstanceManager:
             self.game_window,
             self.resolution,
             'disconnect-button',
+            image_ops=[(ImageOperation.invert, None)]
+        )
+
+    def is_play_now_button_visible(self) -> bool:
+        return 'play now' in ocr_screenshot_game_window_region(
+            self.game_window,
+            self.resolution,
+            'play-now-button',
             image_ops=[(ImageOperation.invert, None)]
         )
 
@@ -474,10 +482,17 @@ class GameInstanceManager:
             time.sleep(.2)
             pyautogui.leftClick()
 
-            time.sleep(1.2)
+            # Reset mouse to avoid blocking ocr of button region
+            mouse_reset(self.game_window)
 
-        # Disconnect button should no longer be visible, but we should still be in the menu
-        return self.is_in_menu() and not self.is_connect_to_ip_button_visible()
+            check = 0
+            max_checks = 5
+            while not self.is_play_now_button_visible() and check < max_checks:
+                check += 1
+                time.sleep(.3)
+
+        # We should still be in the menu but see the "play now" button instead of the "disconnect" button
+        return self.is_in_menu() and self.is_play_now_button_visible()
 
     @staticmethod
     def toggle_hud(direction: int) -> None:
