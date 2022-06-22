@@ -51,10 +51,12 @@ class Controller:
                 }
             )
 
-            if response.status_code == 200:
+            if response.ok:
                 request_ok = True
+            else:
+                logging.error(f'Failed to send current server to controller (HTTP/{response.status_code})')
         except Exception as e:
-            logging.error(e)
+            logging.error(f'Failed to send current server to controller ({e})')
 
         return request_ok
 
@@ -63,10 +65,12 @@ class Controller:
         try:
             response = self.get('servers/join')
 
-            if response.status_code == 200:
+            if response.ok:
                 join_sever = response.json()
+            else:
+                logging.error(f'Failed to get join server from controller (HTTP/{response.status_code})')
         except Exception as e:
-            logging.error(e)
+            logging.error(f'Failed to get join server from controller ({e})')
 
         return join_sever
 
@@ -75,10 +79,12 @@ class Controller:
         try:
             response = self.get('commands')
 
-            if response.status_code == 200:
+            if response.ok:
                 commands = response.json()
+            else:
+                logging.error(f'Failed to get commands from controller (HTTP/{response.status_code})')
         except Exception as e:
-            logging.error(e)
+            logging.error(f'Failed to get commands from controller ({e})')
 
         return commands
 
@@ -87,9 +93,11 @@ class Controller:
         try:
             response = self.post('commands', data=commands)
 
-            if response.status_code == 200:
+            if response.ok:
                 request_ok = True
+            else:
+                logging.error(f'Failed to send commands to controller (HTTP/{response.status_code})')
         except Exception as e:
-            logging.error(e)
+            logging.error(f'Failed to send commands to controller ({e})')
 
         return request_ok
