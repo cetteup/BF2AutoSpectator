@@ -2,7 +2,7 @@ import logging
 
 import requests
 
-from typing import Optional
+from typing import Optional, Dict
 
 
 class Controller:
@@ -15,20 +15,40 @@ class Controller:
         self.__app_key = app_key
         self.__timeout = timeout
 
+    def request(
+            self,
+            method: str,
+            endpoint: str,
+            params: Optional[Dict] = None,
+            data: Optional[Dict] = None
+    ) -> requests.Response:
+        return requests.request(
+            method,
+            f'{self.__base_uri}/{endpoint}',
+            params=params,
+            data=data,
+            headers={'APP_KEY': self.__app_key},
+            timeout=self.__timeout
+        )
+
+    def get(self, endpoint: str, params: Optional[Dict] = None) -> requests.Response:
+        return self.request('GET', endpoint, params=params)
+
+    def post(self, endpoint: str, data: Optional[Dict] = None) -> requests.Response:
+        return self.request('POST', endpoint, data=data)
+
     def post_current_server(self, server_ip: str, server_port: str, server_pass: str = None,
                             in_rotation: bool = False) -> bool:
         request_ok = False
         try:
-            response = requests.post(
-                f'{self.__base_uri}/servers/current',
+            response = self.post(
+                'servers/current',
                 data={
-                    'app_key': self.__app_key,
                     'ip': server_ip,
                     'port': server_port,
                     'password': server_pass,
                     'in_rotation': str(in_rotation).lower()
-                },
-                timeout=self.__timeout
+                }
             )
 
             if response.status_code == 200:
@@ -41,7 +61,7 @@ class Controller:
     def get_join_server(self) -> Optional[dict]:
         join_sever = None
         try:
-            response = requests.get(f'{self.__base_uri}/servers/join', timeout=self.__timeout)
+            response = self.get('servers/join')
 
             if response.status_code == 200:
                 join_sever = response.json()
@@ -53,11 +73,7 @@ class Controller:
     def get_commands(self) -> dict:
         commands = {}
         try:
-            response = requests.get(
-                f'{self.__base_uri}/commands',
-                params={'app_key': self.__app_key},
-                timeout=self.__timeout
-            )
+            response = self.get('commands')
 
             if response.status_code == 200:
                 commands = response.json()
@@ -69,14 +85,7 @@ class Controller:
     def post_commands(self, commands: dict) -> bool:
         request_ok = False
         try:
-            response = requests.post(
-                f'{self.__base_uri}/commands',
-                data={
-                    'app_key': self.__app_key,
-                    **commands
-                },
-                timeout=self.__timeout
-            )
+            response = self.post('commands', data=commands)
 
             if response.status_code == 200:
                 request_ok = True
