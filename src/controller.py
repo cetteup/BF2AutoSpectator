@@ -55,7 +55,7 @@ class Controller:
                 request_ok = True
             else:
                 logging.error(f'Failed to send current server to controller (HTTP/{response.status_code})')
-        except Exception as e:
+        except requests.RequestException as e:
             logging.error(f'Failed to send current server to controller ({e})')
 
         return request_ok
@@ -69,7 +69,7 @@ class Controller:
                 join_sever = response.json()
             else:
                 logging.error(f'Failed to get join server from controller (HTTP/{response.status_code})')
-        except Exception as e:
+        except requests.RequestException as e:
             logging.error(f'Failed to get join server from controller ({e})')
 
         return join_sever
@@ -83,7 +83,7 @@ class Controller:
                 commands = response.json()
             else:
                 logging.error(f'Failed to get commands from controller (HTTP/{response.status_code})')
-        except Exception as e:
+        except requests.RequestException as e:
             logging.error(f'Failed to get commands from controller ({e})')
 
         return commands
@@ -97,7 +97,7 @@ class Controller:
                 request_ok = True
             else:
                 logging.error(f'Failed to send commands to controller (HTTP/{response.status_code})')
-        except Exception as e:
+        except requests.RequestException as e:
             logging.error(f'Failed to send commands to controller ({e})')
 
         return request_ok
