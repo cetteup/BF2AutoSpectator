@@ -476,6 +476,9 @@ while True:
             logging.debug(f'Entering round #{gis.get_round_num()} using this instance')
             # Spectator has "entered" map, update state accordingly
             gis.set_rotation_on_map(True)
+            # No need to immediately rotate to next player (usually done after spawn-suicide)
+            # => set iteration counter to 0
+            iterationsOnPlayer = 0
         else:
             # Don't log this as an error since it's totally normal
             logging.info('Failed to start spectating via freecam toggle, continuing to spawn-suicide')
