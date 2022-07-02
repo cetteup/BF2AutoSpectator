@@ -189,6 +189,8 @@ while True:
             if commandReset:
                 # Unpause via config
                 config.unpause_player_rotation()
+                # Set counter to max to rotate off current player right away
+                iterationsOnPlayer = config.get_max_iterations_on_player()
 
         if commands.get('next_player') is True:
             logging.info('Manual switch to next player requested via controller, queueing switch')
@@ -565,6 +567,8 @@ while True:
         if config.get_player_rotation_paused_until() < datetime.now():
             logging.info('Player rotation pause expired, re-enabling rotation')
             config.unpause_player_rotation()
+            # Set counter to max to rotate off current player right away
+            iterationsOnPlayer = config.get_max_iterations_on_player()
         else:
             time.sleep(2)
     elif not onRoundFinishScreen:
