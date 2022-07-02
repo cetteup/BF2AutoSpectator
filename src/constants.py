@@ -1,5 +1,5 @@
 APP_NAME = 'bf2-auto-spectator'
-APP_VERSION = '0.3.1'
+APP_VERSION = '0.4.0'
 BF2_EXE = 'BF2.exe'
 BF2_WINDOW_TITLE = 'BF2 (v1.5.3153-802.0, pid:'
 TESSERACT_EXE = 'tesseract.exe'
