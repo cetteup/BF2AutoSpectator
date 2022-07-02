@@ -12,6 +12,7 @@ The goal is to provide a fully automated, fire-and-forget spectator for the game
 - automatic server join (only by server ip; custom ports and server passwords are supported)
 - automatic spawning in game to enable "spectator mode" (see supported maps/sizes below)
 - automatic rotation between players of spectator's team
+- restart spectating after round restart
 - in game error detection and handling
 - game freeze detection and handling
 - support for 720p (1280x720) and 900p (1600x900) game window size/resolution
