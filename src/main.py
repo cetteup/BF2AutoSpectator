@@ -400,7 +400,6 @@ while True:
         if gis.rotation_on_map():
             logging.info('Performing map rotation reset')
             gis.map_rotation_reset()
-        iterationsOnPlayer = config.get_max_iterations_on_player()
         time.sleep(3)
     elif mapBriefingPresent:
         logging.info('Map briefing present, checking map')
@@ -433,8 +432,6 @@ while True:
         logging.info('Game is on round finish screen')
         # Reset state
         gis.round_end_reset()
-        # Set counter to max again to skip spectator
-        iterationsOnPlayer = config.get_max_iterations_on_player()
         time.sleep(3)
     elif defaultCameraViewVisible and gis.round_spawned() and \
             iterationsOnDefaultCameraView < config.get_max_iterations_on_default_camera_view():
@@ -516,6 +513,8 @@ while True:
                 spawnSucceeded = gim.spawn_suicide()
                 logging.info('Spawn succeeded' if spawnSucceeded else 'Spawn failed, retrying')
                 gis.set_round_spawned(spawnSucceeded)
+                # Set counter to max to skip spectator
+                iterationsOnPlayer = config.get_max_iterations_on_player()
             except UnsupportedMapException as e:
                 logging.error('Spawning not supported on current map/size')
                 # Wait map out by "faking" spawn
