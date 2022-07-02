@@ -65,9 +65,10 @@ class Controller:
         try:
             response = self.get('servers/join')
 
+            # Controller will return 404 if no join server is set => only treat anything but 404 as an error
             if response.ok:
                 join_sever = response.json()
-            else:
+            elif response.status_code != 404:
                 logging.error(f'Failed to get join server from controller (HTTP/{response.status_code})')
         except requests.RequestException as e:
             logging.error(f'Failed to get join server from controller ({e})')
