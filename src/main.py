@@ -73,7 +73,7 @@ elif not os.path.isfile(os.path.join(config.get_game_path(), constants.BF2_EXE))
 init_pytesseract(config.get_tesseract_path())
 
 # Load pickles
-logging.info('Loading pickles')
+logging.debug('Loading pickles')
 with open(os.path.join(config.ROOT_DIR, 'pickle', 'histograms.pickle'), 'rb') as histogramFile:
     histograms = pickle.load(histogramFile)
 
@@ -100,7 +100,7 @@ controller = Controller(
 
 # Check whether the controller has a server join
 if config.use_controller():
-    logging.info('Checking for join server on controller')
+    logging.debug('Checking for join server on controller')
     joinServer = controller.get_join_server()
     if joinServer is not None and \
             (joinServer['ip'] != config.get_server_ip() or
@@ -159,7 +159,7 @@ while True:
     if not gis.error_restart_required() and \
             (find_window_by_title('BF2 Error') is not None or
              find_window_by_title('Microsoft Visual C++ Runtime Library') is not None):
-        logging.error('BF2 Error window present, scheduling restart')
+        logging.error('BF2 error window present, scheduling restart')
         gis.set_error_restart_required(True)
 
     # Check if a game restart command was issued to the controller
@@ -260,7 +260,7 @@ while True:
     # Make sure we are still in the game
     gameMessagePresent = gim.is_game_message_visible()
     if gameMessagePresent:
-        logging.info('Game message present, ocr-ing message')
+        logging.debug('Game message present, ocr-ing message')
         gameMessage = gim.ocr_game_message()
 
         # Close game message to enable actions
@@ -292,7 +292,8 @@ while True:
             # Set restart flag
             gis.set_error_restart_required(True)
         else:
-            sys.exit(gameMessage)
+            logging.info(f'Unhandled game message ({gameMessage}), exiting')
+            sys.exit(1)
 
         continue
 
@@ -301,7 +302,7 @@ while True:
     if config.use_controller() and (not gis.spectator_on_server() or
                                     (not gis.map_loading() and
                                      iterationsOnPlayer == config.get_max_iterations_on_player())):
-        logging.info('Checking for join server on controller')
+        logging.debug('Checking for join server on controller')
         joinServer = controller.get_join_server()
         # Update server and switch if spectator is supposed to be on a different server of password was updated
         if joinServer is not None and \
@@ -336,7 +337,7 @@ while True:
 
             # If game instance is about to be replaced, add one more round on the new server
             if gis.get_round_num() + 1 >= config.get_instance_trl():
-                logging.info('Extending instance lifetime by one round on the new server')
+                logging.debug('Extending instance lifetime by one round on the new server')
                 gis.decrease_round_num()
         else:
             logging.error('Failed to disconnect from server')
@@ -417,12 +418,12 @@ while True:
             gis.set_rotation_map_size(currentMapSize)
 
             # Give go-ahead for active joining
-            logging.info('Enabling active joining')
+            logging.debug('Enabling active joining')
             gis.set_active_join_possible(True)
 
         if gis.active_join_possible():
             # Check if join game button is present
-            logging.info('Could actively join, checking for button')
+            logging.debug('Could actively join, checking for button')
             joinGameButtonPresent = gim.is_join_game_button_visible()
 
             if joinGameButtonPresent:
@@ -451,7 +452,7 @@ while True:
         time.sleep(3)
     elif defaultCameraViewVisible and gis.round_spawned() and \
             iterationsOnDefaultCameraView > config.get_max_iterations_on_default_camera_view():
-        # Default camera view has been visible for a while, failde to restart spectating by pressing space
+        # Default camera view has been visible for a while, failed to restart spectating by pressing space
         # => spawn-suicide again to restart spectating
         logging.info('Game is still on default camera view, queueing another spawn-suicide to restart spectating')
         gis.set_round_spawned(False)
