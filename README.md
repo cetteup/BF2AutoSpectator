@@ -33,7 +33,6 @@ The goal is to provide a fully automated, fire-and-forget spectator for the game
 | `--use-controller`      | Use a bf2-auto-spectator-controller instance                   |                                                |          |
 | `--controller-base-uri` | Base uri of controller instance (format: http[s]://[hostname]) |                                                |          |
 | `--controller-app-key`  | App key for controller instance                                |                                                |          |
-| `--no-start`            | Do not start a new game instance (use existing)                |                                                |          |
 | `--debug-log`           | Add debugging information to log output                        |                                                |          |
 | `--debug-screenshot`    | Write any screenshots to disk for debugging                    |                                                |          |
 

@@ -32,11 +32,10 @@ parser.add_argument('--controller-base-uri', help='Base uri of web controller', 
 parser.add_argument('--controller-app-key', help='App key for web controller', type=str)
 parser.add_argument('--controller-timeout', help='Timeout to use for requests to controller (in seconds)', type=int,
                     default=2)
-parser.add_argument('--no-start', dest='start_game', action='store_false')
 parser.add_argument('--no-rtl-limit', dest='limit_rtl', action='store_false')
 parser.add_argument('--debug-log', dest='debug_log', action='store_true')
 parser.add_argument('--debug-screenshot', dest='debug_screenshot', action='store_true')
-parser.set_defaults(start_game=True, limit_rtl=True, debug_log=False, debug_screenshot=False, use_controller=False)
+parser.set_defaults(limit_rtl=True, debug_log=False, debug_screenshot=False, use_controller=False)
 args = parser.parse_args()
 
 logging.basicConfig(level=logging.DEBUG if args.debug_log else logging.INFO, stream=sys.stdout,
@@ -112,14 +111,9 @@ if config.use_controller():
         # TODO Add mod support to controller and use mod from controller her
         config.set_server(joinServer['ip'], str(joinServer['gamePort']), joinServer['password'], 'bf2')
 
-# Init game instance if requested
-gotInstance = False
-if args.start_game:
-    logging.info('Initializing spectator game instance')
-    gotInstance, correctParams, *_ = gim.launch_instance(config.get_server_mod())
-else:
-    logging.info('"Attaching" to existing game instance')
-    gotInstance, correctParams, *_ = gim.find_instance(config.get_server_mod())
+# Try to find any existing game instance
+logging.info('Looking for an existing game instance')
+gotInstance, correctParams, *_ = gim.find_instance(config.get_server_mod())
 
 # Schedule restart if no instance was started/found
 if not gotInstance:
