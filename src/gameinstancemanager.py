@@ -325,20 +325,20 @@ class GameInstanceManager:
 
         # Calculate histogram deltas and compare against known ones
         team = None
-        for team in constants.TEAMS_SPAWN_MENU_LEFT:
+        for team_key in constants.TEAMS_SPAWN_MENU_LEFT:
             histogram_delta = calc_cv2_hist_delta(
                 team_selection_histograms[0],
-                self.histograms[self.resolution]['teams'][team]['active']
+                self.histograms[self.resolution]['teams'][team_key]['active']
             )
 
             if histogram_delta < constants.HISTCMP_MAX_DELTA:
                 team = 0
                 break
 
-        for team in constants.TEAMS_SPAWN_MENU_RIGHT:
+        for team_key in constants.TEAMS_SPAWN_MENU_RIGHT:
             histogram_delta = calc_cv2_hist_delta(
                 team_selection_histograms[1],
-                self.histograms[self.resolution]['teams'][team]['active']
+                self.histograms[self.resolution]['teams'][team_key]['active']
             )
 
             if histogram_delta < constants.HISTCMP_MAX_DELTA:
