@@ -24,6 +24,7 @@ class Config(metaclass=Singleton):
     __server_ip: str
     __server_port: str
     __server_pass: str
+    __server_mod: str
 
     __game_path: str
     __tesseract_path: str
@@ -45,14 +46,16 @@ class Config(metaclass=Singleton):
     __player_rotation_paused_until: datetime = None
 
     def set_options(self, player_name: str, player_pass: str, server_ip: str, server_port: str, server_pass: str,
-                    game_path: str, tesseract_path: str, limit_rtl: bool, instance_rtl: int, use_controller: bool,
-                    controller_base_uri: str, controller_app_key: str, controller_timeout: int, resolution: str,
-                    debug_screenshot: bool, max_iterations_on_player: int, max_iterations_on_default_camera_view: int):
+                    server_mod: str, game_path: str, tesseract_path: str, limit_rtl: bool, instance_rtl: int,
+                    use_controller: bool, controller_base_uri: str, controller_app_key: str, controller_timeout: int,
+                    resolution: str, debug_screenshot: bool, max_iterations_on_player: int,
+                    max_iterations_on_default_camera_view: int):
         self.__player_name = player_name
         self.__player_pass = player_pass
         self.__server_ip = server_ip
         self.__server_port = server_port
         self.__server_pass = server_pass
+        self.__server_mod = server_mod
 
         self.__game_path = game_path
         self.__tesseract_path = tesseract_path
@@ -77,13 +80,14 @@ class Config(metaclass=Singleton):
     def get_player_pass(self) -> str:
         return self.__player_pass
 
-    def set_server(self, server_ip: str, server_port: str, server_pass: str) -> None:
+    def set_server(self, server_ip: str, server_port: str, server_pass: str, server_mod: str) -> None:
         self.__server_ip = server_ip
         self.__server_port = server_port
         self.__server_pass = server_pass
+        self.__server_mod = server_mod
 
-    def get_server(self) -> Tuple[str, str, str]:
-        return self.__server_ip, self.__server_port, self.__server_pass
+    def get_server(self) -> Tuple[str, str, str, str]:
+        return self.__server_ip, self.__server_port, self.__server_pass, self.__server_mod
 
     def set_server_ip(self, server_ip: str) -> None:
         self.__server_ip = server_ip
@@ -102,6 +106,12 @@ class Config(metaclass=Singleton):
 
     def get_server_pass(self) -> str:
         return self.__server_pass
+
+    def set_server_mod(self, server_mod: str) -> None:
+        self.__server_mod = server_mod
+
+    def get_server_mod(self) -> str:
+        return self.__server_mod
 
     def get_game_path(self) -> str:
         return self.__game_path

@@ -1,6 +1,7 @@
 import logging
 import re
 import time
+from typing import Tuple, Optional
 
 import numpy as np
 import pyautogui
@@ -14,7 +15,7 @@ from gameinstancestate import GameInstanceState
 from helpers import Window, find_window_by_title, get_resolution_window_size, mouse_move_to_game_window_coord, \
     ocr_screenshot_game_window_region, auto_press_key, mouse_reset_legacy, mouse_move_legacy, mouse_click_legacy, \
     is_responding_pid, histogram_screenshot_region, \
-    calc_cv2_hist_delta, ImageOperation, mouse_reset
+    calc_cv2_hist_delta, ImageOperation, mouse_reset, get_mod_from_command_line
 
 # Remove the top left corner from pyautogui failsafe points
 # (avoid triggering failsafe exception due to mouse moving to top left during spawn)
@@ -58,7 +59,7 @@ class GameInstanceManager:
     """
     Functions for launching, finding and destroying/quitting a game instance
     """
-    def launch_instance(self) -> bool:
+    def launch_instance(self, mod: str) -> Tuple[bool, bool, Optional[str]]:
         """
         Launch a new game instance via a shell (launching via shell "detaches" game process from spectator process,
         so that spectator can be restarted without having to restart the game)
@@ -71,19 +72,21 @@ class GameInstanceManager:
 
         # Prepare command
         command = f'cmd /c start /b /d "{self.game_path}" {constants.BF2_EXE} +restart 1 ' \
-                  f'+playerName "{self.player_name}" +playerPassword "{self.player_pass}" ' \
+                  f'+playerName "{self.player_name}" +playerPassword "{self.player_pass}" +modPath "mods/{mod}" ' \
                   f'+szx {window_size[0]} +szy {window_size[1]} +fullscreen 0 +wx 5 +wy 5 ' \
-                  f'+multi 1 +developer 1 +disableShaderCache 1 +ignoreAsserts 1'
+                  f'+developer 1 +disableShaderCache 1 +ignoreAsserts 1'
 
         # Run command
         shell.Run(command)
 
         # Wait for game window to come up
-        game_window_present = False
+        game_window_present, correct_params, running_mod = False, False, None
         check_count = 0
         check_limit = 5
         while not game_window_present and check_count < check_limit:
-            game_window_present = self.find_instance()
+            # If we join a server with a different mod without knowing it, the game will restart with that mod
+            # => update config to use whatever mod the game is now running with
+            game_window_present, correct_params, running_mod = self.find_instance(mod)
             check_count += 1
             time.sleep(4)
 
@@ -91,19 +94,33 @@ class GameInstanceManager:
         if game_window_present:
             time.sleep(6)
 
-        return game_window_present
+        return game_window_present, correct_params, running_mod
 
-    def find_instance(self) -> bool:
+    def find_instance(self, mod: str) -> Tuple[bool, bool, Optional[str]]:
         self.game_window = find_window_by_title(constants.BF2_WINDOW_TITLE, 'BF2')
 
-        window_size = get_resolution_window_size(self.resolution)
-        window_matches_resolution = True
-        if self.game_window is not None and \
-                (self.game_window.rect[2] - 21, self.game_window.rect[3] - 44) != window_size:
-            logging.error('Existing game window is a different resolution/size than expected')
-            window_matches_resolution = False
+        if self.game_window is None:
+            return False, False, None
 
-        return self.game_window is not None and window_matches_resolution
+        # Found a game window => validate mod and resolution match expected values
+        running_mod = get_mod_from_command_line(self.game_window.pid)
+        logging.debug(f'Found game is running mod "{running_mod}"')
+        logging.debug(f'Expected mod is "{mod}"')
+
+        actual_window_size = self.game_window.get_size()
+        expected_window_size = get_resolution_window_size(self.resolution)
+        logging.debug(f'Found game window size is {actual_window_size}')
+        logging.debug(f'Expected game window size is {expected_window_size}')
+
+        as_expected = True
+        if running_mod != mod:
+            logging.warning('Found game is running a different mod than expected')
+            as_expected = False
+        if actual_window_size != expected_window_size:
+            logging.warning('Found game window is a different resolution/size than expected')
+            as_expected = False
+
+        return True, as_expected, running_mod
 
     def quit_instance(self) -> bool:
         menu_open = self.open_menu()

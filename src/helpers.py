@@ -9,6 +9,7 @@ from typing import Optional, Tuple, List
 
 import cv2
 import numpy as np
+import psutil
 import pyautogui
 import pytesseract
 import win32api
@@ -39,6 +40,11 @@ class Window:
         self.rect = rect
         self.class_name = class_name
         self.pid = pid
+
+    def get_size(self) -> Tuple[int, int]:
+        # Size on Windows contains the window header and the halo/shadow around the window,
+        # which needs to be subtracted to get the real size
+        return self.rect[2] - 21, self.rect[3] - 44
 
 
 class KeyBdInput(ctypes.Structure):
@@ -302,3 +308,34 @@ def get_resolution_window_size(resolution: str) -> Tuple[int, int]:
         window_size = (1600, 900)
 
     return window_size
+
+
+def get_proc_by_pid(pid: int) -> Optional[psutil.Process]:
+    for proc in psutil.process_iter(attrs=['pid']):
+        if proc.pid == pid:
+            return proc
+
+
+def get_command_line_by_pid(pid: int) -> Optional[List[str]]:
+    proc = get_proc_by_pid(pid)
+
+    if proc is None:
+        return
+
+    try:
+        return proc.cmdline()
+    except (psutil.NoSuchProcess, psutil.AccessDenied):
+        return
+
+
+def get_mod_from_command_line(pid: int) -> Optional[str]:
+    command_line = get_command_line_by_pid(pid)
+
+    if command_line is None:
+        return
+
+    for index, arg in enumerate(command_line):
+        # Next argument after "+modPath" should be the mod path value
+        if arg == '+modPath' and index + 1 < len(command_line):
+            # Return mod path without leading "mods/"
+            return command_line[index + 1][5:]

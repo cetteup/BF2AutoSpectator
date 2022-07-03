@@ -3,6 +3,7 @@ from typing import Tuple
 
 class GameInstanceState:
     # Global details
+    __current_mod: str = None
     __spectator_on_server: bool = False
     __hud_hidden: bool = False
     __map_loading: bool = False

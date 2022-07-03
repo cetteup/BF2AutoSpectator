@@ -20,6 +20,7 @@ parser.add_argument('--player-pass', help='Account password of spectating player
 parser.add_argument('--server-ip', help='IP of sever to join for spectating', type=str, required=True)
 parser.add_argument('--server-port', help='Port of sever to join for spectating', type=str, default='16567')
 parser.add_argument('--server-pass', help='Password of sever to join for spectating', type=str)
+parser.add_argument('--server-mod', help='Mod of sever to join for spectating', type=str, default='bf2')
 parser.add_argument('--game-path', help='Path to BF2 install folder',
                     type=str, default='C:\\Program Files (x86)\\EA Games\\Battlefield 2\\')
 parser.add_argument('--game-res', help='Resolution to use for BF2 window', choices=['720p', '900p'], type=str, default='720p')
@@ -49,6 +50,7 @@ config.set_options(
     server_ip=args.server_ip,
     server_port=args.server_port,
     server_pass=args.server_pass,
+    server_mod=args.server_mod,
     game_path=args.game_path,
     tesseract_path=args.tesseract_path,
     limit_rtl=args.limit_rtl,
@@ -107,19 +109,24 @@ if config.use_controller():
              str(joinServer['gamePort']) != config.get_server_port()):
         # Spectator is supposed to be on different server
         logging.info('Controller has a server to join, updating config')
-        config.set_server(joinServer['ip'], str(joinServer['gamePort']), joinServer['password'])
+        # TODO Add mod support to controller and use mod from controller her
+        config.set_server(joinServer['ip'], str(joinServer['gamePort']), joinServer['password'], 'bf2')
 
 # Init game instance if requested
 gotInstance = False
 if args.start_game:
     logging.info('Initializing spectator game instance')
-    gotInstance = gim.launch_instance()
+    gotInstance, correctParams, *_ = gim.launch_instance(config.get_server_mod())
 else:
     logging.info('"Attaching" to existing game instance')
-    gotInstance = gim.find_instance()
+    gotInstance, correctParams, *_ = gim.find_instance(config.get_server_mod())
 
 # Schedule restart if no instance was started/found
 if not gotInstance:
+    logging.info('Did not find any existing game instance, will launch a new one')
+    gis.set_error_restart_required(True)
+elif not correctParams:
+    logging.warning('Found game instance is not running with correct parameters, restart required')
     gis.set_error_restart_required(True)
 
 # Start with max to switch away from dead spectator right away
@@ -209,7 +216,7 @@ while True:
     # Start a new game instance if required
     if gis.rtl_restart_required() or gis.error_restart_required():
         if bf2Window is not None and gis.rtl_restart_required():
-            # Quit out of current instnace
+            # Quit out of current instance
             logging.info('Quitting existing game instance')
             quitSuccessful = gim.quit_instance()
             logging.debug(f'Quit successful: {quitSuccessful}')
@@ -228,7 +235,30 @@ while True:
             time.sleep(3)
 
         # Init game new game instance
-        gim.launch_instance()
+        logging.info('Starting new game instance')
+        gotInstance, correctParams, runningMod = gim.launch_instance(config.get_server_mod())
+
+        """
+        BF2 will "magically" restart the game in order switch mods if we join a server with a different mod. Meaning
+        the window will close when joining the server, which will be detected and trigger an error restart. Since the
+        game already started a new instance and "+multi" is off, launch_instance will not be able to start another
+        instance and will instead pick up the instance from the restart. However, BF2 does not keep the game window size
+        parameters during these restarts. So, after the restart, we have
+        a) a resolution mismatch (since the parameters were not used for the restart) and
+        b) a mod mismatch (since the game restarted with a different "+modPath" without telling us)
+        We will now need to restart again in order to restore the correct resolution, but we need to start with
+        "+modPath" set to what the game set during the restart.
+        """
+        if runningMod is not None and runningMod != config.get_server_mod():
+            logging.warning(f'Game restart itself with a different mod, updating config')
+            config.set_server_mod(runningMod)
+
+        if not gotInstance:
+            logging.error('Game instance was not launched, retrying')
+            continue
+        elif not correctParams:
+            logging.error('Game instance was not launched with correct parameters, restart required')
+            continue
 
         # Bring window to foreground
         try:
@@ -246,7 +276,7 @@ while True:
 
         # Connect to server
         logging.info('Connecting to server')
-        serverIp, serverPort, serverPass = config.get_server()
+        serverIp, serverPort, serverPass, *_ = config.get_server()
         connected = gim.connect_to_server(serverIp, serverPort, serverPass)
         # Reset state
         gis.restart_reset()
@@ -368,7 +398,7 @@ while True:
 
         # (Re-)connect to server
         logging.info('(Re-)Connecting to server')
-        serverIp, serverPort, serverPass = config.get_server()
+        serverIp, serverPort, serverPass, *_ = config.get_server()
         connected = gim.connect_to_server(serverIp, serverPort, serverPass)
         # Treat re-connecting as map rotation (state wise)
         gis.map_rotation_reset()
