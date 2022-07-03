@@ -313,7 +313,7 @@ class GameInstanceManager:
 
         return map_size
 
-    def get_player_team(self) -> int:
+    def get_player_team(self) -> Optional[int]:
         # Get histograms of team selection areas
         team_selection_histograms = []
         for coord_set in constants.COORDINATES[self.resolution]['hists']['teams']:
@@ -323,36 +323,29 @@ class GameInstanceManager:
             )
             team_selection_histograms.append(histogram)
 
-        # Calculate histogram deltas
-        histogram_deltas = {
-            'to_usmc_active': calc_cv2_hist_delta(
-                team_selection_histograms[0],
-                self.histograms[self.resolution]['teams']['usmc']['active']
-            ),
-            'to_eu_active': calc_cv2_hist_delta(
-                team_selection_histograms[0],
-                self.histograms[self.resolution]['teams']['eu']['active']
-            ),
-            'to_china_active': calc_cv2_hist_delta(
-                team_selection_histograms[1],
-                self.histograms[self.resolution]['teams']['china']['active'],
-            ),
-            'to_mec_active': calc_cv2_hist_delta(
-                team_selection_histograms[1],
-                self.histograms[self.resolution]['teams']['mec']['active']
-            ),
-        }
-
-        # Compare histograms to constant to determine team
+        # Calculate histogram deltas and compare against known ones
         team = None
-        if histogram_deltas['to_usmc_active'] < constants.HISTCMP_MAX_DELTA or \
-                histogram_deltas['to_eu_active'] < constants.HISTCMP_MAX_DELTA:
-            # Player is on USMC/EU team
-            team = 0
-        elif histogram_deltas['to_china_active'] < constants.HISTCMP_MAX_DELTA or \
-                histogram_deltas['to_mec_active'] < constants.HISTCMP_MAX_DELTA:
-            # Player is on MEC/CHINA team
-            team = 1
+        for team in constants.TEAMS_SPAWN_MENU_LEFT:
+            histogram_delta = calc_cv2_hist_delta(
+                team_selection_histograms[0],
+                self.histograms[self.resolution]['teams'][team]['active']
+            )
+
+            if histogram_delta < constants.HISTCMP_MAX_DELTA:
+                team = 0
+                break
+
+        for team in constants.TEAMS_SPAWN_MENU_RIGHT:
+            histogram_delta = calc_cv2_hist_delta(
+                team_selection_histograms[1],
+                self.histograms[self.resolution]['teams'][team]['active']
+            )
+
+            if histogram_delta < constants.HISTCMP_MAX_DELTA:
+                team = 1
+                break
+
+        logging.debug(f'Detected team is {team}')
 
         return team
 
