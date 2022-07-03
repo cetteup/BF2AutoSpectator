@@ -24,6 +24,7 @@ del pyautogui.FAILSAFE_POINTS[0]
 
 MAP_NAME_REGEX_NvN = re.compile(r'(\d+).?v.?(\d+)')
 MAP_NAME_REGEX_SEPARATORS = re.compile(r'[_.\s]')
+MAP_NAME_REGEX_EXTRA = re.compile(r'[\']')
 
 
 class GameInstanceManager:
@@ -286,6 +287,10 @@ class GameInstanceManager:
         ocr_result = MAP_NAME_REGEX_NvN.sub('\\1v\\2', ocr_result)
         # Replace spaces/underscores/dots with dashes
         ocr_result = MAP_NAME_REGEX_SEPARATORS.sub('-', ocr_result)
+        # Remove any other special characters
+        ocr_result = MAP_NAME_REGEX_EXTRA.sub('', ocr_result)
+
+        logging.debug(f'Detected map name is "{ocr_result}"')
 
         map_name = None
         # Make sure map name is valid
