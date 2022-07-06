@@ -65,6 +65,18 @@ You can always get these details locally by providing the `--help` argument.
 | Wake Island 2007       | n/a     | n/a     | Yes     |
 | Zatar Wetlands         | Yes     | Yes     | Yes     |
 
+### Special Forces maps
+| Map name               | 16 size | 32 size | 64 size |
+|------------------------|---------|---------|---------|
+| Devil's Perch          | Yes     | Yes     | Yes     |
+| Ghost Town             | Yes     | Yes     | Yes     |
+| Leviathan              | Yes     | Yes     | Yes     |
+| Mass Destruction       | Yes     | Yes     | Yes     |
+| Night Flight           | Yes     | Yes     | Yes     |
+| Surge                  | Yes     | Yes     | Yes     |
+| The Iron Gator         | Yes     | Yes     | Yes     |
+| Warlord                | Yes     | Yes     | Yes     |
+
 ### Custom maps
 | Map name   | 16 size | 32 size | 64 size |
 |------------|---------|---------|---------|
