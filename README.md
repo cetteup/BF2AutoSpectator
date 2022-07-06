@@ -27,6 +27,7 @@ The goal is to provide a fully automated, fire-and-forget spectator for the game
 | `--server-ip`           | IP of server to join                                           | None                                           | Yes      |
 | `--server-port`         | Port of server to join                                         | 16567                                          | No       |
 | `--server-pass`         | Passwort for server to join                                    | None                                           | No       |
+| `--server-mod`          | Mod of server to join                                          | bf2                                            | No       |
 | `--game-path`           | Path to BF2 install folder                                     | C:\Program Files (x86)\EA Games\Battlefield 2\ | No       |
 | `--game-res`            | Resolution to use for BF2 window                               | 720p                                           | No       |
 | `--tesseract-path`      | Path to Tesseract install folder                               | C:\Program Files\Tesseract-OCR\                | No       |
