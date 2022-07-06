@@ -20,7 +20,8 @@ parser.add_argument('--player-pass', help='Account password of spectating player
 parser.add_argument('--server-ip', help='IP of sever to join for spectating', type=str, required=True)
 parser.add_argument('--server-port', help='Port of sever to join for spectating', type=str, default='16567')
 parser.add_argument('--server-pass', help='Password of sever to join for spectating', type=str)
-parser.add_argument('--server-mod', help='Mod of sever to join for spectating', type=str, default='bf2')
+parser.add_argument('--server-mod', help='Mod of sever to join for spectating', type=str,
+                    choices=['bf2', 'xpack'], default='bf2')
 parser.add_argument('--game-path', help='Path to BF2 install folder',
                     type=str, default='C:\\Program Files (x86)\\EA Games\\Battlefield 2\\')
 parser.add_argument('--game-res', help='Resolution to use for BF2 window', choices=['720p', '900p'], type=str, default='720p')
