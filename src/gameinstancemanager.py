@@ -294,11 +294,13 @@ class GameInstanceManager:
 
         map_name = None
         # Make sure map name is valid
-        # Also check while replacing first g with q to account for common ocr error
+        # Also check while replacing first g with q and second t with i to account for common ocr errors
         if ocr_result.lower() in constants.COORDINATES['spawns'].keys():
             map_name = ocr_result.lower()
         elif re.sub(r'^([^g]*?)g(.*)$', '\\1q\\2', ocr_result.lower()) in constants.COORDINATES['spawns'].keys():
             map_name = re.sub(r'^([^g]*?)g(.*)$', '\\1q\\2', ocr_result.lower())
+        elif re.sub(r'^([^t]*?t[^t]+?)t(.*)$', '\\1i\\2', ocr_result.lower()) in constants.COORDINATES['spawns'].keys():
+            map_name = re.sub(r'^^([^t]*?t[^t]+?)t(.*)$', '\\1i\\2', ocr_result.lower())
 
         return map_name
 
