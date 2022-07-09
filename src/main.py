@@ -419,6 +419,11 @@ while True:
     if (onRoundFinishScreen or mapIsLoading or mapBriefingPresent) and not gis.map_loading():
         gis.set_map_loading(True)
 
+    # Always reset iteration counter if default camera view is no longer visible
+    if not defaultCameraViewVisible and iterationsOnDefaultCameraView > 0:
+        logging.info('Game is no longer on default camera view, resetting counter')
+        iterationsOnDefaultCameraView = 0
+
     if config.limit_rtl() and onRoundFinishScreen and gis.get_round_num() >= config.get_instance_trl():
         logging.info('Game instance has reached rtl limit, restart required')
         gis.set_rtl_restart_required(True)
@@ -481,9 +486,6 @@ while True:
         # => spawn-suicide again to restart spectating
         logging.info('Game is still on default camera view, queueing another spawn-suicide to restart spectating')
         gis.set_round_spawned(False)
-        iterationsOnDefaultCameraView = 0
-    elif not defaultCameraViewVisible and iterationsOnDefaultCameraView > 0:
-        logging.info('Game is no longer on default camera view, resetting counter')
         iterationsOnDefaultCameraView = 0
     elif defaultCameraViewVisible and not gis.round_spawned() and not gis.round_freecam_toggle_spawn_attempted():
         # Try to restart spectating without suiciding on consecutive rounds (only works on freecam-enabled servers)
