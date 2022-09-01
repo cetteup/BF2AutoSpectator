@@ -1,11 +1,12 @@
 import logging
+import os
 import re
+import subprocess
 import time
 from typing import Tuple, Optional
 
 import numpy as np
 import pyautogui
-import win32com.client
 import win32con
 import win32gui
 
@@ -62,29 +63,27 @@ class GameInstanceManager:
     """
     def launch_instance(self, mod: str) -> Tuple[bool, bool, Optional[str]]:
         """
-        Launch a new game instance via a shell (launching via shell "detaches" game process from spectator process,
-        so that spectator can be restarted without having to restart the game)
+        Launch a new game instance
         :return: True if game was launched successfully, else False
         """
-        # Init shell
-        shell = win32com.client.Dispatch("WScript.Shell")
-
-        window_size = get_resolution_window_size(self.resolution)
+        szx, szy = get_resolution_window_size(self.resolution)
 
         # Prepare command
-        command = f'cmd /c start /b /d "{self.game_path}" {constants.BF2_EXE} +restart 1 ' \
-                  f'+playerName "{self.player_name}" +playerPassword "{self.player_pass}" +modPath "mods/{mod}" ' \
-                  f'+szx {window_size[0]} +szy {window_size[1]} +fullscreen 0 +wx 5 +wy 5 ' \
-                  f'+developer 1 +disableShaderCache 1 +ignoreAsserts 1'
+        command = [
+            os.path.join(self.game_path, constants.BF2_EXE), '+restart', '1', '+modPath', f'mods/{mod}',
+            '+playerName', self.player_name, '+playerPassword', self.player_pass,
+            '+szx', str(szx), '+szy', str(szy), '+fullscreen', '0', '+wx', '5', '+wy', '5',
+            '+developer', '1', '+disableShaderCache', '1', '+ignoreAsserts', '1'
+        ]
 
         # Run command
-        shell.Run(command)
+        p = subprocess.Popen(command, close_fds=True, cwd=self.game_path)
 
         # Wait for game window to come up
         game_window_present, correct_params, running_mod = False, False, None
         check_count = 0
         check_limit = 5
-        while not game_window_present and check_count < check_limit:
+        while p.poll() is None and not game_window_present and check_count < check_limit:
             # If we join a server with a different mod without knowing it, the game will restart with that mod
             # => update config to use whatever mod the game is now running with
             game_window_present, correct_params, running_mod = self.find_instance(mod)
@@ -317,6 +316,8 @@ class GameInstanceManager:
         # Make sure ocr result only contains numbers
         if re.match(r'^[0-9]+$', ocr_result):
             map_size = int(ocr_result)
+
+        logging.debug(f'Detected map size is {map_size}')
 
         return map_size
 
