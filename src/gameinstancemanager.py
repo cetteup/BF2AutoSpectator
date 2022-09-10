@@ -16,7 +16,7 @@ from gameinstancestate import GameInstanceState
 from helpers import Window, find_window_by_title, get_resolution_window_size, mouse_move_to_game_window_coord, \
     ocr_screenshot_game_window_region, auto_press_key, mouse_reset_legacy, mouse_move_legacy, mouse_click_legacy, \
     is_responding_pid, histogram_screenshot_region, \
-    calc_cv2_hist_delta, ImageOperation, mouse_reset, get_mod_from_command_line
+    calc_cv2_hist_delta, ImageOperation, mouse_reset, get_mod_from_command_line, purge_server_history
 
 # Remove the top left corner from pyautogui failsafe points
 # (avoid triggering failsafe exception due to mouse moving to top left during spawn)
@@ -66,6 +66,18 @@ class GameInstanceManager:
         Launch a new game instance
         :return: True if game was launched successfully, else False
         """
+
+        """
+        BF2 will query any server in the server history upon login, significantly slowing down the login and thus the
+        launch. The effect is even greater if any of the servers in the history are offline. For those, BF2 waits for
+        the status query to time out. So, use bf2-conman (https://github.com/cetteup/conman/releases/tag/v0.1.1)
+        to purge the server history.
+        """
+        try:
+            purge_server_history()
+        except subprocess.SubprocessError as e:
+            logging.error(f'Failed to purge server history pre-launch ({e})')
+
         szx, szy = get_resolution_window_size(self.resolution)
 
         # Prepare command

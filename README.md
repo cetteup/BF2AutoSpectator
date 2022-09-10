@@ -13,6 +13,7 @@ The goal is to provide a fully automated, fire-and-forget spectator for the game
 - automatic spawning in game to enable "spectator mode" (see supported maps/sizes below)
 - automatic rotation between players of spectator's team
 - restart spectating after round restart
+- purge server history before launching the game via [bf2-conman](https://github.com/cetteup/conman/releases/tag/v0.1.1)
 - in game error detection and handling
 - game freeze detection and handling
 - support for 720p (1280x720) and 900p (1600x900) game window size/resolution

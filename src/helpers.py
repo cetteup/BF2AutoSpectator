@@ -339,3 +339,9 @@ def get_mod_from_command_line(pid: int) -> Optional[str]:
         if arg == '+modPath' and index + 1 < len(command_line):
             # Return mod path without leading "mods/"
             return command_line[index + 1][5:]
+
+
+def purge_server_history():
+    command = [os.path.join(Config.ROOT_DIR, 'redist', 'bf2-conman.exe'), '--no-gui', '--purge-server-history']
+    p = subprocess.run(command, timeout=1.0)
+    return p.check_returncode()

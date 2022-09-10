@@ -14,7 +14,7 @@ create-version-file.exe versionfile.yaml --outfile versionfile
 Then, run the following command to build the executable.
 
 ```commandline
-pyinstaller.exe .\src\main.py --onefile --clean --name="bf2-auto-spectator" --add-data="pickle/*.pickle;pickle/" --version-file="versionfile"
+pyinstaller.exe .\src\main.py --onefile --clean --name="bf2-auto-spectator" --add-data="pickle/*.pickle;pickle/" --add-data="redist/*.exe;redist/" --version-file="versionfile"
 ```
 
 This will create a `bf2-auto-spectator.exe` in `.\dist`.
