@@ -465,6 +465,8 @@ while True:
         logging.info('Game is on round finish screen')
         # Reset state
         gis.round_end_reset()
+        # Unpause player rotation
+        config.unpause_player_rotation()
         time.sleep(3)
     elif defaultCameraViewVisible and gis.round_spawned() and \
             iterationsOnDefaultCameraView < config.get_max_iterations_on_default_camera_view():
@@ -549,6 +551,9 @@ while True:
                 logging.error('Spawning not supported on current map/size')
                 # Wait map out by "faking" spawn
                 gis.set_round_spawned(True)
+            finally:
+                # Unpause in order to not stay on the spectator after suicide
+                config.unpause_player_rotation()
         elif gis.get_rotation_map_name() is not None and \
                 gis.get_rotation_map_size() != -1:
             logging.error('Failed to determine current team, retrying')
