@@ -277,13 +277,16 @@ class GameInstanceManager:
         )
 
     def is_spawn_menu_visible(self) -> bool:
-        # Get ocr result of "special forces" class label/name
-        return 'special forces' in  ocr_screenshot_game_window_region(
+        histogram = histogram_screenshot_region(
             self.game_window,
-            self.resolution,
-            'special-forces-class-label',
-            image_ops=[(ImageOperation.invert, None)]
+            *constants.COORDINATES[self.resolution]['hists']['spawn-menu']['close-button']
         )
+        delta = calc_cv2_hist_delta(
+            histogram,
+            self.histograms[self.resolution]['spawn-menu']['close-button']
+        )
+
+        return delta < constants.HISTCMP_MAX_DELTA
 
     def get_map_name(self) -> str:
         # Screenshot and OCR map name area

@@ -49,6 +49,9 @@ COORDINATES = {
             'menu': {
                 'multiplayer': (229, 34, 200, 1),
                 'join-internet': (18, 73, 199, 1)
+            },
+            'spawn-menu': {
+                'close-button': (1240, 69, 25, 18)
             }
         }
     },
@@ -92,6 +95,9 @@ COORDINATES = {
             'menu': {
                 'multiplayer': (285, 34, 249, 1),
                 'join-internet': (20, 84, 249, 1)
+            },
+            'spawn-menu': {
+                'close-button': (1549, 78, 29, 23)
             }
         }
     },
