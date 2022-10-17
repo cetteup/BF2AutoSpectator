@@ -3,6 +3,6 @@ PyAutoGUI==0.9.53
 numpy==1.23.4
 opencv_python==4.5.5.64
 pytesseract==0.3.10
-requests==2.27.1
+requests==2.28.1
 pywin32==304
 psutil==5.9.2
