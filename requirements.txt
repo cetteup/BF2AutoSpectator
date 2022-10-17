@@ -1,6 +1,6 @@
 Pillow==9.2.0
 PyAutoGUI==0.9.53
-numpy==1.22.3
+numpy==1.23.4
 opencv_python==4.5.5.64
 pytesseract==0.3.10
 requests==2.27.1
