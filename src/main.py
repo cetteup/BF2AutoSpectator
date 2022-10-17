@@ -9,7 +9,7 @@ from datetime import datetime
 import constants
 from config import Config
 from controller import Controller
-from exceptions import UnsupportedMapException
+from exceptions import SpawnCoordinatesNotAvailableException
 from gameinstancemanager import GameInstanceManager
 from helpers import is_responding_pid, find_window_by_title, taskkill_pid, init_pytesseract
 
@@ -437,14 +437,17 @@ while True:
     elif mapBriefingPresent:
         logging.info('Map briefing present, checking map')
         currentMapName = gim.get_map_name()
-        currentMapSize = gim.get_map_size()
         currentGameMode = gim.get_game_mode()
+        currentMapSize = gim.get_map_size()
 
         # Update map state if relevant and required
-        if currentMapName is not None and currentMapSize != -1 and \
-                (currentMapName != gis.get_rotation_map_name() or
-                 currentMapSize != gis.get_rotation_map_size() or
-                 currentGameMode != gis.get_rotation_game_mode()):
+        # Map size should always be != -1 even for unknown maps, only reason for it being -1 would be that the map
+        # briefing was no longer visible when map size was checked (which is why we run it last)
+        if currentMapSize != -1 and (
+                currentMapName != gis.get_rotation_map_name() or
+                currentMapSize != gis.get_rotation_map_size() or
+                currentGameMode != gis.get_rotation_game_mode()
+        ):
             logging.debug(f'Updating map state: {currentMapName}; {currentGameMode}; {currentMapSize}')
             gis.set_rotation_map_name(currentMapName)
             gis.set_rotation_map_size(currentMapSize)
@@ -538,48 +541,45 @@ while True:
 
         logging.info('Determining team')
         currentTeam = gim.get_player_team()
-        if currentTeam is not None and \
-                gis.get_rotation_map_name() is not None and \
-                gis.get_rotation_map_size() != -1 and \
-                gis.get_rotation_game_mode() == 'conquest':
+        if currentTeam is not None:
             gis.set_round_team(currentTeam)
-            logging.debug(f'Current team: {"USMC" if gis.get_round_team() == 0 else "MEC/CHINA"}')
-            logging.info('Spawning once')
-            try:
-                spawnSucceeded = gim.spawn_suicide()
-                logging.info('Spawn succeeded' if spawnSucceeded else 'Spawn failed, retrying')
-                gis.set_round_spawned(spawnSucceeded)
-                # Set counter to max to skip spectator
-                iterationsOnPlayer = config.get_max_iterations_on_player()
-            except UnsupportedMapException as e:
-                logging.error('Spawning not supported on current map/size')
-                # Wait map out by "faking" spawn
-                gis.set_round_spawned(True)
-            finally:
-                # Unpause in order to not stay on the spectator after suicide
-                config.unpause_player_rotation()
-        elif gis.get_rotation_map_name() is not None and \
-                gis.get_rotation_map_size() != -1 and \
-                gis.get_rotation_game_mode() == 'conquest':
+            logging.debug(f'Current team index is {gis.get_round_team()} '
+                          f'({"USMC/EU/..." if gis.get_round_team() == 0 else "MEC/CHINA/..."})')
+        elif gim.spawn_coordinates_available():
+            # We should be able to detect the team if we have spawn coordinates for the map/size/game mode combination
             logging.error('Failed to determine current team, retrying')
             # Force another attempt re-enable hud
             gis.set_hud_hidden(True)
-            time.sleep(2)
             continue
-        else:
-            # Map detection failed, force reconnect
-            logging.error('Map detection failed, disconnecting')
-            """
-            Don't spam press ESC before disconnecting. It can lead to the game opening the menu again after the map has 
-            loaded when (re-)joining a server. Instead, press ESC once and wait a bit longer. Fail and retry next 
-            iteration if menu does not open in time.
-            """
-            if (gim.is_in_menu() or gim.open_menu(max_attempts=1, sleep=3.0)) and gim.disconnect_from_server():
-                # Update state
-                gis.set_spectator_on_server(False)
-            else:
-                logging.error('Failed to disconnect from server')
-            continue
+        elif not gis.get_round_spawn_randomize_coordinates():
+            # If we were not able to detect a team and map/size/game mod combination is not supported,
+            # assume that team detection is not available (unsupported mod/custom map)
+            logging.warning('Team detection is not available, switching to spawn point coordinate randomization')
+            gis.set_round_spawn_randomize_coordinates(True)
+
+        logging.info('Spawning once')
+        spawnSucceeded = False
+        if not gis.get_round_spawn_randomize_coordinates():
+            try:
+                spawnSucceeded = gim.spawn_suicide()
+            except SpawnCoordinatesNotAvailableException:
+                logging.warning(f'Spawn point coordinates not available current combination of map/size/game mode '
+                                f'({gis.get_rotation_map_name()}/'
+                                f'{gis.get_rotation_map_size()}/'
+                                f'{gis.get_rotation_game_mode()}), switching to spawn point coordinate randomization')
+                gis.set_round_spawn_randomize_coordinates(True)
+
+        if gis.get_round_spawn_randomize_coordinates():
+            logging.info(f'Attempting to spawn by selecting randomly generated spawn point coordinates')
+            spawnSucceeded = gim.spawn_suicide(randomize=True)
+
+        logging.info('Spawn succeeded' if spawnSucceeded else 'Spawn failed, retrying')
+        gis.set_round_spawned(spawnSucceeded)
+
+        # Set counter to max to skip spectator
+        iterationsOnPlayer = config.get_max_iterations_on_player()
+        # Unpause in order to not stay on the spectator after suicide
+        config.unpause_player_rotation()
     elif not onRoundFinishScreen and not gis.hud_hidden():
         logging.info('Hiding hud')
         gim.toggle_hud(0)

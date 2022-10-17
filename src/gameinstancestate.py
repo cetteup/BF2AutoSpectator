@@ -24,6 +24,7 @@ class GameInstanceState:
     __rotation_map_size: int = -1
     __rotation_game_mode: str = None
     __round_spawned: bool = False
+    __round_spawn_randomize_coordinates: bool = False
     __round_freecam_toggle_spawn_attempted: bool = False
     __rotation_on_map: bool = False
 
@@ -144,6 +145,12 @@ class GameInstanceState:
     def round_spawned(self) -> bool:
         return self.__round_spawned
 
+    def set_round_spawn_randomize_coordinates(self, randomize: bool):
+        self.__round_spawn_randomize_coordinates = randomize
+
+    def get_round_spawn_randomize_coordinates(self) -> bool:
+        return self.__round_spawn_randomize_coordinates
+
     def set_round_freecam_toggle_spawn_attempted(self, attempted: bool):
         self.__round_freecam_toggle_spawn_attempted = attempted
 
@@ -177,6 +184,7 @@ class GameInstanceState:
         self.__rotation_on_map = False
         self.__round_team = -1
         self.__round_spawned = False
+        self.__round_spawn_randomize_coordinates = False
         self.__round_freecam_toggle_spawn_attempted = False
         self.__round_started_spectation = False
 
@@ -185,6 +193,7 @@ class GameInstanceState:
         self.__active_join_possible = False
         self.__round_team = -1
         self.__round_spawned = False
+        self.__round_spawn_randomize_coordinates = False
         self.__round_freecam_toggle_spawn_attempted = False
         self.__round_started_spectation = False
 
@@ -204,6 +213,7 @@ class GameInstanceState:
         self.__rotation_on_map = False
         self.__round_team = -1
         self.__round_spawned = False
+        self.__round_spawn_randomize_coordinates = False
         self.__round_freecam_toggle_spawn_attempted = False
         self.__round_started_spectation = False
         self.__error_unresponsive_count = 0

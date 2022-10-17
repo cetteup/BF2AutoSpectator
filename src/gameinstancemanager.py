@@ -1,5 +1,6 @@
 import logging
 import os
+import random
 import re
 import subprocess
 import time
@@ -11,7 +12,7 @@ import win32con
 import win32gui
 
 import constants
-from exceptions import UnsupportedMapException
+from exceptions import SpawnCoordinatesNotAvailableException
 from gameinstancestate import GameInstanceState
 from helpers import Window, find_window_by_title, get_resolution_window_size, mouse_move_to_game_window_coord, \
     ocr_screenshot_game_window_region, auto_press_key, mouse_reset_legacy, mouse_move_legacy, mouse_click_legacy, \
@@ -304,19 +305,24 @@ class GameInstanceManager:
         # Remove any other special characters
         ocr_result = MAP_NAME_REGEX_EXTRA.sub('', ocr_result)
 
+        # Convert to lower case
+        ocr_result = ocr_result.lower()
+
         logging.debug(f'Detected map name is "{ocr_result}"')
 
-        map_name = None
-        # Make sure map name is valid
+        # Check if map is known
         # Also check while replacing first g with q and second t with i to account for common ocr errors
-        if ocr_result.lower() in constants.COORDINATES['spawns'].keys():
-            map_name = ocr_result.lower()
-        elif re.sub(r'^([^g]*?)g(.*)$', '\\1q\\2', ocr_result.lower()) in constants.COORDINATES['spawns'].keys():
-            map_name = re.sub(r'^([^g]*?)g(.*)$', '\\1q\\2', ocr_result.lower())
-        elif re.sub(r'^([^t]*?t[^t]+?)t(.*)$', '\\1i\\2', ocr_result.lower()) in constants.COORDINATES['spawns'].keys():
-            map_name = re.sub(r'^^([^t]*?t[^t]+?)t(.*)$', '\\1i\\2', ocr_result.lower())
-
-        return map_name
+        if ocr_result in constants.COORDINATES['spawns'].keys():
+            # If block only serves to not run regex if ocr result already matches a known map
+            return ocr_result
+        elif (normalized := re.sub(r'^([^g]*?)g(.*)$', '\\1q\\2', ocr_result)) \
+                in constants.COORDINATES['spawns'].keys():
+            return normalized
+        elif (normalized := re.sub(r'^([^t]*?t[^t]+?)t(.*)$', '\\1i\\2', ocr_result)) \
+                in constants.COORDINATES['spawns'].keys():
+            return normalized
+        else:
+            return ocr_result
 
     def get_map_size(self) -> int:
         # Screenshot and OCR map size region
@@ -565,9 +571,16 @@ class GameInstanceManager:
         auto_press_key(0x1c)
         time.sleep(sleep)
 
-    def spawn_suicide(self) -> bool:
+    def spawn_coordinates_available(self) -> bool:
+        map_name = self.state.get_rotation_map_name()
+        return map_name in constants.COORDINATES['spawns'].keys() and \
+            str(self.state.get_rotation_map_size()) in constants.COORDINATES['spawns'][map_name].keys() and \
+            self.state.get_rotation_game_mode() == 'conquest'
+
+    def spawn_suicide(self, randomize: bool = False) -> bool:
         # Treat spawn attempt as failed if no spawn point could be selected
-        if self.is_spawn_point_selectable() and self.select_spawn_point():
+        if self.is_spawn_point_selectable() and \
+                (randomize and self.select_random_spawn_point() or (not randomize and self.select_spawn_point())):
             # Hit enter to spawn
             auto_press_key(0x1c)
             time.sleep(1)
@@ -604,9 +617,8 @@ class GameInstanceManager:
         # Make sure spawning on map and size is supported
         map_name = self.state.get_rotation_map_name()
         map_size = str(self.state.get_rotation_map_size())
-        if map_name not in constants.COORDINATES['spawns'].keys() or \
-                map_size not in constants.COORDINATES['spawns'][map_name].keys():
-            raise UnsupportedMapException('No coordinates for current map/size')
+        if not self.spawn_coordinates_available():
+            raise SpawnCoordinatesNotAvailableException
 
         # Reset mouse to top left corner
         mouse_reset_legacy()
@@ -636,6 +648,24 @@ class GameInstanceManager:
                 time.sleep(.1)
                 if self.is_spawn_point_selected():
                     break
+
+        return self.is_spawn_point_selected()
+
+    def select_random_spawn_point(self) -> bool:
+        attempt = 0
+        max_attempts = 5
+        while not self.is_spawn_point_selected() and attempt < max_attempts:
+            # Reset mouse to top left corner
+            mouse_reset_legacy()
+
+            # Try to select a spawn point by randomly clicking on the spawn menu map
+            # (use bigger step, since clicking next to a spawn point also works)
+            spawn_coordinates = random.randrange(260, 600, 15), random.randrange(50, 400, 15)
+            mouse_move_legacy(spawn_coordinates[0], spawn_coordinates[1])
+            time.sleep(.3)
+            mouse_click_legacy()
+
+            attempt += 1
 
         return self.is_spawn_point_selected()
 
