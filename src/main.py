@@ -438,14 +438,17 @@ while True:
         logging.info('Map briefing present, checking map')
         currentMapName = gim.get_map_name()
         currentMapSize = gim.get_map_size()
+        currentGameMode = gim.get_game_mode()
 
         # Update map state if relevant and required
         if currentMapName is not None and currentMapSize != -1 and \
                 (currentMapName != gis.get_rotation_map_name() or
-                 currentMapSize != gis.get_rotation_map_size()):
-            logging.debug(f'Updating map state: {currentMapName}; {currentMapSize}')
+                 currentMapSize != gis.get_rotation_map_size() or
+                 currentGameMode != gis.get_rotation_game_mode()):
+            logging.debug(f'Updating map state: {currentMapName}; {currentGameMode}; {currentMapSize}')
             gis.set_rotation_map_name(currentMapName)
             gis.set_rotation_map_size(currentMapSize)
+            gis.set_rotation_game_mode(currentGameMode)
 
             # Give go-ahead for active joining
             logging.debug('Enabling active joining')
@@ -537,7 +540,8 @@ while True:
         currentTeam = gim.get_player_team()
         if currentTeam is not None and \
                 gis.get_rotation_map_name() is not None and \
-                gis.get_rotation_map_size() != -1:
+                gis.get_rotation_map_size() != -1 and \
+                gis.get_rotation_game_mode() == 'conquest':
             gis.set_round_team(currentTeam)
             logging.debug(f'Current team: {"USMC" if gis.get_round_team() == 0 else "MEC/CHINA"}')
             logging.info('Spawning once')
@@ -555,7 +559,8 @@ while True:
                 # Unpause in order to not stay on the spectator after suicide
                 config.unpause_player_rotation()
         elif gis.get_rotation_map_name() is not None and \
-                gis.get_rotation_map_size() != -1:
+                gis.get_rotation_map_size() != -1 and \
+                gis.get_rotation_game_mode() == 'conquest':
             logging.error('Failed to determine current team, retrying')
             # Force another attempt re-enable hud
             gis.set_hud_hidden(True)

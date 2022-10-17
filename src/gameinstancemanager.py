@@ -336,6 +336,18 @@ class GameInstanceManager:
 
         return map_size
 
+    def get_game_mode(self) -> str:
+        ocr_result = ocr_screenshot_game_window_region(
+            self.game_window,
+            self.resolution,
+            'eor-game-mode',
+            image_ops=[(ImageOperation.invert, None)]
+        )
+
+        logging.debug(f'Detected game mode is {ocr_result.lower()}')
+
+        return ocr_result.lower()
+
     def get_player_team(self) -> Optional[int]:
         # Get histograms of team selection areas
         team_selection_histograms = []

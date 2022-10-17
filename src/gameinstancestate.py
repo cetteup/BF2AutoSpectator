@@ -22,6 +22,7 @@ class GameInstanceState:
     # Map details (map is as in one entry in the map rotation)
     __rotation_map_name: str = None
     __rotation_map_size: int = -1
+    __rotation_game_mode: str = None
     __round_spawned: bool = False
     __round_freecam_toggle_spawn_attempted: bool = False
     __rotation_on_map: bool = False
@@ -119,6 +120,12 @@ class GameInstanceState:
     def get_rotation_map_size(self) -> int:
         return self.__rotation_map_size
 
+    def set_rotation_game_mode(self, game_mode: str):
+        self.__rotation_game_mode = game_mode
+
+    def get_rotation_game_mode(self) -> str:
+        return self.__rotation_game_mode
+
     def set_rotation_on_map(self, on_map: bool):
         self.__rotation_on_map = on_map
 
@@ -166,6 +173,7 @@ class GameInstanceState:
         self.__active_join_possible = False
         self.__rotation_map_name = None
         self.__rotation_map_size = -1
+        self.__rotation_game_mode = None
         self.__rotation_on_map = False
         self.__round_team = -1
         self.__round_spawned = False
@@ -192,6 +200,7 @@ class GameInstanceState:
         self.__round_num = 0
         self.__rotation_map_name = None
         self.__rotation_map_size = -1
+        self.__rotation_game_mode = None
         self.__rotation_on_map = False
         self.__round_team = -1
         self.__round_spawned = False

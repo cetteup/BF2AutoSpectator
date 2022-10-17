@@ -41,6 +41,7 @@ COORDINATES = {
             'special-forces-class-label': (60, 125, 140, 18),
             'eor-map-name': (769, 114, 210, 17),
             'eor-map-size': (1256, 570, 20, 17),
+            'eor-game-mode': (1205, 548, 70, 20),
             'spawn-selected-text': (528, 35, 192, 16),
             'suicide-button': (940, 678, 75, 19)
         },
@@ -87,6 +88,7 @@ COORDINATES = {
             'special-forces-class-label': (73, 149, 164, 20),
             'eor-map-name': (956, 134, 250, 21),
             'eor-map-size': (1564, 706, 24, 18),
+            'eor-game-mode': (1500, 679, 94, 22),
             'spawn-selected-text': (658, 36, 241, 18),
             'suicide-button': (1173, 841, 88, 20)
         },
