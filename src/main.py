@@ -423,7 +423,6 @@ while True:
     if not defaultCameraViewVisible and iterationsOnDefaultCameraView > 0:
         logging.info('Game is no longer on default camera view, resetting counter')
         iterationsOnDefaultCameraView = 0
-
     if config.limit_rtl() and onRoundFinishScreen and gis.get_round_num() >= config.get_instance_trl():
         logging.info('Game instance has reached rtl limit, restart required')
         gis.set_rtl_restart_required(True)
@@ -475,9 +474,17 @@ while True:
         config.unpause_player_rotation()
         time.sleep(3)
     elif defaultCameraViewVisible and gis.round_spawned() and \
+            iterationsOnDefaultCameraView == 0:
+        # In rare cases, an AFK/dead player might be detected as the default camera view
+        # => try to rotate to next player to "exit" what is detected as the default camera view
+        logging.info('Game is on default camera view, trying to rotate to next player')
+        gim.rotate_to_next_player()
+        iterationsOnDefaultCameraView += 1
+        time.sleep(3)
+    elif defaultCameraViewVisible and gis.round_spawned() and \
             iterationsOnDefaultCameraView < config.get_max_iterations_on_default_camera_view():
         # Default camera view is visible after spawning once, either after a round restart or after the round ended
-        logging.info('Game is on default camera view, waiting to see if round ended')
+        logging.info('Game is still on default camera view, waiting to see if round ended')
         iterationsOnDefaultCameraView += 1
         time.sleep(3)
     elif defaultCameraViewVisible and gis.round_spawned() and \
