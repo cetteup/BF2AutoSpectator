@@ -558,17 +558,18 @@ class GameInstanceManager:
         # We should still be in the menu but see the "play now" button instead of the "disconnect" button
         return self.is_in_menu() and self.is_play_now_button_visible()
 
-    @staticmethod
-    def toggle_hud(direction: int) -> None:
+    def toggle_hud(self, direction: int) -> None:
+        self.issue_console_command(f'renderer.drawHud {str(direction)}')
+
+    def issue_console_command(self, command: str) -> None:
         # Open/toggle console
-        auto_press_key(0x1d)
-        time.sleep(.1)
+        self.toggle_console()
 
         # Clear out command input
         pyautogui.press('backspace', presses=2, interval=.05)
 
         # Write command
-        pyautogui.write(f'renderer.drawHud {str(direction)}', interval=.05)
+        pyautogui.write(command, interval=.05)
         time.sleep(.3)
 
         # Hit enter
@@ -576,6 +577,10 @@ class GameInstanceManager:
         time.sleep(.1)
 
         # X / toggle console
+        self.toggle_console()
+
+    @staticmethod
+    def toggle_console() -> None:
         auto_press_key(0x1d)
         time.sleep(.1)
 
