@@ -2,7 +2,7 @@ import os
 from datetime import datetime, timedelta
 from typing import Tuple
 
-import constants
+from BF2AutoSpectator.common import constants
 
 
 class Singleton(type):
@@ -15,7 +15,7 @@ class Singleton(type):
 
 
 class Config(metaclass=Singleton):
-    ROOT_DIR: str = os.path.dirname(__file__).replace('\\src', '')
+    ROOT_DIR: str = os.path.dirname(__file__).replace('\\BF2AutoSpectator\\common', '')
     PWD: str = os.getcwd()
     DEBUG_DIR: str = os.path.join(PWD, f'{constants.APP_NAME}-debug')
 

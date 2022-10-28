@@ -1,4 +1,4 @@
-APP_NAME = 'bf2-auto-spectator'
+APP_NAME = 'BF2AutoSpectator'
 APP_VERSION = '0.4.3'
 BF2_EXE = 'BF2.exe'
 BF2_WINDOW_TITLE = 'BF2 (v1.5.3153-802.0, pid:'

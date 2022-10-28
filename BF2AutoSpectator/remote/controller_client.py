@@ -5,7 +5,7 @@ import requests
 from typing import Optional, Dict
 
 
-class Controller:
+class ControllerClient:
     __base_uri: str
     __app_key: str
     __timeout: int

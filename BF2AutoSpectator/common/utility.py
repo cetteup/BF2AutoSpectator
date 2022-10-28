@@ -19,8 +19,8 @@ import win32process
 from PIL import Image, ImageOps
 from numpy import ndarray
 
-import constants
-from config import Config
+from BF2AutoSpectator.common import constants
+from BF2AutoSpectator.common.config import Config
 
 SendInput = ctypes.windll.user32.SendInput
 # C struct redefinitions

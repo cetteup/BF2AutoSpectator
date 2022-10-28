@@ -11,13 +11,13 @@ import pyautogui
 import win32con
 import win32gui
 
-import constants
-from exceptions import SpawnCoordinatesNotAvailableException
-from gameinstancestate import GameInstanceState
-from helpers import Window, find_window_by_title, get_resolution_window_size, mouse_move_to_game_window_coord, \
-    mouse_click_in_game_window, ocr_screenshot_game_window_region, auto_press_key, mouse_reset_legacy, \
-    mouse_move_legacy, is_responding_pid, histogram_screenshot_region, calc_cv2_hist_delta, ImageOperation, \
-    mouse_reset, get_mod_from_command_line, purge_server_history
+from BF2AutoSpectator.common import constants
+from BF2AutoSpectator.common.exceptions import SpawnCoordinatesNotAvailableException
+from BF2AutoSpectator.common.utility import Window, find_window_by_title, get_resolution_window_size, \
+    mouse_move_to_game_window_coord, mouse_click_in_game_window, ocr_screenshot_game_window_region, auto_press_key, \
+    mouse_reset_legacy, mouse_move_legacy, is_responding_pid, histogram_screenshot_region, calc_cv2_hist_delta, \
+    ImageOperation, mouse_reset, get_mod_from_command_line, purge_server_history
+from .instance_state import GameInstanceState
 
 # Remove the top left corner from pyautogui failsafe points
 # (avoid triggering failsafe exception due to mouse moving to top left during spawn)
@@ -592,8 +592,8 @@ class GameInstanceManager:
     def spawn_coordinates_available(self) -> bool:
         map_name = self.state.get_rotation_map_name()
         return map_name in constants.COORDINATES['spawns'].keys() and \
-            str(self.state.get_rotation_map_size()) in constants.COORDINATES['spawns'][map_name].keys() and \
-            self.state.get_rotation_game_mode() == 'conquest'
+               str(self.state.get_rotation_map_size()) in constants.COORDINATES['spawns'][map_name].keys() and \
+               self.state.get_rotation_game_mode() == 'conquest'
 
     def spawn_suicide(self, randomize: bool = False) -> bool:
         # Treat spawn attempt as failed if no spawn point could be selected

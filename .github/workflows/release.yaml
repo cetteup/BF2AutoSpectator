@@ -28,19 +28,19 @@ jobs:
           create-version-file.exe versionfile.yaml --outfile versionfile
       - name: Build executable
         run: |
-          pyinstaller.exe src\main.py --onefile --clean --name="bf2-auto-spectator" --add-data="pickle/*.pickle;pickle/" --add-data="redist/*.exe;redist/" --version-file="versionfile"
+          pyinstaller.exe BF2AutoSpectator\spectate.py --onefile --clean --name="BF2AutoSpectator" --add-data="pickle/*.pickle;pickle/" --add-data="redist/*.exe;redist/" --version-file="versionfile"
       - name: Create release archive
         run: |
-          Compress-Archive -Path "dist\bf2-auto-spectator.exe" -DestinationPath bf2-auto-spectator-${{ github.ref_name }}.zip
+          Compress-Archive -Path "dist\BF2AutoSpectator.exe" -DestinationPath BF2AutoSpectator-${{ github.ref_name }}.zip
       - name: Create hash files
         run: |
-          $(Get-FileHash -Path bf2-auto-spectator-${{ github.ref_name }}.zip -Algorithm MD5).Hash.toLower() + "`n" | Out-File -NoNewline bf2-auto-spectator-${{ github.ref_name }}.zip.md5
-          $(Get-FileHash -Path bf2-auto-spectator-${{ github.ref_name }}.zip -Algorithm SHA256).Hash.toLower() + "`n" | Out-File -NoNewline bf2-auto-spectator-${{ github.ref_name }}.zip.sha256
+          $(Get-FileHash -Path BF2AutoSpectator-${{ github.ref_name }}.zip -Algorithm MD5).Hash.toLower() + "`n" | Out-File -NoNewline BF2AutoSpectator-${{ github.ref_name }}.zip.md5
+          $(Get-FileHash -Path BF2AutoSpectator-${{ github.ref_name }}.zip -Algorithm SHA256).Hash.toLower() + "`n" | Out-File -NoNewline BF2AutoSpectator-${{ github.ref_name }}.zip.sha256
       - name: Create release
         uses: softprops/action-gh-release@v1
         with:
-          files: bf2-auto-spectator-${{ github.ref_name }}.zip*
+          files: BF2AutoSpectator-${{ github.ref_name }}.zip*
           draft: true
           generate_release_notes: true
-          name: bf2-auto-spectator ${{ github.ref_name }}
+          name: BF2AutoSpectator ${{ github.ref_name }}
           body: This is the ${{ github.ref_name }} release of the BF2 auto spectator.

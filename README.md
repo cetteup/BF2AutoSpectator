@@ -1,4 +1,4 @@
-# bf2-auto-spectator
+# BF2AutoSpectator
 An automated spectator for Battlefield 2 written in Python 🐍
 
 Battefield 2 might be an old game that is known for sometimes having more dust than hit registration. But it's still around after 15 years and people still play it. So, why not support this game and community with an automated spectator that makes it easy to, for example, stream this game around the clock so people can (re-)discover it via a [live stream](https://www.twitch.tv/bf2tv).
@@ -92,7 +92,7 @@ You can always get these details locally by providing the `--help` argument.
 ## Setup
 ### Download and install software
 1. Download and install Tesseract v5.0.1.20220118 from the [Uni Mannheim server](https://digi.bib.uni-mannheim.de/tesseract/) (be sure to use the 64 bit version, [direct link](https://digi.bib.uni-mannheim.de/tesseract/tesseract-ocr-w64-setup-v5.0.1.20220118.exe))
-2. Download and extract the [latest release](https://github.com/cetteup/bf2-auto-spectator/releases/latest)
+2. Download and extract the [latest release](https://github.com/cetteup/BF2AutoSpectator/releases/latest)
 
 ### In-game setup
 Setting up an extra bf2hub account for the spectator is strongly recommended in order to not mess with your existing account's settings/stats.
