@@ -15,9 +15,9 @@ import constants
 from exceptions import SpawnCoordinatesNotAvailableException
 from gameinstancestate import GameInstanceState
 from helpers import Window, find_window_by_title, get_resolution_window_size, mouse_move_to_game_window_coord, \
-    ocr_screenshot_game_window_region, auto_press_key, mouse_reset_legacy, mouse_move_legacy, mouse_click_legacy, \
-    is_responding_pid, histogram_screenshot_region, \
-    calc_cv2_hist_delta, ImageOperation, mouse_reset, get_mod_from_command_line, purge_server_history
+    mouse_click_in_game_window, ocr_screenshot_game_window_region, auto_press_key, mouse_reset_legacy, \
+    mouse_move_legacy, is_responding_pid, histogram_screenshot_region, calc_cv2_hist_delta, ImageOperation, \
+    mouse_reset, get_mod_from_command_line, purge_server_history
 
 # Remove the top left corner from pyautogui failsafe points
 # (avoid triggering failsafe exception due to mouse moving to top left during spawn)
@@ -144,7 +144,7 @@ class GameInstanceManager:
         # Click quit menu item
         mouse_move_to_game_window_coord(self.game_window, self.resolution, 'quit-menu-item')
         time.sleep(.2)
-        pyautogui.leftClick()
+        mouse_click_in_game_window(self.game_window)
 
         time.sleep(2)
 
@@ -397,7 +397,14 @@ class GameInstanceManager:
             return False
 
         left, top, right, bottom = self.game_window.rect
-        histogram = histogram_screenshot_region(self.game_window, 168, 31, right - left - 336, bottom - top - 40)
+        # Offset the screenshot to not include the window's title bar
+        histogram = histogram_screenshot_region(
+            self.game_window,
+            168,
+            constants.WINDOW_TITLE_BAR_HEIGHT,
+            right - left - 336,
+            bottom - top - 40
+        )
         delta = calc_cv2_hist_delta(
             histogram,
             self.histograms[self.resolution]['maps']['default-camera-view'][map_name]
@@ -413,8 +420,14 @@ class GameInstanceManager:
 
         # Take screenshots and calculate histograms
         for i in range(0, screenshot_count):
-            # Take screenshot and calculate histogram
-            histogram = histogram_screenshot_region(self.game_window, 168, 31, right - left - 336, bottom - top - 40)
+            # Offset the screenshot to not include the window's title bar
+            histogram = histogram_screenshot_region(
+                self.game_window,
+                168,
+                constants.WINDOW_TITLE_BAR_HEIGHT,
+                right - left - 336,
+                bottom - top - 40
+            )
             histograms.append(histogram)
 
             # Sleep before taking next screenshot
@@ -445,13 +458,13 @@ class GameInstanceManager:
             # Move cursor onto multiplayer menu item and click
             mouse_move_to_game_window_coord(self.game_window, self.resolution, 'multiplayer-menu-item')
             time.sleep(.2)
-            pyautogui.leftClick()
+            mouse_click_in_game_window(self.game_window)
 
         if not self.is_join_internet_menu_active():
             # Move cursor onto join internet menu item and click
             mouse_move_to_game_window_coord(self.game_window, self.resolution, 'join-internet-menu-item')
             time.sleep(.2)
-            pyautogui.leftClick()
+            mouse_click_in_game_window(self.game_window)
 
         check_count = 0
         check_limit = 10
@@ -465,7 +478,7 @@ class GameInstanceManager:
         # Move cursor onto connect to ip button and click
         mouse_move_to_game_window_coord(self.game_window, self.resolution, 'connect-to-ip-button')
         time.sleep(.2)
-        pyautogui.leftClick()
+        mouse_click_in_game_window(self.game_window)
 
         # Give field popup time to appear
         time.sleep(.3)
@@ -499,7 +512,7 @@ class GameInstanceManager:
         # Move cursor onto ok button and click
         mouse_move_to_game_window_coord(self.game_window, self.resolution, 'connect-to-ip-ok-button')
         time.sleep(.2)
-        pyautogui.leftClick()
+        mouse_click_in_game_window(self.game_window)
 
         # Successfully joining a server means leaving the menu, so wait for menu to disappear
         # (cancel further checks when a game/error message is present)
@@ -516,7 +529,7 @@ class GameInstanceManager:
                 # Click "yes" in order to disconnect
                 mouse_move_to_game_window_coord(self.game_window, self.resolution, 'disconnect-prompt-yes-button')
                 time.sleep(.2)
-                pyautogui.leftClick()
+                mouse_click_in_game_window(self.game_window)
                 time.sleep(.5)
                 # Stop checking, since we will stay in menu (game only disconnects here, we need to retry connecting)
                 break
@@ -531,7 +544,7 @@ class GameInstanceManager:
             # Move cursor onto disconnect button and click
             mouse_move_to_game_window_coord(self.game_window, self.resolution, 'disconnect-button')
             time.sleep(.2)
-            pyautogui.leftClick()
+            mouse_click_in_game_window(self.game_window)
 
             # Reset mouse to avoid blocking ocr of button region
             mouse_reset(self.game_window)
@@ -594,7 +607,7 @@ class GameInstanceManager:
             # De-select spawn point
             mouse_move_to_game_window_coord(self.game_window, self.resolution, 'spawnpoint-deselect', True)
             time.sleep(0.3)
-            mouse_click_legacy()
+            mouse_click_in_game_window(self.game_window, legacy=True)
 
         # Suicide button may be visible even though we did not detect a spawn as selected
         # e.g. when spectator is still alive from a previous spawn-suicide attempt
@@ -604,7 +617,7 @@ class GameInstanceManager:
             # Click suicide button
             mouse_move_to_game_window_coord(self.game_window, self.resolution, 'suicide-button', True)
             time.sleep(.3)
-            mouse_click_legacy()
+            mouse_click_in_game_window(self.game_window, legacy=True)
             time.sleep(.5)
 
         # Reset mouse again to make sure it does not block any OCR attempts
@@ -627,7 +640,7 @@ class GameInstanceManager:
         spawn_coordinates = constants.COORDINATES['spawns'][map_name][map_size][self.state.get_round_team()]
         mouse_move_legacy(spawn_coordinates[0], spawn_coordinates[1])
         time.sleep(.3)
-        mouse_click_legacy()
+        mouse_click_in_game_window(self.game_window, legacy=True)
 
         # Try any alternate spawns if primary one is not available
         alternate_spawns = constants.COORDINATES['spawns'][map_name][str(map_size)][2:]
@@ -644,7 +657,7 @@ class GameInstanceManager:
                 mouse_reset_legacy()
                 mouse_move_legacy(*coordinates)
                 time.sleep(.1)
-                mouse_click_legacy()
+                mouse_click_in_game_window(self.game_window, legacy=True)
                 time.sleep(.1)
                 if self.is_spawn_point_selected():
                     break
@@ -663,7 +676,7 @@ class GameInstanceManager:
             spawn_coordinates = random.randrange(260, 600, 15), random.randrange(50, 400, 15)
             mouse_move_legacy(spawn_coordinates[0], spawn_coordinates[1])
             time.sleep(.3)
-            mouse_click_legacy()
+            mouse_click_in_game_window(self.game_window, legacy=True)
 
             attempt += 1
 
@@ -706,10 +719,10 @@ class GameInstanceManager:
         # Move cursor onto join game button and click
         mouse_move_to_game_window_coord(self.game_window, self.resolution, 'join-game-button')
         time.sleep(.2)
-        pyautogui.leftClick()
+        mouse_click_in_game_window(self.game_window)
 
     def close_game_message(self) -> None:
         # Move cursor onto ok button and click
         mouse_move_to_game_window_coord(self.game_window, self.resolution, 'game-message-close-button')
         time.sleep(.2)
-        pyautogui.leftClick()
+        mouse_click_in_game_window(self.game_window)

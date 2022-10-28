@@ -181,6 +181,34 @@ def mouse_move_to_game_window_coord(game_window: Window, resolution: str, key: s
         )
 
 
+def is_cursor_on_game_window(game_window: Window) -> bool:
+    position = pyautogui.position()
+    # Get current (!) game window rectangle
+    try:
+        left, top, right, bottom = win32gui.GetWindowRect(game_window.handle)
+    except win32gui.error:  # PyCharm claims win32gui.error does not exist, but it does
+        return False
+
+    # Allow cursor to only be within the actual window "body", ignore the title bar and the shadow around it
+    shadow_left, shadow_bottom, shadow_right = constants.WINDOW_SHADOW_SIZE
+    if left + shadow_left <= position.x <= right - shadow_right and \
+            top + constants.WINDOW_TITLE_BAR_HEIGHT <= position.y <= bottom - shadow_bottom:
+        return True
+
+    return False
+
+
+def mouse_click_in_game_window(game_window: Window, legacy: bool = False) -> None:
+    if not is_cursor_on_game_window(game_window):
+        logging.warning(f'Mouse cursor is not on game window, ignoring mouse click')
+        return
+
+    if legacy:
+        mouse_click_legacy()
+    else:
+        pyautogui.leftClick()
+
+
 # Mouse click using old mouse_event method
 def mouse_click_legacy() -> None:
     win32api.mouse_event(win32con.MOUSEEVENTF_LEFTDOWN, 0, 0, 0, 0)
