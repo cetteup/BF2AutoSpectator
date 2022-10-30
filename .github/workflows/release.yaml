@@ -31,7 +31,7 @@ jobs:
           pyinstaller.exe BF2AutoSpectator\spectate.py --onefile --clean --name="BF2AutoSpectator" --add-data="pickle/*.pickle;pickle/" --add-data="redist/*.exe;redist/" --version-file="versionfile"
       - name: Create release archive
         run: |
-          Compress-Archive -Path "dist\BF2AutoSpectator.exe" -DestinationPath BF2AutoSpectator-${{ github.ref_name }}.zip
+          Compress-Archive -Path "dist\BF2AutoSpectator.exe","overrides" -DestinationPath BF2AutoSpectator-${{ github.ref_name }}.zip
       - name: Create hash files
         run: |
           $(Get-FileHash -Path BF2AutoSpectator-${{ github.ref_name }}.zip -Algorithm MD5).Hash.toLower() + "`n" | Out-File -NoNewline BF2AutoSpectator-${{ github.ref_name }}.zip.md5
