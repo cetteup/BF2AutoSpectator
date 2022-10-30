@@ -223,7 +223,7 @@ def mouse_click_legacy() -> None:
 
 def mouse_reset_legacy() -> None:
     win32api.mouse_event(win32con.MOUSEEVENTF_MOVE, -10000, -10000)
-    time.sleep(.5)
+    time.sleep(.2)
 
 
 def mouse_reset(game_window: Window) -> None:
