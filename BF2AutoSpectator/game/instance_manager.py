@@ -685,7 +685,7 @@ class GameInstanceManager:
 
             # Try to select a spawn point by randomly clicking on the spawn menu map
             # (use bigger step, since clicking next to a spawn point also works)
-            spawn_coordinates = random.randrange(260, 600, 15), random.randrange(50, 400, 15)
+            spawn_coordinates = random.randrange(260, 613, 22), random.randrange(50, 403, 22)
             mouse_move_legacy(spawn_coordinates[0], spawn_coordinates[1])
             time.sleep(.3)
             mouse_click_in_game_window(self.game_window, legacy=True)
