@@ -273,6 +273,148 @@ COORDINATES = {
             '16': [(425, 354), (503, 102)],
             '32': [(425, 354), (503, 102)],
             '64': [(425, 354), (503, 102)]
+        },
+        'black-beards-atol': {
+            '16': [(308, 238), (560, 230)],
+            '32': [(444, 360), (440, 120)],
+            '64': [(426, 395), (453, 94)]
+        },
+        'black-beards-atol-ctf': {
+            # 64 is the only available size
+            '64': [(412, 395), (443, 78)]
+        },
+        'blue-bayou': {
+            '16': [(364, 130), (504, 324)],
+            '32': [(355, 153), (485, 329)],
+            '64': [(363, 163), (480, 324)]
+        },
+        'blue-bayou-ctf': {
+            # 64 is the only available size
+            '64': [(363, 128), (505, 325)]
+        },
+        'blue-bayou-zombie': {
+            # 64 is the only available size and primary team spawns currently do not work reliably because
+            # you sometimes need to select the zombie class first
+            '64': [(396, 183), (378, 203)]
+        },
+        'crossbones-keep': {
+            '16': [(448, 324), (450, 185)],
+            '32': [(315, 379), (450, 185)],
+            '64': [(315, 379), (450, 185)]
+        },
+        'crossbones-keep-zombie': {
+            # 64 is the only available size and primary team spawns currently do not work reliably because
+            # you sometimes need to select the zombie class first
+            '64': [(453, 145), (456, 112)]
+        },
+        'dead-calm': {
+            '16': [(406, 127), (474, 302)],
+            '32': [(274, 355), (600, 90)],
+            '64': [(274, 355), (600, 90)]
+        },
+        'frylar': {
+            '16': [(500, 240), (366, 200)],
+            '32': [(500, 240), (366, 200)],
+            '64': [(500, 240), (366, 200)]
+        },
+        'frylar-ctf': {
+            # 64 is the only available size
+            '64': [(500, 240), (366, 200)]
+        },
+        'frylar-zombie': {
+            # 64 is the only available size and primary team spawns currently do not work reliably because
+            # you sometimes need to select the zombie class first
+            '64': [(539, 246), (457, 230)]
+        },
+        'lost-at-sea': {
+            '16': [(565, 356), (327, 118)],
+            '32': [(565, 356), (327, 118)],
+            '64': [(565, 356), (327, 118)]
+        },
+        'ome-hearty-beach': {
+            '16': [(348, 208), (580, 180)],
+            '32': [(296, 208), (560, 238)],
+            '64': [(296, 208), (560, 238)]
+        },
+        'ome-hearty-beach-zombie': {
+            # 64 is the only available size and primary team spawns currently do not work reliably because
+            # you sometimes need to select the zombie class first
+            '64': [(315, 215), (423, 240)]
+        },
+        'pelican-point': {
+            '16': [(472, 120), (455, 365)],
+            '32': [(433, 139), (421, 295)],
+            '64': [(433, 139), (338, 331)]
+        },
+        'pelican-point-ctf': {
+            # 64 is the only available size
+            '64': [(462, 117), (385, 340)]
+        },
+        'pressgang-port': {
+            '16': [(428, 80), (452, 385)],
+            '32': [(442, 139), (438, 325)],
+            '64': [(442, 68), (440, 398)]
+        },
+        'pressgang-port-ctf': {
+            # 64 is the only available size
+            '64': [(440, 383), (441, 81)]
+        },
+        'sailors-warning': {
+            '16': [(273, 268), (610, 268)],
+            '32': [(273, 268), (610, 268)],
+            '64': [(273, 268), (610, 268)]
+        },
+        'shallow-draft': {
+            '16': [(523, 120), (326, 353)],
+            '32': [(523, 117), (340, 334)],
+            '64': [(526, 114), (340, 334)]
+        },
+        'shallow-draft-ctf': {
+            # 64 is the only available size
+            '64': [(522, 112), (340, 334)]
+        },
+        'shipwreck-shoals': {
+            '16': [(359, 278), (468, 258)],
+            '32': [(359, 278), (468, 258)],
+            '64': [(359, 278), (468, 258)]
+        },
+        'shipwreck-shoals-ctf': {
+            # 64 is the only available size
+            '64': [(418, 101), (495, 364)]
+        },
+        'shiver-me-timbers': {
+            '16': [(537, 362), (392, 127)],
+            '32': [(547, 235), (438, 107)],
+            '64': [(547, 242), (429, 168)]
+        },
+        'shiver-me-timbers-ctf': {
+            # 64 is the only available size
+            '64': [(540, 272), (315, 110)]
+        },
+        'storm-the-bastion': {
+            '16': [(501, 348), (345, 158)],
+            '32': [(510, 98), (370, 180)],
+            '64': [(454, 188), (274, 383)]
+        },
+        'storm-the-bastion-zombie': {
+            # Primary team spawns currently do not work reliably because you sometimes
+            # need to select the zombie class first
+            '32': [(411, 238), (411, 264)],
+            '64': [(526, 293), (403, 210)]
+        },
+        'stranded': {
+            '16': [(353, 290), (510, 178)],
+            '32': [(608, 401), (278, 78)],
+            '64': [(608, 401), (278, 78)]
+        },
+        'stranded-ctf': {
+            # 64 is the only available size
+            '64': [(353, 290), (507, 178)]
+        },
+        'wake-island-1707': {
+            '16': [(390, 304), (521, 157)],
+            '32': [(560, 350), (492, 106)],
+            '64': [(534, 319), (350, 155)]
         }
     }
 }

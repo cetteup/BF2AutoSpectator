@@ -27,6 +27,7 @@ del pyautogui.FAILSAFE_POINTS[0]
 MAP_NAME_REGEX_NvN = re.compile(r'(\d+).?v.?(\d+)')
 MAP_NAME_REGEX_SEPARATORS = re.compile(r'[_.\s]')
 MAP_NAME_REGEX_EXTRA = re.compile(r'[\']')
+MAP_NAME_REGEX_MULTI = re.compile(r'[-]{2,}')
 
 
 class GameInstanceManager:
@@ -304,6 +305,8 @@ class GameInstanceManager:
         ocr_result = MAP_NAME_REGEX_SEPARATORS.sub('-', ocr_result)
         # Remove any other special characters
         ocr_result = MAP_NAME_REGEX_EXTRA.sub('', ocr_result)
+        # "Merge" multiple dashes into one
+        ocr_result = MAP_NAME_REGEX_MULTI.sub('-', ocr_result)
 
         # Convert to lower case
         ocr_result = ocr_result.lower()
@@ -311,7 +314,8 @@ class GameInstanceManager:
         logging.debug(f'Detected map name is "{ocr_result}"')
 
         # Check if map is known
-        # Also check while replacing first g with q and second t with i to account for common ocr errors
+        # Also check while replacing first g with q, second t with i and trailing colon with e
+        # to account for common ocr errors
         if ocr_result in constants.COORDINATES['spawns'].keys():
             # If block only serves to not run regex if ocr result already matches a known map
             return ocr_result
@@ -319,6 +323,9 @@ class GameInstanceManager:
                 in constants.COORDINATES['spawns'].keys():
             return normalized
         elif (normalized := re.sub(r'^([^t]*?t[^t]+?)t(.*)$', '\\1i\\2', ocr_result)) \
+                in constants.COORDINATES['spawns'].keys():
+            return normalized
+        elif (normalized := re.sub(r'^(.*?):$', '\\1e', ocr_result)) \
                 in constants.COORDINATES['spawns'].keys():
             return normalized
         else:
