@@ -7,6 +7,7 @@ import time
 from datetime import datetime
 
 from BF2AutoSpectator.common import constants
+from BF2AutoSpectator.common.commands import CommandStore
 from BF2AutoSpectator.common.config import Config
 from BF2AutoSpectator.common.exceptions import SpawnCoordinatesNotAvailableException
 from BF2AutoSpectator.common.utility import is_responding_pid, find_window_by_title, taskkill_pid, init_pytesseract
@@ -35,9 +36,6 @@ def run():
     parser.add_argument('--instance-rtl', help='How many rounds to use a game instance for (rounds to live)', type=int, default=6)
     parser.add_argument('--use-controller', dest='use_controller', action='store_true')
     parser.add_argument('--controller-base-uri', help='Base uri of web controller', type=str)
-    parser.add_argument('--controller-app-key', help='App key for web controller', type=str)
-    parser.add_argument('--controller-timeout', help='Timeout to use for requests to controller (in seconds)', type=int,
-                        default=2)
     parser.add_argument('--no-rtl-limit', dest='limit_rtl', action='store_false')
     parser.add_argument('--debug-log', dest='debug_log', action='store_true')
     parser.add_argument('--debug-screenshot', dest='debug_screenshot', action='store_true')
@@ -62,8 +60,6 @@ def run():
         instance_rtl=args.instance_rtl,
         use_controller=args.use_controller,
         controller_base_uri=args.controller_base_uri,
-        controller_app_key=args.controller_app_key,
-        controller_timeout=args.controller_timeout,
         resolution=args.game_res,
         debug_screenshot=args.debug_screenshot,
         max_iterations_on_player=5,
@@ -100,22 +96,12 @@ def run():
     )
     gis = gim.get_state()
     cc = ControllerClient(
-        config.get_controller_base_uri(),
-        config.get_controller_app_key(),
-        config.get_controller_timeout()
+        config.get_controller_base_uri()
     )
+    cs = CommandStore()
 
-    # Check whether the controller has a server join
     if config.use_controller():
-        logging.debug('Checking for join server on controller')
-        joinServer = cc.get_join_server()
-        if joinServer is not None and \
-                (joinServer['ip'] != config.get_server_ip() or
-                 str(joinServer['gamePort']) != config.get_server_port()):
-            # Spectator is supposed to be on different server
-            logging.info('Controller has a server to join, updating config')
-            # TODO Add mod support to controller and use mod from controller her
-            config.set_server(joinServer['ip'], str(joinServer['gamePort']), joinServer['password'], 'bf2')
+        cc.connect()
 
     # Try to find any existing game instance
     logging.info('Looking for an existing game instance')
@@ -172,46 +158,30 @@ def run():
         # Check if a game restart command was issued to the controller
         forceNextPlayer = False
         if config.use_controller():
-            commands = cc.get_commands()
-            if commands.get('game_restart') is True:
+            if cs.pop('game_restart') is True:
                 logging.info('Game restart requested via controller, queueing game restart')
-                # Reset command to false
-                commandReset = cc.post_commands({'game_restart': False})
-                if commandReset:
-                    # Set restart required flag
-                    gis.set_error_restart_required(True)
+                # Set restart required flag
+                gis.set_error_restart_required(True)
 
-            if commands.get('rotation_pause') is True:
+            if cs.pop('rotation_pause') is True:
                 logging.info('Player rotation pause requested via controller, pausing rotation')
-                # Reset command to false
-                commandReset = cc.post_commands({'rotation_pause': False})
-                if commandReset:
-                    # Set pause via config
-                    config.pause_player_rotation(constants.PLAYER_ROTATION_PAUSE_DURATION)
+                # Set pause via config
+                config.pause_player_rotation(constants.PLAYER_ROTATION_PAUSE_DURATION)
 
-            if commands.get('rotation_resume') is True:
+            if cs.pop('rotation_resume') is True:
                 logging.info('Player rotation resume requested via controller, resuming rotation')
-                # Reset command flag
-                commandReset = cc.post_commands({'rotation_resume': False})
-                if commandReset:
-                    # Unpause via config
-                    config.unpause_player_rotation()
-                    # Set counter to max to rotate off current player right away
-                    iterationsOnPlayer = config.get_max_iterations_on_player()
+                # Unpause via config
+                config.unpause_player_rotation()
+                # Set counter to max to rotate off current player right away
+                iterationsOnPlayer = config.get_max_iterations_on_player()
 
-            if commands.get('next_player') is True:
+            if cs.pop('next_player') is True:
                 logging.info('Manual switch to next player requested via controller, queueing switch')
-                # Reset command to false
-                commandReset = cc.post_commands({'next_player': False})
-                if commandReset:
-                    forceNextPlayer = True
+                forceNextPlayer = True
 
-            if commands.get('respawn') is True:
+            if cs.pop('respawn') is True:
                 logging.info('Respawn requested via controller, queueing respawn')
-                # Reset command
-                commandReset = cc.post_commands({'respawn': False})
-                if commandReset:
-                    gis.set_round_spawned(False)
+                gis.set_round_spawned(False)
 
         # Start a new game instance if required
         if gis.rtl_restart_required() or gis.error_restart_required():
@@ -307,7 +277,8 @@ def run():
                 # Update state
                 gis.set_spectator_on_server(False)
             elif 'banned' in gameMessage:
-                sys.exit('Got banned, contact server admin')
+                logging.critical('Got banned, contact server admin')
+                sys.exit(1)
             elif 'connection' in gameMessage and 'lost' in gameMessage or \
                     'failed to connect' in gameMessage:
                 logging.info('Connection lost, trying to reconnect')
@@ -322,41 +293,25 @@ def run():
                 # Set restart flag
                 gis.set_error_restart_required(True)
             else:
-                logging.info(f'Unhandled game message ({gameMessage}), exiting')
+                logging.critical(f'Unhandled game message ({gameMessage}), exiting')
                 sys.exit(1)
 
             continue
 
-        # If we are using a controller, check if server switch is required and possible
-        # (spectator not on server or fully in game)
-        if config.use_controller() and (not gis.spectator_on_server() or
-                                        (not gis.map_loading() and
-                                         iterationsOnPlayer == config.get_max_iterations_on_player())):
-            logging.debug('Checking for join server on controller')
-            joinServer = cc.get_join_server()
-            # Update server and switch if spectator is supposed to be on a different server of password was updated
-            if joinServer is not None and \
-                    (joinServer['ip'] != config.get_server_ip() or
-                     str(joinServer['gamePort']) != config.get_server_port() or
-                     joinServer['password'] != config.get_server_pass()):
-                # Spectator is supposed to be on different server
-                logging.info('Controller has a server to join, updating config')
-                config.set_server_ip(joinServer['ip'])
-                config.set_server_port(str(joinServer['gamePort']))
-                config.set_server_pass(joinServer['password'])
-            elif gis.spectator_on_server():
-                cc.post_current_server(
-                    gis.get_server_ip(),
-                    gis.get_server_port(),
-                    gis.get_server_password()
-                )
+        # Regularly update current server in case controller is restarted or loses state another way
+        if config.use_controller() and gis.spectator_on_server() and \
+                iterationsOnPlayer == config.get_max_iterations_on_player():
+            cc.update_current_server(
+                gis.get_server_ip(),
+                gis.get_server_port(),
+                gis.get_server_password()
+            )
 
-        # Queue server switch if spectator is supposed to be on a different server (or the password changed)
-        if gis.spectator_on_server() and \
+        if config.use_controller() and gis.spectator_on_server() and not gis.map_loading() and \
                 (config.get_server_ip() != gis.get_server_ip() or
                  config.get_server_port() != gis.get_server_port() or
                  config.get_server_pass() != gis.get_server_password()):
-            logging.info('Queued server switch, disconnecting from current server')
+            logging.info('Server switch requested via controller, disconnecting from current server')
             """
             Don't spam press ESC before disconnecting. It can lead to the game opening the menu again after the map has 
             loaded when (re-)joining a server. Instead, press ESC once and wait a bit longer. Fail and retry next 
@@ -411,7 +366,7 @@ def run():
                 logging.error('Failed to (re-)connect to server')
             # Update controller
             if connected and config.use_controller():
-                cc.post_current_server(serverIp, serverPort, serverPass)
+                cc.update_current_server(serverIp, serverPort, serverPass)
             continue
 
         onRoundFinishScreen = gim.is_round_end_screen_visible()

@@ -1,104 +1,58 @@
 import logging
 
-import requests
+import socketio
 
-from typing import Optional, Dict
+from BF2AutoSpectator.common.commands import CommandStore
+from BF2AutoSpectator.common.config import Config
 
 
 class ControllerClient:
-    __base_uri: str
-    __app_key: str
-    __timeout: int
+    base_uri: str
 
-    def __init__(self, base_uri: str, app_key: str, timeout: int):
-        self.__base_uri = base_uri
-        self.__app_key = app_key
-        self.__timeout = timeout
+    sio: socketio.Client
 
-    def request(
-            self,
-            method: str,
-            endpoint: str,
-            params: Optional[Dict] = None,
-            data: Optional[Dict] = None
-    ) -> requests.Response:
-        return requests.request(
-            method,
-            f'{self.__base_uri}/{endpoint}',
-            params=params,
-            data=data,
-            headers={'APP_KEY': self.__app_key},
-            timeout=self.__timeout
-        )
+    def __init__(self, base_uri: str):
+        self.base_uri = base_uri
 
-    def get(self, endpoint: str, params: Optional[Dict] = None) -> requests.Response:
-        return self.request('GET', endpoint, params=params)
+        self.sio = socketio.Client()
 
-    def post(self, endpoint: str, data: Optional[Dict] = None) -> requests.Response:
-        return self.request('POST', endpoint, data=data)
+        @self.sio.event
+        def connect():
+            logging.info('Connected to controller')
 
-    def post_current_server(self, server_ip: str, server_port: str, server_pass: str = None,
-                            in_rotation: bool = False) -> bool:
-        request_ok = False
+        @self.sio.event
+        def disconnect():
+            logging.warning('Disconnected from controller')
+
+        @self.sio.on('join', namespace='/server')
+        def on_join_server(join_server):
+            logging.info(f'Controller sent a server to join ({join_server["ip"]}:{join_server["port"]})')
+            config = Config()
+            config.set_server(join_server['ip'], join_server['port'], join_server['password'], 'bf2')
+
+        @self.sio.on('command')
+        def on_command(command):
+            logging.debug(f'Controller set command {command["key"]} to {command["value"]}')
+            cs = CommandStore()
+            cs.set(command['key'], command['value'])
+
+    def connect(self) -> None:
+        self.sio.connect(self.base_uri, namespaces=['/', '/server'])
+
+    def disconnect(self) -> None:
+        self.sio.disconnect()
+
+    def __del__(self):
+        self.sio.disconnect()
+
+    def update_current_server(self, server_ip: str, server_port: str, server_pass: str = None,
+                              in_rotation: bool = False) -> None:
         try:
-            response = self.post(
-                'servers/current',
-                data={
-                    'ip': server_ip,
-                    'port': server_port,
-                    'password': server_pass,
-                    'in_rotation': str(in_rotation).lower()
-                }
-            )
-
-            if response.ok:
-                request_ok = True
-            else:
-                logging.error(f'Failed to send current server to controller (HTTP/{response.status_code})')
-        except requests.RequestException as e:
+            self.sio.emit('current', {
+                'ip': server_ip,
+                'port': server_port,
+                'password': server_pass,
+                'in_rotation': in_rotation
+            }, namespace='/server')
+        except socketio.client.exceptions.SocketIOError as e:
             logging.error(f'Failed to send current server to controller ({e})')
-
-        return request_ok
-
-    def get_join_server(self) -> Optional[dict]:
-        join_sever = None
-        try:
-            response = self.get('servers/join')
-
-            # Controller will return 404 if no join server is set => only treat anything but 404 as an error
-            if response.ok:
-                join_sever = response.json()
-            elif response.status_code != 404:
-                logging.error(f'Failed to get join server from controller (HTTP/{response.status_code})')
-        except requests.RequestException as e:
-            logging.error(f'Failed to get join server from controller ({e})')
-
-        return join_sever
-
-    def get_commands(self) -> dict:
-        commands = {}
-        try:
-            response = self.get('commands')
-
-            if response.ok:
-                commands = response.json()
-            else:
-                logging.error(f'Failed to get commands from controller (HTTP/{response.status_code})')
-        except requests.RequestException as e:
-            logging.error(f'Failed to get commands from controller ({e})')
-
-        return commands
-
-    def post_commands(self, commands: dict) -> bool:
-        request_ok = False
-        try:
-            response = self.post('commands', data=commands)
-
-            if response.ok:
-                request_ok = True
-            else:
-                logging.error(f'Failed to send commands to controller (HTTP/{response.status_code})')
-        except requests.RequestException as e:
-            logging.error(f'Failed to send commands to controller ({e})')
-
-        return request_ok

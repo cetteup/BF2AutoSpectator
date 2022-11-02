@@ -3,15 +3,7 @@ from datetime import datetime, timedelta
 from typing import Tuple
 
 from BF2AutoSpectator.common import constants
-
-
-class Singleton(type):
-    _instances = {}
-
-    def __call__(cls, *args, **kwargs):
-        if cls not in cls._instances:
-            cls._instances[cls] = super(Singleton, cls).__call__(*args, **kwargs)
-        return cls._instances[cls]
+from BF2AutoSpectator.common.classes import Singleton
 
 
 class Config(metaclass=Singleton):
@@ -33,8 +25,6 @@ class Config(metaclass=Singleton):
 
     __use_controller: bool
     __controller_base_uri: str
-    __controller_app_key: str
-    __controller_timeout: int
 
     __resolution: str
     __debug_screenshot: bool
@@ -47,9 +37,8 @@ class Config(metaclass=Singleton):
 
     def set_options(self, player_name: str, player_pass: str, server_ip: str, server_port: str, server_pass: str,
                     server_mod: str, game_path: str, tesseract_path: str, limit_rtl: bool, instance_rtl: int,
-                    use_controller: bool, controller_base_uri: str, controller_app_key: str, controller_timeout: int,
-                    resolution: str, debug_screenshot: bool, max_iterations_on_player: int,
-                    max_iterations_on_default_camera_view: int):
+                    use_controller: bool, controller_base_uri: str, resolution: str, debug_screenshot: bool,
+                    max_iterations_on_player: int, max_iterations_on_default_camera_view: int):
         self.__player_name = player_name
         self.__player_pass = player_pass
         self.__server_ip = server_ip
@@ -64,8 +53,6 @@ class Config(metaclass=Singleton):
 
         self.__use_controller = use_controller
         self.__controller_base_uri = controller_base_uri
-        self.__controller_app_key = controller_app_key
-        self.__controller_timeout = controller_timeout
 
         self.__resolution = resolution
 
@@ -130,12 +117,6 @@ class Config(metaclass=Singleton):
 
     def get_controller_base_uri(self) -> str:
         return self.__controller_base_uri
-
-    def get_controller_app_key(self) -> str:
-        return self.__controller_app_key
-
-    def get_controller_timeout(self) -> int:
-        return self.__controller_timeout
 
     def get_resolution(self) -> str:
         return self.__resolution

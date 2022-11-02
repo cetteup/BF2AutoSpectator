@@ -34,7 +34,6 @@ The goal is to provide a fully automated, fire-and-forget spectator for the game
 | `--tesseract-path`      | Path to Tesseract install folder                               | C:\Program Files\Tesseract-OCR\                | No       |
 | `--use-controller`      | Use a bf2-auto-spectator-controller instance                   |                                                |          |
 | `--controller-base-uri` | Base uri of controller instance (format: http[s]://[hostname]) |                                                |          |
-| `--controller-app-key`  | App key for controller instance                                |                                                |          |
 | `--debug-log`           | Add debugging information to log output                        |                                                |          |
 | `--debug-screenshot`    | Write any screenshots to disk for debugging                    |                                                |          |
 
