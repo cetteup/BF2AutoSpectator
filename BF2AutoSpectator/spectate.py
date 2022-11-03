@@ -271,9 +271,6 @@ def run():
             logging.debug('Game message present, ocr-ing message')
             gameMessage = gim.ocr_game_message()
 
-            # Close game message to enable actions
-            gim.close_game_message()
-
             if 'full' in gameMessage:
                 logging.info('Server full, trying to rejoin in 30 seconds')
                 # Update state
@@ -286,7 +283,8 @@ def run():
                 gis.set_spectator_on_server(False)
             elif 'banned' in gameMessage:
                 logging.critical('Got banned, contact server admin')
-                sys.exit(1)
+                gis.set_spectator_on_server(False)
+                gis.set_halted(True)
             elif 'connection' in gameMessage and 'lost' in gameMessage or \
                     'failed to connect' in gameMessage:
                 logging.info('Connection lost, trying to reconnect')
@@ -301,7 +299,19 @@ def run():
                 # Set restart flag
                 gis.set_error_restart_required(True)
             else:
-                logging.critical(f'Unhandled game message ({gameMessage}), exiting')
+                logging.critical(f'Unhandled game message: {gameMessage}')
+                gis.set_spectator_on_server(False)
+                gis.set_halted(True)
+
+            if not gis.halted():
+                # Close game message to enable actions
+                gim.close_game_message()
+            elif config.use_controller():
+                # The situation that caused us to halt can be rectified via the controller
+                # (game restart/switching servers)
+                time.sleep(20)
+            else:
+                # There is no clear way to recover without a controller, so just exit
                 sys.exit(1)
 
             continue

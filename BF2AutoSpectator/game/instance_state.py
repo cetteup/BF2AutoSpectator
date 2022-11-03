@@ -35,6 +35,7 @@ class GameInstanceState:
     # Error details
     __error_unresponsive_count = 0
     __error_restart_required: bool = False
+    __halted: bool = False
 
     # Global getter/setter functions
     def set_spectator_on_server(self, spectator_on_server: bool):
@@ -175,6 +176,12 @@ class GameInstanceState:
     def error_restart_required(self) -> bool:
         return self.__error_restart_required
 
+    def set_halted(self, halted: bool):
+        self.__halted = halted
+
+    def halted(self) -> bool:
+        return self.__halted
+
     # Reset relevant fields after map rotation
     def map_rotation_reset(self):
         self.__active_join_possible = False
@@ -218,3 +225,4 @@ class GameInstanceState:
         self.__round_started_spectation = False
         self.__error_unresponsive_count = 0
         self.__error_restart_required = False
+        self.__halted = False
