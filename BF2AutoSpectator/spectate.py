@@ -34,6 +34,9 @@ def run():
     parser.add_argument('--tesseract-path', help='Path to Tesseract install folder',
                         type=str, default='C:\\Program Files\\Tesseract-OCR\\')
     parser.add_argument('--instance-rtl', help='How many rounds to use a game instance for (rounds to live)', type=int, default=6)
+    parser.add_argument('--min-iterations-on-player',
+                        help='Number of iterations to stay on a player before allowing the next_player command',
+                        type=int, default=1)
     parser.add_argument('--use-controller', dest='use_controller', action='store_true')
     parser.add_argument('--controller-base-uri', help='Base uri of web controller', type=str)
     parser.add_argument('--no-rtl-limit', dest='limit_rtl', action='store_false')
@@ -62,6 +65,7 @@ def run():
         controller_base_uri=args.controller_base_uri,
         resolution=args.game_res,
         debug_screenshot=args.debug_screenshot,
+        min_iterations_on_player=args.min_iterations_on_player,
         max_iterations_on_player=5,
         max_iterations_on_default_camera_view=6
     )
@@ -158,28 +162,32 @@ def run():
         # Check if a game restart command was issued to the controller
         forceNextPlayer = False
         if config.use_controller():
-            if cs.pop('game_restart') is True:
+            if cs.pop('game_restart'):
                 logging.info('Game restart requested via controller, queueing game restart')
                 # Set restart required flag
                 gis.set_error_restart_required(True)
 
-            if cs.pop('rotation_pause') is True:
+            if cs.pop('rotation_pause'):
                 logging.info('Player rotation pause requested via controller, pausing rotation')
                 # Set pause via config
                 config.pause_player_rotation(constants.PLAYER_ROTATION_PAUSE_DURATION)
 
-            if cs.pop('rotation_resume') is True:
+            if cs.pop('rotation_resume'):
                 logging.info('Player rotation resume requested via controller, resuming rotation')
                 # Unpause via config
                 config.unpause_player_rotation()
                 # Set counter to max to rotate off current player right away
                 iterationsOnPlayer = config.get_max_iterations_on_player()
 
-            if cs.pop('next_player') is True:
-                logging.info('Manual switch to next player requested via controller, queueing switch')
-                forceNextPlayer = True
+            if cs.pop('next_player'):
+                if iterationsOnPlayer + 1 > config.get_min_iterations_on_player():
+                    logging.info('Manual switch to next player requested via controller, queueing switch')
+                    forceNextPlayer = True
+                else:
+                    logging.info('Minimum number of iterations on player is not reached, '
+                                 'ignoring controller request to switch to next player')
 
-            if cs.pop('respawn') is True:
+            if cs.pop('respawn'):
                 logging.info('Respawn requested via controller, queueing respawn')
                 gis.set_round_spawned(False)
 
