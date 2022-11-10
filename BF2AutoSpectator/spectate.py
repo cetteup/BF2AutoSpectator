@@ -180,7 +180,14 @@ def run():
                 iterationsOnPlayer = config.get_max_iterations_on_player()
 
             if cs.pop('next_player'):
-                if iterationsOnPlayer + 1 > config.get_min_iterations_on_player():
+                """
+                A common issue with the next_player command is it being issued right before we switch to the next player
+                anyway, either because we reached the iteration limit or detected the player as being afk. So, only
+                act on command if
+                a) we did not *just* to this one or
+                b) the player rotation is paused (eliminates the risk, since we don't switch automatically)
+                """
+                if iterationsOnPlayer + 1 > config.get_min_iterations_on_player() or config.player_rotation_paused():
                     logging.info('Manual switch to next player requested via controller, queueing switch')
                     forceNextPlayer = True
                 else:
