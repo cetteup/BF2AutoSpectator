@@ -576,6 +576,7 @@ def run():
             logger.info('Hiding hud')
             gim.toggle_hud(0)
             gis.set_hud_hidden(True)
+        elif not onRoundFinishScreen and not gis.rotation_on_map():
             # Increase round number/counter
             gis.increase_round_num()
             logger.debug(f'Entering round #{gis.get_round_num()} using this instance')
