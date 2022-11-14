@@ -1,4 +1,3 @@
-import logging
 import os
 import random
 import re
@@ -17,7 +16,7 @@ from BF2AutoSpectator.common.logger import logger
 from BF2AutoSpectator.common.utility import Window, find_window_by_title, get_resolution_window_size, \
     mouse_move_to_game_window_coord, mouse_click_in_game_window, ocr_screenshot_game_window_region, auto_press_key, \
     mouse_reset_legacy, mouse_move_legacy, is_responding_pid, histogram_screenshot_region, calc_cv2_hist_delta, \
-    ImageOperation, mouse_reset, get_mod_from_command_line, purge_server_history
+    ImageOperation, mouse_reset, get_mod_from_command_line, purge_server_history, ocr_screenshot_region, is_similar_str
 from .instance_state import GameInstanceState
 
 # Remove the top left corner from pyautogui failsafe points
@@ -566,19 +565,31 @@ class GameInstanceManager:
         # We should still be in the menu but see the "play now" button instead of the "disconnect" button
         return self.is_in_menu() and self.is_play_now_button_visible()
 
-    def toggle_hud(self, direction: int) -> None:
-        self.issue_console_command(f'renderer.drawHud {str(direction)}')
+    def toggle_hud(self, direction: int) -> bool:
+        return self.issue_console_command(f'renderer.drawHud {str(direction)}')
 
-    def issue_console_command(self, command: str) -> None:
+    def issue_console_command(self, command: str) -> bool:
         # Open/toggle console
         self.toggle_console()
 
         # Clear out command input
-        pyautogui.press('backspace', presses=2, interval=.05)
+        attempt = 0
+        max_attempts = 5
+        while not (ready := self.is_console_ready()) and attempt < max_attempts:
+            pyautogui.press('backspace', presses=pow((attempt + 1), 2), interval=.05)
+            attempt += 1
+
+        if not ready:
+            return False
 
         # Write command
         pyautogui.write(command, interval=.05)
         time.sleep(.3)
+
+        # Read command back
+        written_command = self.get_console_command(len(command))
+        if not is_similar_str(command, written_command.lstrip('>')):
+            return False
 
         # Hit enter
         pyautogui.press('enter')
@@ -586,6 +597,27 @@ class GameInstanceManager:
 
         # X / toggle console
         self.toggle_console()
+
+        return not self.is_console_ready()
+
+    def is_console_ready(self) -> bool:
+        # We should only see the input "prompt"
+        return self.get_console_command(5) == '>'
+
+    def get_console_command(self, characters: int) -> str:
+        """
+        Read current console command, including ">" prompt
+        :param characters: number of characters to read
+        :return: current console command (note: due to how tiny the text is,
+        don't expect an exact match with the command that was put in)
+        """
+        # Set screenshot width based on command length (add 5px per character)
+        return ocr_screenshot_region(
+            self.game_window.rect[0] + constants.COORDINATES[self.resolution]['ocr']['console-command'][0],
+            self.game_window.rect[1] + constants.COORDINATES[self.resolution]['ocr']['console-command'][1],
+            constants.COORDINATES[self.resolution]['ocr']['console-command'][2] + characters * 6,
+            constants.COORDINATES[self.resolution]['ocr']['console-command'][3]
+        )
 
     @staticmethod
     def toggle_console() -> None:

@@ -45,7 +45,8 @@ COORDINATES = {
             'eor-map-size': (1256, 570, 20, 17),
             'eor-game-mode': (1205, 548, 70, 20),
             'spawn-selected-text': (528, 35, 192, 16),
-            'suicide-button': (940, 678, 75, 19)
+            'suicide-button': (940, 678, 75, 19),
+            'console-command': (9, 261, 5, 10)
         },
         'hists': {
             'teams': [(68, 69, 41, 13), (209, 69, 41, 13)],
@@ -92,7 +93,8 @@ COORDINATES = {
             'eor-map-size': (1564, 706, 24, 18),
             'eor-game-mode': (1500, 679, 94, 22),
             'spawn-selected-text': (658, 36, 241, 18),
-            'suicide-button': (1173, 841, 88, 20)
+            'suicide-button': (1173, 841, 88, 20),
+            'console-command': (9, 261, 5, 10)
         },
         'hists': {
             'teams': [(81, 77, 60, 18), (257, 77, 60, 18)],

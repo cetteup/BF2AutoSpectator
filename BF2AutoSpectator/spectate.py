@@ -518,7 +518,10 @@ def run():
                 time.sleep(3)
                 # Re-enable hud
                 logger.info('Enabling hud')
-                gim.toggle_hud(1)
+                if not gim.toggle_hud(1):
+                    logger.error(f'Failed to toggle hud, restart required')
+                    gis.set_error_restart_required(True)
+                    continue
                 # Update state
                 gis.set_hud_hidden(False)
                 time.sleep(1)
@@ -574,7 +577,10 @@ def run():
             config.unpause_player_rotation()
         elif not onRoundFinishScreen and not gis.hud_hidden():
             logger.info('Hiding hud')
-            gim.toggle_hud(0)
+            if not gim.toggle_hud(0):
+                logger.error(f'Failed to toggle hud, restart required')
+                gis.set_error_restart_required(True)
+                continue
             gis.set_hud_hidden(True)
         elif not onRoundFinishScreen and not gis.rotation_on_map():
             # Increase round number/counter

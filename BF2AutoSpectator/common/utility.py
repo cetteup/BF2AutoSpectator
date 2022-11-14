@@ -7,6 +7,7 @@ from enum import Enum
 from typing import Optional, Tuple, List
 
 import cv2
+import jellyfish
 import numpy as np
 import psutil
 import pyautogui
@@ -378,3 +379,7 @@ def purge_server_history():
     command = [os.path.join(Config.ROOT_DIR, 'redist', 'bf2-conman.exe'), '--no-gui', '--purge-server-history']
     p = subprocess.run(command, timeout=1.0)
     return p.check_returncode()
+
+
+def is_similar_str(a: str, b: str, threshold: float = .8) -> bool:
+    return jellyfish.jaro_distance(a, b) >= threshold
