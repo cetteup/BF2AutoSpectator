@@ -1,9 +1,8 @@
-import logging
-
 import socketio
 
 from BF2AutoSpectator.common.commands import CommandStore
 from BF2AutoSpectator.common.config import Config
+from BF2AutoSpectator.common.logger import logger
 
 
 class ControllerClient:
@@ -18,21 +17,21 @@ class ControllerClient:
 
         @self.sio.event
         def connect():
-            logging.info('Connected to controller')
+            logger.info('Connected to controller')
 
         @self.sio.event
         def disconnect():
-            logging.warning('Disconnected from controller')
+            logger.warning('Disconnected from controller')
 
         @self.sio.on('join', namespace='/server')
         def on_join_server(join_server):
-            logging.info(f'Controller sent a server to join ({join_server["ip"]}:{join_server["port"]})')
+            logger.info(f'Controller sent a server to join ({join_server["ip"]}:{join_server["port"]})')
             config = Config()
             config.set_server(join_server['ip'], join_server['port'], join_server['password'], 'bf2')
 
         @self.sio.on('command')
         def on_command(command):
-            logging.debug(f'Controller set command {command["key"]} to {command["value"]}')
+            logger.debug(f'Controller set command {command["key"]} to {command["value"]}')
             cs = CommandStore()
             cs.set(command['key'], command['value'])
 
@@ -55,4 +54,4 @@ class ControllerClient:
                 'in_rotation': in_rotation
             }, namespace='/server')
         except socketio.client.exceptions.SocketIOError as e:
-            logging.error(f'Failed to send current server to controller ({e})')
+            logger.error(f'Failed to send current server to controller ({e})')

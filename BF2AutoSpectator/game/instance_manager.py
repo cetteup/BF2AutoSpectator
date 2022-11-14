@@ -13,6 +13,7 @@ import win32gui
 
 from BF2AutoSpectator.common import constants
 from BF2AutoSpectator.common.exceptions import SpawnCoordinatesNotAvailableException
+from BF2AutoSpectator.common.logger import logger
 from BF2AutoSpectator.common.utility import Window, find_window_by_title, get_resolution_window_size, \
     mouse_move_to_game_window_coord, mouse_click_in_game_window, ocr_screenshot_game_window_region, auto_press_key, \
     mouse_reset_legacy, mouse_move_legacy, is_responding_pid, histogram_screenshot_region, calc_cv2_hist_delta, \
@@ -78,7 +79,7 @@ class GameInstanceManager:
         try:
             purge_server_history()
         except subprocess.SubprocessError as e:
-            logging.error(f'Failed to purge server history pre-launch ({e})')
+            logger.error(f'Failed to purge server history pre-launch ({e})')
 
         szx, szy = get_resolution_window_size(self.resolution)
 
@@ -118,20 +119,20 @@ class GameInstanceManager:
 
         # Found a game window => validate mod and resolution match expected values
         running_mod = get_mod_from_command_line(self.game_window.pid)
-        logging.debug(f'Found game is running mod "{running_mod}"')
-        logging.debug(f'Expected mod is "{mod}"')
+        logger.debug(f'Found game is running mod "{running_mod}"')
+        logger.debug(f'Expected mod is "{mod}"')
 
         actual_window_size = self.game_window.get_size()
         expected_window_size = get_resolution_window_size(self.resolution)
-        logging.debug(f'Found game window size is {actual_window_size}')
-        logging.debug(f'Expected game window size is {expected_window_size}')
+        logger.debug(f'Found game window size is {actual_window_size}')
+        logger.debug(f'Expected game window size is {expected_window_size}')
 
         as_expected = True
         if running_mod != mod:
-            logging.warning('Found game is running a different mod than expected')
+            logger.warning('Found game is running a different mod than expected')
             as_expected = False
         if actual_window_size != expected_window_size:
-            logging.warning('Found game window is a different resolution/size than expected')
+            logger.warning('Found game window is a different resolution/size than expected')
             as_expected = False
 
         return True, as_expected, running_mod
@@ -311,7 +312,7 @@ class GameInstanceManager:
         # Convert to lower case
         ocr_result = ocr_result.lower()
 
-        logging.debug(f'Detected map name is "{ocr_result}"')
+        logger.debug(f'Detected map name is "{ocr_result}"')
 
         # Check if map is known
         # Also check while replacing first g with q, second t with i and trailing colon with e
@@ -345,7 +346,7 @@ class GameInstanceManager:
         if re.match(r'^[0-9]+$', ocr_result):
             map_size = int(ocr_result)
 
-        logging.debug(f'Detected map size is {map_size}')
+        logger.debug(f'Detected map size is {map_size}')
 
         return map_size
 
@@ -357,7 +358,7 @@ class GameInstanceManager:
             image_ops=[(ImageOperation.invert, None)]
         )
 
-        logging.debug(f'Detected game mode is {ocr_result.lower()}')
+        logger.debug(f'Detected game mode is {ocr_result.lower()}')
 
         return ocr_result.lower()
 
@@ -393,7 +394,7 @@ class GameInstanceManager:
                 team = 1
                 break
 
-        logging.debug(f'Detected team is {team}')
+        logger.debug(f'Detected team is {team}')
 
         return team
 
@@ -449,7 +450,7 @@ class GameInstanceManager:
         # Take average of deltas
         average_delta = np.average(histogram_deltas)
 
-        logging.debug(f'Average histogram delta: {average_delta}')
+        logger.debug(f'Average histogram delta: {average_delta}')
 
         return average_delta > min_delta
 
@@ -532,7 +533,7 @@ class GameInstanceManager:
             game_message_visible = self.is_game_message_visible()
             # Game will show a "you need to disconnect first" prompt if it was still connected to a server
             if self.is_disconnect_prompt_visible():
-                logging.warning('Disconnect prompt is visible, clicking "Yes" to disconnect')
+                logger.warning('Disconnect prompt is visible, clicking "Yes" to disconnect')
                 # Click "yes" in order to disconnect
                 mouse_move_to_game_window_coord(self.game_window, self.resolution, 'disconnect-prompt-yes-button')
                 time.sleep(.2)
@@ -657,7 +658,7 @@ class GameInstanceManager:
         # Try any alternate spawns if primary one is not available
         alternate_spawns = constants.COORDINATES['spawns'][map_name][str(map_size)][2:]
         if not self.is_spawn_point_selected() and len(alternate_spawns) > 0:
-            logging.warning('Default spawn point could not be selected, trying alternate spawn points')
+            logger.warning('Default spawn point could not be selected, trying alternate spawn points')
             # Iterate over alternate spawns in reverse order for team 1
             # (spawns are ordered by "likeliness" of team 0 having control over them)
             if self.state.get_round_team() == 1:
@@ -665,7 +666,7 @@ class GameInstanceManager:
 
             # Try to select any of the alternate spawn points
             for coordinates in alternate_spawns:
-                logging.debug(f'Trying spawn coordinates {coordinates}')
+                logger.debug(f'Trying spawn coordinates {coordinates}')
                 mouse_reset_legacy()
                 mouse_move_legacy(*coordinates)
                 time.sleep(.1)

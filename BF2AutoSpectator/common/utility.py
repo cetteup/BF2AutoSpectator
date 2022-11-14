@@ -1,5 +1,4 @@
 import ctypes
-import logging
 import os
 import subprocess
 import time
@@ -21,6 +20,7 @@ from numpy import ndarray
 
 from BF2AutoSpectator.common import constants
 from BF2AutoSpectator.common.config import Config
+from BF2AutoSpectator.common.logger import logger
 
 SendInput = ctypes.windll.user32.SendInput
 # C struct redefinitions
@@ -205,7 +205,7 @@ def is_cursor_on_game_window(game_window: Window) -> bool:
 
 def mouse_click_in_game_window(game_window: Window, legacy: bool = False) -> None:
     if not is_cursor_on_game_window(game_window):
-        logging.warning(f'Mouse cursor is not on game window, ignoring mouse click')
+        logger.warning(f'Mouse cursor is not on game window, ignoring mouse click')
         return
 
     if legacy:
@@ -284,7 +284,7 @@ def ocr_screenshot_region(x: int, y: int, w: int, h: int,
             )
         )
         # Print ocr result
-        logging.debug(f'OCR result: {ocr_result}')
+        logger.debug(f'OCR result: {ocr_result}')
 
     return ocr_result.lower()
 
