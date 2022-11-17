@@ -351,7 +351,8 @@ def run():
                     logger.debug('Extending instance lifetime by one round on the new server')
                     gis.decrease_round_num()
             else:
-                logger.error('Failed to disconnect from server')
+                logger.error('Failed to disconnect from server, restart required')
+                gis.set_error_restart_required(True)
                 continue
 
         # Player is not on server, check if rejoining is possible and makes sense
@@ -374,7 +375,8 @@ def run():
                 logger.warning('Game is still connected to a server, disconnecting')
                 disconnected = gim.disconnect_from_server()
                 if not disconnected:
-                    logger.error('Failed to disconnect from server, skipping joining server for now')
+                    logger.error('Failed to disconnect from server, restart required')
+                    gis.set_error_restart_required(True)
                     continue
 
             # (Re-)connect to server
