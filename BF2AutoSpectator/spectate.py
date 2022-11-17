@@ -559,7 +559,6 @@ def run():
             BF2 sometimes gets stuck on the spawn menu. It will ignore any mouse input,
             so no spawn point can be selected. This can usually be fixed by opening the scoreboard once.
             """
-            gim.show_scoreboard()
             if (gis.get_iterations_on_spawn_menu() + 1) % config.get_lockup_iterations_on_spawn_menu() == 0:
                 logger.warning('Spawn menu may have locked up, trying to recover by toggling scoreboard')
                 if not gim.show_scoreboard():
