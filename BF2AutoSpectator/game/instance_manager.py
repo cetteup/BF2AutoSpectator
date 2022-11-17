@@ -16,7 +16,8 @@ from BF2AutoSpectator.common.logger import logger
 from BF2AutoSpectator.common.utility import Window, find_window_by_title, get_resolution_window_size, \
     mouse_move_to_game_window_coord, mouse_click_in_game_window, ocr_screenshot_game_window_region, auto_press_key, \
     mouse_reset_legacy, mouse_move_legacy, is_responding_pid, histogram_screenshot_region, calc_cv2_hist_delta, \
-    ImageOperation, mouse_reset, get_mod_from_command_line, purge_server_history, ocr_screenshot_region, is_similar_str
+    ImageOperation, mouse_reset, get_mod_from_command_line, purge_server_history, ocr_screenshot_region, is_similar_str, \
+    press_key, release_key
 from .instance_state import GameInstanceState
 
 # Remove the top left corner from pyautogui failsafe points
@@ -755,6 +756,42 @@ class GameInstanceManager:
             'suicide-button',
             image_ops=[(ImageOperation.invert, None)]
         )
+
+    def show_scoreboard(self, duration: float = .5) -> bool:
+        # Press tab
+        press_key(0x0f)
+        time.sleep(.25)
+
+        # Scoreboard should be visible
+        if not self.is_scoreboard_visible():
+            release_key(0x0f)
+            return False
+
+        time.sleep(duration)
+
+        # Release tab
+        release_key(0x0f)
+        time.sleep(.25)
+
+        # Scoreboard should no longer be visible
+        return not self.is_scoreboard_visible()
+
+    def is_scoreboard_visible(self) -> bool:
+        for side in ['table-icons-left', 'table-icons-right']:
+            histogram = histogram_screenshot_region(
+                self.game_window,
+                *constants.COORDINATES[self.resolution]['hists']['scoreboard'][side]
+            )
+
+            delta = calc_cv2_hist_delta(
+                histogram,
+                self.histograms[self.resolution]['scoreboard'][side]
+            )
+
+            if delta >= constants.HISTCMP_MAX_DELTA:
+                return False
+
+        return True
 
     @staticmethod
     def rotate_to_next_player():

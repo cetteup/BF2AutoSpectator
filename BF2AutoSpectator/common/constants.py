@@ -56,6 +56,10 @@ COORDINATES = {
             },
             'spawn-menu': {
                 'close-button': (1240, 69, 25, 18)
+            },
+            'scoreboard': {
+                'table-icons-left': (375, 120, 238, 24),
+                'table-icons-right': (1000, 120, 238, 24)
             }
         }
     },
@@ -104,6 +108,10 @@ COORDINATES = {
             },
             'spawn-menu': {
                 'close-button': (1549, 78, 29, 23)
+            },
+            'scoreboard': {
+                'table-icons-left': (465, 142, 298, 28),
+                'table-icons-right':  (1248, 142, 298, 28)
             }
         }
     },

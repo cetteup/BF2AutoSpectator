@@ -67,7 +67,8 @@ def run():
         debug_screenshot=args.debug_screenshot,
         min_iterations_on_player=args.min_iterations_on_player,
         max_iterations_on_player=5,
-        max_iterations_on_default_camera_view=6
+        max_iterations_on_default_camera_view=6,
+        lockup_iterations_on_spawn_menu=5
     )
 
     # Make sure provided paths.py are valid
@@ -552,6 +553,19 @@ def run():
                 logger.warning('Team detection is not available, switching to spawn point coordinate randomization')
                 gis.set_round_spawn_randomize_coordinates(True)
 
+            """
+            BF2 sometimes gets stuck on the spawn menu. It will ignore any mouse input,
+            so no spawn point can be selected. This can usually be fixed by opening the scoreboard once.
+            """
+            gim.show_scoreboard()
+            if (gis.get_iterations_on_spawn_menu() + 1) % config.get_lockup_iterations_on_spawn_menu() == 0:
+                logger.warning('Spawn menu may have locked up, trying to recover by toggling scoreboard')
+                if not gim.show_scoreboard():
+                    logger.error('Scoreboard did not open/close when trying to recover from spawn menu lockup, '
+                                 'restart required')
+                    gis.set_error_restart_required(True)
+                    continue
+
             logger.info('Spawning once')
             spawnSucceeded = False
             if not gis.get_round_spawn_randomize_coordinates():
@@ -568,7 +582,12 @@ def run():
                 logger.info(f'Attempting to spawn by selecting randomly generated spawn point coordinates')
                 spawnSucceeded = gim.spawn_suicide(randomize=True)
 
-            logger.info('Spawn succeeded' if spawnSucceeded else 'Spawn failed, retrying')
+            if spawnSucceeded:
+                logger.info('Spawn succeeded')
+                gis.reset_iterations_on_spawn_menu()
+            else:
+                logger.warning('Spawn failed, retrying')
+                gis.increase_iterations_on_spawn_menu()
             gis.set_round_spawned(spawnSucceeded)
 
             # Set counter to max to skip spectator

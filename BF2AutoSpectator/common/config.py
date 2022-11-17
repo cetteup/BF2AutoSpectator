@@ -32,6 +32,7 @@ class Config(metaclass=Singleton):
     __min_iterations_on_player: int
     __max_iterations_on_player: int
     __max_iterations_on_default_camera_view: int
+    __lockup_iterations_on_spawn_menu: int
 
     __player_rotation_paused: bool = False
     __player_rotation_paused_until: datetime = None
@@ -40,7 +41,7 @@ class Config(metaclass=Singleton):
                     server_mod: str, game_path: str, tesseract_path: str, limit_rtl: bool, instance_rtl: int,
                     use_controller: bool, controller_base_uri: str, resolution: str, debug_screenshot: bool,
                     min_iterations_on_player: int, max_iterations_on_player: int,
-                    max_iterations_on_default_camera_view: int):
+                    max_iterations_on_default_camera_view: int, lockup_iterations_on_spawn_menu: int):
         self.__player_name = player_name
         self.__player_pass = player_pass
         self.__server_ip = server_ip
@@ -63,6 +64,7 @@ class Config(metaclass=Singleton):
         self.__min_iterations_on_player = min_iterations_on_player
         self.__max_iterations_on_player = max_iterations_on_player
         self.__max_iterations_on_default_camera_view = max_iterations_on_default_camera_view
+        self.__lockup_iterations_on_spawn_menu = lockup_iterations_on_spawn_menu
 
     def get_player_name(self) -> str:
         return self.__player_name
@@ -135,6 +137,9 @@ class Config(metaclass=Singleton):
 
     def get_max_iterations_on_default_camera_view(self) -> int:
         return self.__max_iterations_on_default_camera_view
+
+    def get_lockup_iterations_on_spawn_menu(self) -> int:
+        return self.__lockup_iterations_on_spawn_menu
 
     def player_rotation_paused(self) -> bool:
         return self.__player_rotation_paused
