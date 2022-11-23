@@ -619,7 +619,7 @@ class GameInstanceManager:
 
     def is_console_ready(self) -> bool:
         # We should only see the input "prompt"
-        return self.get_console_command(5) == '>'
+        return self.get_console_command(3) == '>'
 
     def get_console_command(self, characters: int) -> str:
         """
@@ -639,7 +639,7 @@ class GameInstanceManager:
     @staticmethod
     def toggle_console() -> None:
         auto_press_key(0x1d)
-        time.sleep(.1)
+        time.sleep(.25)
 
     @staticmethod
     def open_spawn_menu(sleep: float = 1.5) -> None:
