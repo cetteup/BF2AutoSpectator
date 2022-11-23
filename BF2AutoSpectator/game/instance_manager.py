@@ -272,13 +272,12 @@ class GameInstanceManager:
         )
 
     def is_map_loading(self) -> bool:
-        # Check if game is on round end screen
-        on_round_end_screen = self.is_round_end_screen_visible()
-
-        # Check if join game button is present
+        # Check if join game button is present (check this first in order to avoid race condition where eor screen
+        # is visible when checked but join game button is not visible because we entered the map)
         join_game_button_present = self.is_join_game_button_visible()
 
-        return on_round_end_screen and not join_game_button_present
+        # Check if game is on round end screen
+        return self.is_round_end_screen_visible() and not join_game_button_present
 
     def is_map_briefing_visible(self) -> bool:
         return 'map briefing' in ocr_screenshot_game_window_region(
