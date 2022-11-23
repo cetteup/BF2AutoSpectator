@@ -243,16 +243,24 @@ class GameInstanceManager:
         )
 
     def is_round_end_screen_visible(self) -> bool:
-        ocr_result = ocr_screenshot_game_window_region(
+        round_end_screen_items = ['score-list', 'top-players', 'top-scores', 'map-briefing']
+
+        # The main menu has menu items (which look the exact same) in the same places, so check we are not in menu
+        return any(
+            self.is_round_end_screen_item_active(item) for item in round_end_screen_items
+        ) and not self.is_in_menu()
+
+    def is_round_end_screen_item_active(self, round_end_screen_item: str) -> bool:
+        histogram = histogram_screenshot_region(
             self.game_window,
-            self.resolution,
-            'eor-header-items',
-            image_ops=[(ImageOperation.invert, None)]
+            *constants.COORDINATES[self.resolution]['hists']['eor'][round_end_screen_item]
+        )
+        delta = calc_cv2_hist_delta(
+            histogram,
+            self.histograms[self.resolution]['eor'][round_end_screen_item]['active']
         )
 
-        round_end_labels = ['score list', 'top players', 'top scores', 'map briefing']
-
-        return any(round_end_label in ocr_result for round_end_label in round_end_labels)
+        return delta < constants.HISTCMP_MAX_DELTA
 
     def is_connect_to_ip_button_visible(self) -> bool:
         return 'connect to ip' in ocr_screenshot_game_window_region(

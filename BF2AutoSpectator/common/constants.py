@@ -54,6 +54,12 @@ COORDINATES = {
                 'multiplayer': (229, 34, 200, 1),
                 'join-internet': (18, 73, 199, 1)
             },
+            'eor': {
+                'score-list': (18, 73, 199, 1),
+                'top-players': (229, 73, 199, 1),
+                'top-scores': (442, 73, 199, 1),
+                'map-briefing': (654, 73, 199, 1)
+            },
             'spawn-menu': {
                 'close-button': (1240, 69, 25, 18)
             },
@@ -105,6 +111,12 @@ COORDINATES = {
             'menu': {
                 'multiplayer': (285, 34, 249, 1),
                 'join-internet': (20, 84, 249, 1)
+            },
+            'eor': {
+                'score-list': (20, 84, 249, 1),
+                'top-players': (284, 84, 249, 1),
+                'top-scores': (550, 84, 249, 1),
+                'map-briefing': (816, 84, 249, 1)
             },
             'spawn-menu': {
                 'close-button': (1549, 78, 29, 23)
