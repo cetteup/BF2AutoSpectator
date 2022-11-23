@@ -204,11 +204,11 @@ def run():
             if bf2Window is not None and gis.rtl_restart_required():
                 # Quit out of current instance
                 logger.info('Quitting existing game instance')
-                quitSuccessful = gim.quit_instance()
-                logger.debug(f'Quit successful: {quitSuccessful}')
                 gis.set_rtl_restart_required(False)
-                # If quit was not successful, switch to error restart
-                if not quitSuccessful:
+                if gim.quit_instance():
+                    logger.debug('Successfully quit game instance')
+                else:
+                    # If quit was not successful, switch to error restart
                     logger.error('Quitting existing game instance failed, switching to error restart')
                     gis.set_error_restart_required(True)
             # Don't use elif here so error restart can be executed right after a failed quit attempt
@@ -274,8 +274,7 @@ def run():
             continue
 
         # Make sure we are still in the game
-        gameMessagePresent = gim.is_game_message_visible()
-        if gameMessagePresent:
+        if gim.is_game_message_visible():
             logger.debug('Game message present, ocr-ing message')
             gameMessage = gim.ocr_game_message()
 
@@ -404,7 +403,7 @@ def run():
 
         # Update instance state if any map load/eor screen is present
         # (only _set_ map loading state here, since it should only be _unset_ when attempting to spawn
-        if (onRoundFinishScreen or mapIsLoading or mapBriefingPresent) and not gis.map_loading():
+        if not gis.map_loading() and (onRoundFinishScreen or mapIsLoading or mapBriefingPresent):
             gis.set_map_loading(True)
 
         # Always reset iteration counter if default camera view is no longer visible
@@ -529,8 +528,7 @@ def run():
                 gis.set_hud_hidden(False)
                 time.sleep(1)
 
-            spawnMenuVisible = gim.is_spawn_menu_visible()
-            if not spawnMenuVisible:
+            if not gim.is_spawn_menu_visible():
                 logger.info('Spawn menu not visible, opening with enter')
                 gim.open_spawn_menu()
                 # Force another attempt re-enable hud

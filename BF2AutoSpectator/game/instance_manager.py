@@ -147,9 +147,7 @@ class GameInstanceManager:
         return True, as_expected, running_mod
 
     def quit_instance(self) -> bool:
-        menu_open = self.open_menu()
-
-        if not menu_open:
+        if not self.open_menu():
             return False
 
         # Click quit menu item
