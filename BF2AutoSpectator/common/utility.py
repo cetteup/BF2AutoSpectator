@@ -87,12 +87,6 @@ class ImageOperation(Enum):
     solarize = 2
 
 
-def list_filter_zeroes(list_with_zeroes: list) -> list:
-    list_without_zeroes = filter(lambda num: num > 0, list_with_zeroes)
-
-    return list(list_without_zeroes)
-
-
 def is_responding_pid(pid: int) -> bool:
     """Check if a program (based on its PID) is responding"""
     proc = get_proc_by_pid(pid)
