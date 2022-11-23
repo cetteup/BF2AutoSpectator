@@ -275,16 +275,10 @@ class GameInstanceManager:
         # Check if game is on round end screen
         on_round_end_screen = self.is_round_end_screen_visible()
 
-        if not on_round_end_screen:
-            return False
+        # Check if join game button is present
+        join_game_button_present = self.is_join_game_button_visible()
 
-        # Check if action hint starts with "press escape"
-        return 'press escape' in ocr_screenshot_game_window_region(
-            self.game_window,
-            self.resolution,
-            'eor-action-hint',
-            image_ops=[(ImageOperation.invert, None)]
-        )
+        return on_round_end_screen and not join_game_button_present
 
     def is_map_briefing_visible(self) -> bool:
         return 'map briefing' in ocr_screenshot_game_window_region(
