@@ -300,7 +300,7 @@ def ocr_screenshot_game_window_region(game_window: Window, resolution: str, key:
     :param image_ops: List of image operation tuples (format: (operation, arguments)
     :param key: key of region in coordinates dict
     :param show: whether to show the screenshot
-    :param ocr_config: config/parameters for Tesseract OCR
+    :param ocr_config: config/parameters for Tesseract OCR (see https://guides.nyu.edu/tesseract/usage)
     :return:
     """
 
