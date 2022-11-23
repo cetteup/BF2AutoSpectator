@@ -16,7 +16,7 @@ from BF2AutoSpectator.common.logger import logger
 from BF2AutoSpectator.common.utility import Window, find_window_by_title, get_resolution_window_size, \
     mouse_move_to_game_window_coord, mouse_click_in_game_window, ocr_screenshot_game_window_region, auto_press_key, \
     mouse_reset_legacy, mouse_move_legacy, is_responding_pid, histogram_screenshot_region, calc_cv2_hist_delta, \
-    ImageOperation, mouse_reset, get_mod_from_command_line, purge_server_history, ocr_screenshot_region, is_similar_str, \
+    ImageOperation, mouse_reset, get_mod_from_command_line, run_conman, ocr_screenshot_region, is_similar_str, \
     press_key, release_key
 from .instance_state import GameInstanceState
 
@@ -64,22 +64,31 @@ class GameInstanceManager:
     """
     Functions for launching, finding and destroying/quitting a game instance
     """
+    @staticmethod
+    def prepare_game_launch() -> None:
+        """
+        BF2 will query any server in the server history upon login, significantly slowing down the login and thus the
+        launch. The effect is even greater if any of the servers in the history are offline. For those, BF2 waits for
+        the status query to time out. So, use bf2-conman (https://github.com/cetteup/conman/releases/tag/v0.1.5)
+        to purge the server history. We also remove old demo bookmarks and purge the shader and logo cache, just to
+        keep this nice and neat.
+        """
+        try:
+            run_conman([
+                '--purge-server-history',
+                '--purge-old-demo-bookmarks',
+                '--purge-shader-cache',
+                '--purge-logo-cache'
+            ])
+        except subprocess.SubprocessError as e:
+            logger.error(f'Failed to run pre-launch cleanup ({e})')
+
     def launch_instance(self, mod: str) -> Tuple[bool, bool, Optional[str]]:
         """
         Launch a new game instance
         :return: True if game was launched successfully, else False
         """
-
-        """
-        BF2 will query any server in the server history upon login, significantly slowing down the login and thus the
-        launch. The effect is even greater if any of the servers in the history are offline. For those, BF2 waits for
-        the status query to time out. So, use bf2-conman (https://github.com/cetteup/conman/releases/tag/v0.1.5)
-        to purge the server history.
-        """
-        try:
-            purge_server_history()
-        except subprocess.SubprocessError as e:
-            logger.error(f'Failed to purge server history pre-launch ({e})')
+        self.prepare_game_launch()
 
         szx, szy = get_resolution_window_size(self.resolution)
 
