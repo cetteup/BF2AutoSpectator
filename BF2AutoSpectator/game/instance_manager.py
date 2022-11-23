@@ -73,7 +73,7 @@ class GameInstanceManager:
         """
         BF2 will query any server in the server history upon login, significantly slowing down the login and thus the
         launch. The effect is even greater if any of the servers in the history are offline. For those, BF2 waits for
-        the status query to time out. So, use bf2-conman (https://github.com/cetteup/conman/releases/tag/v0.1.1)
+        the status query to time out. So, use bf2-conman (https://github.com/cetteup/conman/releases/tag/v0.1.5)
         to purge the server history.
         """
         try:
