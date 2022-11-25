@@ -89,28 +89,15 @@ class ImageOperation(Enum):
 
 def is_responding_pid(pid: int) -> bool:
     """Check if a program (based on its PID) is responding"""
-    proc = get_proc_by_pid(pid)
-
-    if proc is None:
-        return False
-
-    try:
-        return proc.is_running()
-    except (psutil.NoSuchProcess, psutil.AccessDenied):
-        return False
+    cmd = 'tasklist /FI "PID eq %d" /FI "STATUS eq running"' % pid
+    status = subprocess.Popen(cmd, stdout=subprocess.PIPE).stdout.read()
+    return str(pid) in str(status)
 
 
 def taskkill_pid(pid: int) -> bool:
-    proc = get_proc_by_pid(pid)
-
-    if proc is None:
-        return False
-
-    try:
-        proc.kill()
-        return proc.is_running()
-    except (psutil.NoSuchProcess, psutil.AccessDenied):
-        return False
+    cmd = 'taskkill /F /PID %d' % pid
+    output = subprocess.Popen(cmd, stdout=subprocess.PIPE).stdout.read()
+    return 'has been terminated' in str(output)
 
 
 def press_key(key_code: int) -> None:
