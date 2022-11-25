@@ -48,6 +48,9 @@ COORDINATES = {
             'suicide-button': (940, 678, 75, 19),
             'console-command': (9, 261, 5, 10)
         },
+        'crops': {
+            'eor-header-items': [(0, 0, 649, 0), (207, 0, 430, 0), (422, 0, 221, 0), (624, 0, 0, 0)]
+        },
         'hists': {
             'teams': [(68, 69, 41, 13), (209, 69, 41, 13)],
             'menu': {
@@ -105,6 +108,9 @@ COORDINATES = {
             'spawn-selected-text': (658, 36, 241, 18),
             'suicide-button': (1173, 841, 88, 20),
             'console-command': (9, 261, 5, 10)
+        },
+        'crops': {
+            'eor-header-items': [(0, 0, 810, 0), (259, 0, 535, 0), (527, 0, 276, 0), (781, 0, 0, 0)]
         },
         'hists': {
             'teams': [(81, 77, 60, 18), (257, 77, 60, 18)],

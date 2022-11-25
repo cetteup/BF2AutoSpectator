@@ -4,7 +4,7 @@ import subprocess
 import time
 from datetime import datetime
 from enum import Enum
-from typing import Optional, Tuple, List
+from typing import Optional, Tuple, List, Union
 
 import cv2
 import jellyfish
@@ -244,28 +244,21 @@ def mouse_reset(game_window: Window) -> None:
     pyautogui.moveTo((right - left)/2, (bottom - top - 40)/2)
 
 
-def screenshot_game_window_region(game_window: Window, x: int, y: int, w: int, h: int) -> Image:
+def screenshot_region(
+        x: int, y: int, w: int, h: int,
+        image_ops: Optional[List[Tuple[ImageOperation, Optional[dict]]]] = None,
+        show: bool = False
+) -> Image:
     """
-    Take a screenshot of the specified game window region (wrapper for pyautogui.screenshot)
-    :param game_window: game window to take screenshot of
+    Take a screenshot of the specified screen region (wrapper for pyautogui.screenshot)
     :param x: x coordinate of region start
     :param y: y coordinate of region start
     :param w: region width
     :param h: region height
+    :param image_ops: List of image operation tuples, format: (operation, arguments)
+    :param show: whether to show the screenshot
     :return:
     """
-
-    return pyautogui.screenshot(region=(game_window.rect[0] + x, game_window.rect[1] + y, w, h))
-
-
-def init_pytesseract(tesseract_path: str) -> None:
-    pytesseract.pytesseract.tesseract_cmd = os.path.join(tesseract_path, constants.TESSERACT_EXE)
-
-
-# Take a screenshot of the given region and run the result through OCR
-def ocr_screenshot_region(x: int, y: int, w: int, h: int,
-                          image_ops: Optional[List[Tuple[ImageOperation, Optional[dict]]]] = None,
-                          show: bool = False, ocr_config: str = r'--oem 3 --psm 7') -> str:
     screenshot = pyautogui.screenshot(region=(x, y, w, h))
     if image_ops is not None:
         for operation in image_ops:
@@ -274,14 +267,11 @@ def ocr_screenshot_region(x: int, y: int, w: int, h: int,
                 screenshot = ImageOps.invert(screenshot)
             elif method is ImageOperation.solarize:
                 screenshot = ImageOps.solarize(screenshot, **(args if args is not None else {}))
+
     if show:
         screenshot.show()
-    # pytesseract stopped stripping \n\x0c from ocr results,
-    # returning raw results instead (https://github.com/madmaze/pytesseract/issues/297)
-    # so strip those characters as well as spaces after getting the result
-    ocr_result = pytesseract.image_to_string(screenshot, config=ocr_config).strip(' \n\x0c')
 
-    # Save screenshot to debug directory and print ocr result if debugging is enabled
+    # Save screenshot to debug directory if debugging is enabled
     config = Config()
     if config.debug_screenshot():
         # Save screenshot
@@ -291,21 +281,84 @@ def ocr_screenshot_region(x: int, y: int, w: int, h: int,
                 f'ocr_screenshot-{datetime.now().strftime("%Y-%m-%d-%H-%M-%S-%f")}.jpg'
             )
         )
-        # Print ocr result
+
+    return screenshot
+
+
+def screenshot_game_window_region(
+        game_window: Window,
+        x: int, y: int, w: int, h: int,
+        image_ops: Optional[List[Tuple[ImageOperation, Optional[dict]]]] = None,
+        show: bool = False
+) -> Image:
+    """
+    Take a screenshot of the specified game window region
+    :param game_window: game window to take screenshot of
+    :param x: x coordinate of region start
+    :param y: y coordinate of region start
+    :param w: region width
+    :param h: region height
+    :param image_ops: List of image operation tuples, format: (operation, arguments)
+    :param show: whether to show the screenshot
+    :return:
+    """
+
+    return screenshot_region(game_window.rect[0] + x, game_window.rect[1] + y, w, h, image_ops, show)
+
+
+def init_pytesseract(tesseract_path: str) -> None:
+    pytesseract.pytesseract.tesseract_cmd = os.path.join(tesseract_path, constants.TESSERACT_EXE)
+
+
+def image_to_string(image: Image, ocr_config: str) -> str:
+    """
+    Extract text from an image (wrapper for pytesseract.image_to_string)
+    :param image: PIL image to extract text from
+    :param ocr_config: config/parameters for Tesseract OCR (see https://guides.nyu.edu/tesseract/usage)
+    :return:
+    """
+    # pytesseract stopped stripping \n\x0c from ocr results,
+    # returning raw results instead (https://github.com/madmaze/pytesseract/issues/297)
+    # so strip those characters as well as spaces after getting the result
+    ocr_result = pytesseract.image_to_string(image, config=ocr_config).strip(' \n\x0c')
+
+    # Print ocr result if debugging is enabled
+    config = Config()
+    if config.debug_screenshot():
         logger.debug(f'OCR result: {ocr_result}')
 
     return ocr_result.lower()
 
 
+# Take a screenshot of the given region and run the result through OCR
+def ocr_screenshot_region(x: int, y: int, w: int, h: int,
+                          image_ops: Optional[List[Tuple[ImageOperation, Optional[dict]]]] = None,
+                          crops: Optional[List[Tuple[int, int, int, int]]] = None,
+                          show: bool = False, ocr_config: str = r'--oem 3 --psm 7') -> Union[str, List[str]]:
+    screenshot = screenshot_region(x, y, w, h, image_ops, show)
+
+    if crops is None:
+        return image_to_string(screenshot, ocr_config)
+
+    ocr_results: List[str] = []
+    for crop in crops:
+        cropped = ImageOps.crop(screenshot, crop)
+        ocr_results.append(image_to_string(cropped, ocr_config))
+
+    return ocr_results
+
+
 def ocr_screenshot_game_window_region(game_window: Window, resolution: str, key: str,
                                       image_ops: Optional[List[Tuple[ImageOperation, Optional[dict]]]] = None,
-                                      show: bool = False, ocr_config: str = r'--oem 3 --psm 7') -> str:
+                                      crops: Optional[List[Tuple[int, int, int, int]]] = None,
+                                      show: bool = False, ocr_config: str = r'--oem 3 --psm 7') -> Union[str, List[str]]:
     """
     Run a region of a game window through OCR (wrapper for ocr_screenshot_region)
     :param game_window: game window to take screenshot of
     :param resolution: resolution to get/use coordinates for
-    :param image_ops: List of image operation tuples (format: (operation, arguments)
     :param key: key of region in coordinates dict
+    :param image_ops: List of image operation tuples, format: (operation, arguments)
+    :param crops: List of image crop tuples, format: (left, top, right, bottom)
     :param show: whether to show the screenshot
     :param ocr_config: config/parameters for Tesseract OCR (see https://guides.nyu.edu/tesseract/usage)
     :return:
@@ -317,6 +370,7 @@ def ocr_screenshot_game_window_region(game_window: Window, resolution: str, key:
         constants.COORDINATES[resolution]['ocr'][key][2],
         constants.COORDINATES[resolution]['ocr'][key][3],
         image_ops,
+        crops,
         show,
         ocr_config
     )

@@ -242,11 +242,24 @@ class GameInstanceManager:
 
     def is_round_end_screen_visible(self) -> bool:
         round_end_screen_items = ['score-list', 'top-players', 'top-scores', 'map-briefing']
+        active = [self.is_round_end_screen_item_active(item) for item in round_end_screen_items]
 
-        # The main menu has menu items (which look the exact same) in the same places, so check we are not in menu
-        return any(
-            self.is_round_end_screen_item_active(item) for item in round_end_screen_items
-        ) and not self.is_in_menu()
+        # During map load, only item is active at any time. When the round just ended, all are active.
+        if not (all(active) or len([a for a in active if a]) == 1):
+            return False
+
+        # Run expensive multi-ocr only after faster histogram based detection succeeded
+        item_labels = ocr_screenshot_game_window_region(
+            self.game_window,
+            self.resolution,
+            'eor-header-items',
+            image_ops=[(ImageOperation.invert, None)],
+            crops=constants.COORDINATES[self.resolution]['crops']['eor-header-items']
+        )
+
+        # Due to the eor header items being transparent, ocr is not going to always detect all items
+        # So, we'll take any ocr match (the strings are fairly unique)
+        return any(label in item_labels for label in ['score list', 'top players', 'top scores', 'map briefing'])
 
     def is_round_end_screen_item_active(self, round_end_screen_item: str) -> bool:
         histogram = histogram_screenshot_region(
