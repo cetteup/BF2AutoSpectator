@@ -162,12 +162,18 @@ class GameInstanceManager:
     def open_menu(self, max_attempts: int = 5, sleep: float = 1.0) -> bool:
         # Spam press ESC if menu is not already visible
         attempt = 0
-        while not self.is_in_menu() and attempt < max_attempts:
+        while not (in_menu := self.is_in_menu()) and attempt < max_attempts:
             auto_press_key(0x01)
             attempt += 1
             time.sleep(sleep)
 
-        return self.is_in_menu()
+        if not in_menu:
+            return False
+
+        # Reset the mouse to the center of the screen in order to not block any common OCR/histogram spots
+        mouse_reset(self.game_window)
+
+        return True
 
     """
     Functions for detecting game state elements
