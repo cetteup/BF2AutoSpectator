@@ -78,6 +78,42 @@ You can always get these details locally by providing the `--help` argument.
 | The Iron Gator         | Yes     | Yes     | Yes     |
 | Warlord                | Yes     | Yes     | Yes     |
 
+### Battlefield Pirates 2 mod maps
+| Map name                     | 16 size | 32 size | 64 size |
+|------------------------------|---------|---------|---------|
+| Black Beard's Atol           | Yes     | Yes     | Yes     |
+| Black Beard's Atol - CTF     | n/a     | n/a     | Yes     |
+| Blue Bayou                   | Yes     | Yes     | Yes     |
+| Blue Bayou - CTF             | n/a     | n/a     | Yes     |
+| Blue Bayou - Zombie ¹        | n/a     | n/a     | Yes     |
+| Crossbones Keep              | Yes     | Yes     | Yes     |
+| Crossbones Keep - Zombie ¹   | n/a     | n/a     | Yes     |
+| Dead Calm                    | Yes     | Yes     | Yes     |
+| Frylar                       | Yes     | Yes     | Yes     |
+| Frylar - CTF                 | n/a     | n/a     | Yes     |
+| Frylar - Zombie ¹            | n/a     | n/a     | Yes     |
+| Lost At Sea                  | Yes     | Yes     | Yes     |
+| O'Me Hearty Beach            | Yes     | Yes     | Yes     |
+| O'Me Hearty Beach - Zombie ¹ | n/a     | n/a     | Yes     |
+| Pelican Point                | Yes     | Yes     | Yes     |
+| Pelican Point - CTF          | n/a     | n/a     | Yes     |
+| Pressgang Port               | Yes     | Yes     | Yes     |
+| Pressgang Port - CTF         | n/a     | n/a     | Yes     |
+| Sailors Warning              | Yes     | Yes     | Yes     |
+| Shallow Draft                | Yes     | Yes     | Yes     |
+| Shallow Draft - CTF          | n/a     | n/a     | Yes     |
+| Shipwreck Shoals             | Yes     | Yes     | Yes     |
+| Shipwreck Shoals - CTF       | n/a     | n/a     | Yes     |
+| Shiver Me Timbers            | Yes     | Yes     | Yes     |
+| Shiver Me Timbers - CTF      | n/a     | n/a     | Yes     |
+| Storm the Bastion            | Yes     | Yes     | Yes     |
+| Storm the Bastion - Zombie ¹ | n/a     | Yes     | Yes     |
+| Stranded                     | Yes     | Yes     | Yes     |
+| Stranded - CTF               | n/a     | n/a     | Yes     |
+| Wake Island 1707             | Yes     | Yes     | Yes     |
+
+¹ spawning on zombie versions of maps may fail if the spectator happens to be a zombie, since the zombie class is not always selected by default
+
 ### Arctic Warfare mod maps
 | Map name        | 16 size | 32 size | 64 size |
 |-----------------|---------|---------|---------|
