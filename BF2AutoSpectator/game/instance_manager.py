@@ -27,7 +27,7 @@ del pyautogui.FAILSAFE_POINTS[0]
 
 MAP_NAME_REGEX_NvN = re.compile(r'(\d+).?v.?(\d+)')
 MAP_NAME_REGEX_SEPARATORS = re.compile(r'[_.\s]')
-MAP_NAME_REGEX_EXTRA = re.compile(r'[\']')
+MAP_NAME_REGEX_EXTRA = re.compile(r'[\'()]')
 MAP_NAME_REGEX_MULTI = re.compile(r'[-]{2,}')
 
 
