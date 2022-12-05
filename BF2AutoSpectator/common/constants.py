@@ -455,6 +455,45 @@ COORDINATES = {
             '16': [(461, 110), (458, 343)],
             '32': [(468, 30), (461, 413)],
             '64': [(436, 30), (433, 410)]
+        },
+        'stalingrad-snow': {
+            '16': [(426, 63), (444, 402)],
+            '32': [(579, 134), (442, 342)],
+            '64': [(351, 63), (451, 410), (445, 64), (535, 61)]
+        },
+        'spring-thaw': {
+            # 32 is the only available size
+            '32': [(481, 82), (327, 371)]
+        },
+        'frostbite-night': {
+            # 16 is the only available size
+            '16': [(574, 270), (355, 169)],
+        },
+        'frostbite': {
+            # No 64 size available
+            '16': [(550, 372), (359, 95)],
+            '32': [(596, 232), (287, 392)]
+        },
+        'christmas-hill': {
+            # 32 is the only available size
+            '32': [(428, 239), (423, 77)]
+        },
+        'blitzkrieg': {
+            # 16 is the only available size
+            '16': [(576, 134), (351, 355)]
+        },
+        'alpin-ressort': {
+            '16': [(398, 214), (523, 263)],
+            '32': [(516, 230), (305, 219)],
+            '64': [(312, 86), (497, 328)]
+        },
+        'snowy-park-day': {
+            # 16 is the only available size
+            '16': [(438, 227), (451, 227)]
+        },
+        'snowy-park': {
+            # 16 is the only available size
+            '16': [(438, 227), (451, 227)]
         }
     }
 }
