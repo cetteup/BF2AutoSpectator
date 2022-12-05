@@ -288,6 +288,9 @@ class GameInstanceManager:
         )
 
     def is_join_game_button_visible(self) -> bool:
+        # Reset mouse to avoid blocking ocr of button region
+        mouse_reset(self.game_window)
+
         # Get ocr result of bottom left corner where "join game"-button would be
         return 'join game' in ocr_screenshot_game_window_region(
             self.game_window,
