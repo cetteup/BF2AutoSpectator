@@ -8,8 +8,10 @@ WINDOW_SHADOW_SIZE = (8, 9, 8)
 HISTCMP_MAX_DELTA = 0.2
 DEFAULT_CAMERA_VIEW_HISTCMP_MAX_DELTA = 0.175
 PLAYER_ROTATION_PAUSE_DURATION = 5
-TEAMS_SPAWN_MENU_LEFT = ['usmc', 'eu', 'navy-seal', 'sas', 'rebels-left', 'spetsnaz-left', 'peglegs']
-TEAMS_SPAWN_MENU_RIGHT = ['china', 'mec', 'mec-sf', 'insurgent', 'rebels-right', 'spetsnaz-right', 'undead']
+TEAMS_SPAWN_MENU_LEFT = ['usmc', 'eu', 'navy-seal', 'sas', 'rebels-left', 'spetsnaz-left', 'peglegs', 'canada-left',
+                         'russia-left']
+TEAMS_SPAWN_MENU_RIGHT = ['china', 'mec', 'mec-sf', 'insurgent', 'rebels-right', 'spetsnaz-right', 'undead',
+                          'russia-right', 'canada-right']
 COORDINATES = {
     '720p': {
         # format for click coordinates: tuple(x coordinate, y coordinate)
