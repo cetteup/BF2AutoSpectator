@@ -121,21 +121,22 @@ You can always get these details locally by providing the `--help` argument.
 | Yukon Bridge    | Yes     | Yes     | Yes     |
 
 ### Custom maps
-| Map name                                                        | 16 size | 32 size | 64 size |
-|-----------------------------------------------------------------|---------|---------|---------|
-| [Dalian 2v2](https://bf2.nihlen.net/maps)                       | Yes     | Yes     | Yes     |
-| [Daqing 2v2](https://bf2.nihlen.net/maps)                       | Yes     | Yes     | Yes     |
-| [Dragon 2v2](https://bf2.nihlen.net/maps)                       | Yes     | n/a ¹   | n/a ¹   |
-| [Sharqi 2v2](https://bf2.nihlen.net/maps)                       | Yes     | Yes     | Yes     |
-| [Alpin Ressort](https://www.lost-soldiers.org/files/file-11)    | Yes     | Yes     | Yes     |
-| [Blitzkrieg](https://www.lost-soldiers.org/files/file-11)       | Yes     | n/a     | n/a     |
-| [Christmas Hill](https://www.lost-soldiers.org/files/file-11)   | n/a     | Yes     | n/a     |
-| [Frostbite](https://www.lost-soldiers.org/files/file-11)        | Yes     | Yes     | n/a     |
-| [Frostbite Night](https://www.lost-soldiers.org/files/file-11)  | Yes     | n/a     | n/a     |
-| [Snowy Park](https://www.lost-soldiers.org/files/file-11)       | Yes     | n/a     | n/a     |
-| [Snowy Park (Day)](https://www.lost-soldiers.org/files/file-11) | Yes     | n/a     | n/a     |
-| [Spring Thaw](https://www.lost-soldiers.org/files/file-11)      | n/a     | Yes     | n/a     |
-| [Stalingrad Snow](https://www.lost-soldiers.org/files/file-11)  | Yes     | Yes     | Yes     |
+| Map name                                                                                      | 16 size | 32 size | 64 size |
+|-----------------------------------------------------------------------------------------------|---------|---------|---------|
+| [Dalian 2v2](https://bf2.nihlen.net/maps)                                                     | Yes     | Yes     | Yes     |
+| [Daqing 2v2](https://bf2.nihlen.net/maps)                                                     | Yes     | Yes     | Yes     |
+| [Dragon 2v2](https://bf2.nihlen.net/maps)                                                     | Yes     | n/a ¹   | n/a ¹   |
+| [Sharqi 2v2](https://bf2.nihlen.net/maps)                                                     | Yes     | Yes     | Yes     |
+| [Alpin Ressort](https://www.lost-soldiers.org/files/file-11)                                  | Yes     | Yes     | Yes     |
+| [Blitzkrieg](https://www.lost-soldiers.org/files/file-11)                                     | Yes     | n/a     | n/a     |
+| [Christmas Hill](https://www.lost-soldiers.org/files/file-11)                                 | n/a     | Yes     | n/a     |
+| [Frostbite](https://www.lost-soldiers.org/files/file-11)                                      | Yes     | Yes     | n/a     |
+| [Frostbite Night](https://www.lost-soldiers.org/files/file-11)                                | Yes     | n/a     | n/a     |
+| [Snowy Park](https://www.lost-soldiers.org/files/file-11)                                     | Yes     | n/a     | n/a     |
+| [Snowy Park (Day)](https://www.lost-soldiers.org/files/file-11)                               | Yes     | n/a     | n/a     |
+| [Spring Thaw](https://www.lost-soldiers.org/files/file-11)                                    | n/a     | Yes     | n/a     |
+| [Stalingrad Snow](https://www.lost-soldiers.org/files/file-11)                                | Yes     | Yes     | Yes     |
+| [Winter Wake Island](https://www.moddb.com/games/battlefield-2/addons/winter-wake-island-map) | Yes     | Yes     | Yes     |
 
 ¹ the spawn menu is broken on these sizes of the map
 
