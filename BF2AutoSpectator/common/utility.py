@@ -88,7 +88,7 @@ class ImageOperation(Enum):
     invert = 1
     solarize = 2
     grayscale = 3
-    equalize = 4
+    colorize = 4
 
 
 def is_responding_pid(pid: int) -> bool:
@@ -264,8 +264,8 @@ def screenshot_region(
                     cropped = ImageOps.solarize(cropped, **(args if args is not None else {}))
                 elif method is ImageOperation.grayscale:
                     cropped = ImageOps.grayscale(cropped)
-                elif method is ImageOperation.equalize:
-                    cropped = ImageOps.equalize(cropped, **(args if args is not None else {}))
+                elif method is ImageOperation.colorize:
+                    cropped = ImageOps.colorize(cropped, **(args if args is not None else {}))
 
         if show:
             cropped.show()

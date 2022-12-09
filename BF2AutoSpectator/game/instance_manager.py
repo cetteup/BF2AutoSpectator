@@ -201,7 +201,11 @@ class GameInstanceManager:
             self.game_window,
             self.resolution,
             'quit-menu-item',
-            image_ops=[(ImageOperation.invert, None)]
+            image_ops=[
+                (ImageOperation.grayscale, None),
+                (ImageOperation.colorize, {'black': '#000', 'white': '#fff', 'blackpoint': 30, 'whitepoint': 175}),
+                (ImageOperation.invert, None),
+            ]
         )
 
     def is_multiplayer_menu_active(self) -> bool:
@@ -235,7 +239,11 @@ class GameInstanceManager:
             self.game_window,
             self.resolution,
             'disconnect-button',
-            image_ops=[(ImageOperation.invert, None)]
+            image_ops=[
+                (ImageOperation.grayscale, None),
+                (ImageOperation.colorize, {'black': '#000', 'white': '#fff', 'blackpoint': 30, 'whitepoint': 175}),
+                (ImageOperation.invert, None)
+            ]
         )
 
     def is_play_now_button_visible(self) -> bool:
@@ -243,7 +251,10 @@ class GameInstanceManager:
             self.game_window,
             self.resolution,
             'play-now-button',
-            image_ops=[(ImageOperation.invert, None)]
+            image_ops=[
+                (ImageOperation.grayscale, None),
+                (ImageOperation.colorize, {'black': '#000', 'white': '#fff', 'blackpoint': 100, 'whitepoint': 200})
+            ]
         )
 
     def is_round_end_screen_visible(self) -> bool:
@@ -259,7 +270,11 @@ class GameInstanceManager:
             self.game_window,
             self.resolution,
             'eor-header-items',
-            image_ops=[(ImageOperation.invert, None)]
+            image_ops=[
+                (ImageOperation.grayscale, None),
+                (ImageOperation.colorize, {'black': '#000', 'white': '#fff', 'blackpoint': 50, 'whitepoint': 135}),
+                (ImageOperation.invert, None),
+            ]
         )
 
         # Due to the eor header items being transparent, ocr is not going to always detect all items
@@ -283,7 +298,11 @@ class GameInstanceManager:
             self.game_window,
             self.resolution,
             'connect-to-ip-button',
-            image_ops=[(ImageOperation.invert, None)]
+            image_ops=[
+                (ImageOperation.grayscale, None),
+                (ImageOperation.colorize, {'black': '#000', 'white': '#fff', 'blackpoint': 30, 'whitepoint': 175}),
+                (ImageOperation.invert, None)
+            ]
         )
 
     def is_join_game_button_visible(self) -> bool:
@@ -295,7 +314,11 @@ class GameInstanceManager:
             self.game_window,
             self.resolution,
             'join-game-button',
-            image_ops=[(ImageOperation.invert, None)]
+            image_ops=[
+                (ImageOperation.grayscale, None),
+                (ImageOperation.colorize, {'black': '#000', 'white': '#fff', 'blackpoint': 30, 'whitepoint': 175}),
+                (ImageOperation.invert, None)
+            ]
         )
 
     def is_map_loading(self) -> bool:
@@ -781,7 +804,11 @@ class GameInstanceManager:
             self.game_window,
             self.resolution,
             'spawn-selected-text',
-            image_ops=[(ImageOperation.invert, None)]
+            image_ops=[
+                (ImageOperation.grayscale, None),
+                (ImageOperation.colorize, {'black': '#000', 'white': '#fff', 'blackpoint': 30, 'whitepoint': 175}),
+                (ImageOperation.invert, None)
+            ]
         )
 
     def is_spawn_point_selected(self) -> bool:
@@ -789,7 +816,11 @@ class GameInstanceManager:
             self.game_window,
             self.resolution,
             'spawn-selected-text',
-            image_ops=[(ImageOperation.invert, None)]
+            image_ops=[
+                (ImageOperation.grayscale, None),
+                (ImageOperation.colorize, {'black': '#000', 'white': '#fff', 'blackpoint': 30, 'whitepoint': 175}),
+                (ImageOperation.invert, None)
+            ]
         )
 
     def is_suicide_button_visible(self) -> bool:
@@ -797,7 +828,11 @@ class GameInstanceManager:
             self.game_window,
             self.resolution,
             'suicide-button',
-            image_ops=[(ImageOperation.invert, None)]
+            image_ops=[
+                (ImageOperation.grayscale, None),
+                (ImageOperation.colorize, {'black': '#000', 'white': '#fff', 'blackpoint': 30, 'whitepoint': 175}),
+                (ImageOperation.invert, None)
+            ]
         )
 
     def show_scoreboard(self, duration: float = .5) -> bool:
