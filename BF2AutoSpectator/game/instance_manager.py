@@ -80,7 +80,7 @@ class GameInstanceManager:
                 '--purge-shader-cache',
                 '--purge-logo-cache'
             ])
-        except subprocess.SubprocessError as e:
+        except (FileNotFoundError, PermissionError, subprocess.SubprocessError) as e:
             logger.error(f'Failed to run pre-launch cleanup ({e})')
 
     def launch_instance(self, mod: str) -> Tuple[bool, bool, Optional[str]]:
