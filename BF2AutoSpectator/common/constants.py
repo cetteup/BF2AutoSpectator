@@ -32,45 +32,42 @@ COORDINATES = {
         },
         # format for ocr coordinates: tuple(x coordinate, y coordinate, width, height)
         'ocr': {
-            'quit-menu-item': (1160, 42, 45, 20),
-            'game-message-header': (400, 223, 130, 25),
-            'game-message-text': (400, 245, 470, 18),
-            'connect-to-ip-button': (50, 448, 110, 18),
-            'disconnect-prompt-header': (337, 258, 110, 18),
-            'disconnect-button': (1133, 725, 92, 16),
-            'play-now-button': (1095, 726, 92, 18),
-            'eor-header-items': (72, 82, 740, 20),
-            'join-game-button': (1163, 725, 80, 16),
-            'map-briefing-header': (24, 112, 115, 20),
-            'special-forces-class-label': (60, 125, 140, 18),
-            'eor-map-name': (769, 114, 210, 17),
-            'eor-map-size': (1256, 570, 20, 17),
-            'eor-game-mode': (1205, 548, 70, 20),
-            'spawn-selected-text': (528, 35, 192, 16),
-            'suicide-button': (940, 678, 75, 19),
-            'console-command': (9, 261, 5, 10)
-        },
-        'crops': {
-            'eor-header-items': [(0, 0, 649, 0), (207, 0, 430, 0), (422, 0, 221, 0), (624, 0, 0, 0)]
+            'quit-menu-item': [(1152, 11, 83, 689)],
+            'game-message-header': [(392, 192, 758, 503)],
+            'game-message-text': [(392, 214, 418, 488)],
+            'connect-to-ip-button': [(42, 417, 1128, 285)],
+            'disconnect-prompt-header': [(329, 227, 841, 475)],
+            'disconnect-button': [(1125, 694, 63, 10)],
+            'play-now-button': [(1087, 695, 101, 7)],
+            'join-game-button': [(1155, 694, 45, 10)],
+            'map-briefing-header': [(16, 81, 1149, 619)],
+            'special-forces-class-label': [(52, 94, 1088, 608)],
+            'eor-map-name': [(761, 83, 309, 620)],
+            'eor-map-size': [(1248, 539, 12, 164)],
+            'eor-game-mode': [(1197, 517, 13, 183)],
+            'spawn-selected-text': [(520, 4, 568, 700)],
+            'suicide-button': [(932, 647, 273, 54)],
+            'console-command': [(1, 230, 1274, 480)],
+            'eor-header-items': [(64, 51, 1125, 649), (271, 51, 906, 649), (486, 51, 697, 649), (688, 51, 476, 649)]
         },
         'hists': {
-            'teams': [(68, 69, 41, 13), (209, 69, 41, 13)],
+            'teams': [(60, 38, 1179, 669), (201, 38, 1038, 669)],
             'menu': {
-                'multiplayer': (229, 34, 200, 1),
-                'join-internet': (18, 73, 199, 1)
+                'multiplayer': (221, 3, 859, 716),
+                'join-internet': (10, 42, 1071, 677)
             },
             'eor': {
-                'score-list': (18, 73, 199, 1),
-                'top-players': (229, 73, 199, 1),
-                'top-scores': (442, 73, 199, 1),
-                'map-briefing': (654, 73, 199, 1)
+                'score-list': (10, 42, 1071, 677),
+                'top-players': (221, 42, 860, 677),
+                'top-scores': (434, 42, 647, 677),
+                'map-briefing': (646, 42, 435, 677)
             },
             'spawn-menu': {
-                'close-button': (1240, 69, 25, 18)
+                'close-button': (1232, 38, 23, 664)
             },
             'scoreboard': {
-                'table-icons-left': (375, 120, 238, 24),
-                'table-icons-right': (1000, 120, 238, 24)
+                'table-icons-left': (367, 89, 675, 607),
+                'table-icons-right': (992, 89, 50, 607)
             }
         }
     },
@@ -93,45 +90,42 @@ COORDINATES = {
         },
         # format for ocr coordinates: tuple(x coordinate, y coordinate, width, height)
         'ocr': {
-            'quit-menu-item': (1449, 47, 47, 22),
-            'game-message-header': (500, 274, 152, 25),
-            'game-message-text': (500, 300, 520, 20),
-            'connect-to-ip-button': (62, 551, 134, 22),
-            'disconnect-prompt-header': (420, 315, 132, 25),
-            'disconnect-button': (1418, 900, 108, 20),
-            'play-now-button': (1355, 900, 130, 22),
-            'eor-header-items': (88, 94, 924, 22),
-            'join-game-button': (1450, 900, 98, 18),
-            'map-briefing-header': (26, 133, 141, 22),
-            'special-forces-class-label': (73, 149, 164, 20),
-            'eor-map-name': (956, 134, 250, 21),
-            'eor-map-size': (1564, 706, 24, 18),
-            'eor-game-mode': (1500, 679, 94, 22),
-            'spawn-selected-text': (658, 36, 241, 18),
-            'suicide-button': (1173, 841, 88, 20),
-            'console-command': (9, 261, 5, 10)
-        },
-        'crops': {
-            'eor-header-items': [(0, 0, 810, 0), (259, 0, 535, 0), (527, 0, 276, 0), (781, 0, 0, 0)]
+            'quit-menu-item': [(1441, 16, 112, 862)],
+            'game-message-header': [(492, 243, 956, 632)],
+            'game-message-text': [(492, 269, 588, 611)],
+            'connect-to-ip-button': [(54, 520, 1412, 358)],
+            'disconnect-prompt-header': [(412, 284, 1056, 591)],
+            'disconnect-button': [(1410, 869, 82, 11)],
+            'play-now-button': [(1347, 869, 123, 9)],
+            'join-game-button': [(1442, 869, 60, 13)],
+            'map-briefing-header': [(18, 102, 1441, 776)],
+            'special-forces-class-label': [(65, 118, 1371, 762)],
+            'eor-map-name': [(948, 103, 402, 776)],
+            'eor-map-size': [(1556, 675, 20, 207)],
+            'eor-game-mode': [(1492, 648, 14, 230)],
+            'spawn-selected-text': [(650, 5, 709, 877)],
+            'suicide-button': [(1165, 810, 347, 70)],
+            'console-command': [(1, 230, 1594, 660)],
+            'eor-header-items': [(80, 63, 1406, 815), (339, 63, 1131, 815), (607, 63, 872, 815), (861, 63, 596, 815)]
         },
         'hists': {
-            'teams': [(81, 77, 60, 18), (257, 77, 60, 18)],
+            'teams': [(73, 46, 1467, 836), (249, 46, 1291, 836)],
             'menu': {
-                'multiplayer': (285, 34, 249, 1),
-                'join-internet': (20, 84, 249, 1)
+                'multiplayer': (277, 3, 1074, 896),
+                'join-internet': (12, 53, 1339, 846)
             },
             'eor': {
-                'score-list': (20, 84, 249, 1),
-                'top-players': (284, 84, 249, 1),
-                'top-scores': (550, 84, 249, 1),
-                'map-briefing': (816, 84, 249, 1)
+                'score-list': (12, 53, 1339, 846),
+                'top-players': (276, 53, 1075, 846),
+                'top-scores': (542, 53, 809, 846),
+                'map-briefing': (808, 53, 543, 846)
             },
             'spawn-menu': {
-                'close-button': (1549, 78, 29, 23)
+                'close-button': (1541, 47, 30, 830)
             },
             'scoreboard': {
-                'table-icons-left': (465, 142, 298, 28),
-                'table-icons-right':  (1248, 142, 298, 28)
+                'table-icons-left': (457, 111, 845, 761),
+                'table-icons-right': (1240, 111, 62, 761)
             }
         }
     },

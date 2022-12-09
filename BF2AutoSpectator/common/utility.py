@@ -87,6 +87,8 @@ class Input(ctypes.Structure):
 class ImageOperation(Enum):
     invert = 1
     solarize = 2
+    grayscale = 3
+    equalize = 4
 
 
 def is_responding_pid(pid: int) -> bool:
@@ -234,65 +236,81 @@ def mouse_reset(game_window: Window) -> None:
 
 
 def screenshot_region(
-        x: int, y: int, w: int, h: int,
+        region: Tuple[int, int, int, int],
         image_ops: Optional[List[Tuple[ImageOperation, Optional[dict]]]] = None,
+        crops: Optional[List[Tuple[int, int, int, int]]] = None,
         show: bool = False
-) -> Image:
+) -> Tuple[Union[Image.Image, List[Image.Image]], Image.Image]:
     """
     Take a screenshot of the specified screen region (wrapper for pyautogui.screenshot)
-    :param x: x coordinate of region start
-    :param y: y coordinate of region start
-    :param w: region width
-    :param h: region height
+    :param region: region to take screenshot of, format: (left, top, width, height)
     :param image_ops: List of image operation tuples, format: (operation, arguments)
+    :param crops: List of image crop tuples, format: (left, top, right, bottom)
     :param show: whether to show the screenshot
     :return:
     """
-    screenshot = pyautogui.screenshot(region=(x, y, w, h))
-    if image_ops is not None:
-        for operation in image_ops:
-            method, args = operation
-            if method is ImageOperation.invert:
-                screenshot = ImageOps.invert(screenshot)
-            elif method is ImageOperation.solarize:
-                screenshot = ImageOps.solarize(screenshot, **(args if args is not None else {}))
+    screenshot = pyautogui.screenshot(region=region)
+    results: List[Image.Image] = []
+    # Apply zero-crop if no crops have been given, since we should not modify the original screenshot
+    for crop in crops if crops is not None else [(0, 0, 0, 0)]:
+        cropped = ImageOps.crop(screenshot, crop)
 
-    if show:
-        screenshot.show()
+        if image_ops is not None:
+            for operation in image_ops:
+                method, args = operation
+                if method is ImageOperation.invert:
+                    cropped = ImageOps.invert(cropped)
+                elif method is ImageOperation.solarize:
+                    cropped = ImageOps.solarize(cropped, **(args if args is not None else {}))
+                elif method is ImageOperation.grayscale:
+                    cropped = ImageOps.grayscale(cropped)
+                elif method is ImageOperation.equalize:
+                    cropped = ImageOps.equalize(cropped, **(args if args is not None else {}))
 
-    # Save screenshot to debug directory if debugging is enabled
-    config = Config()
-    if config.debug_screenshot():
-        # Save screenshot
-        screenshot.save(
-            os.path.join(
-                Config.DEBUG_DIR,
-                f'ocr_screenshot-{datetime.now().strftime("%Y-%m-%d-%H-%M-%S-%f")}.jpg'
+        if show:
+            cropped.show()
+
+        # Save screenshot to debug directory if debugging is enabled
+        config = Config()
+        if config.debug_screenshot():
+            # Save screenshot
+            cropped.save(
+                os.path.join(
+                    Config.DEBUG_DIR,
+                    f'screenshot-{datetime.now().strftime("%Y-%m-%d-%H-%M-%S-%f")}.jpg'
+                )
             )
-        )
 
-    return screenshot
+        results.append(cropped)
+
+    # Return list of cropped screenshots if there are multiple, else return the sole result directly
+    return results if len(results) > 1 else results.pop(), screenshot
 
 
 def screenshot_game_window_region(
         game_window: Window,
-        x: int, y: int, w: int, h: int,
         image_ops: Optional[List[Tuple[ImageOperation, Optional[dict]]]] = None,
+        crops: Optional[List[Tuple[int, int, int, int]]] = None,
         show: bool = False
-) -> Image:
+) -> Tuple[Union[Image.Image, List[Image.Image]], Image.Image]:
     """
     Take a screenshot of the specified game window region
     :param game_window: game window to take screenshot of
-    :param x: x coordinate of region start
-    :param y: y coordinate of region start
-    :param w: region width
-    :param h: region height
     :param image_ops: List of image operation tuples, format: (operation, arguments)
+    :param crops: List of image crop tuples, format: (left, top, right, bottom)
     :param show: whether to show the screenshot
     :return:
     """
-
-    return screenshot_region(game_window.rect[0] + x, game_window.rect[1] + y, w, h, image_ops, show)
+    left, top, right, bottom = game_window.rect
+    return screenshot_region(
+        (
+            left + constants.WINDOW_SHADOW_SIZE,
+            top + constants.WINDOW_TITLE_BAR_HEIGHT,
+            right - constants.WINDOW_SHADOW_SIZE - left - constants.WINDOW_SHADOW_SIZE,
+            bottom - constants.WINDOW_SHADOW_SIZE - top - constants.WINDOW_TITLE_BAR_HEIGHT
+        ),
+        image_ops, crops, show
+    )
 
 
 def init_pytesseract(tesseract_path: str) -> None:
@@ -320,55 +338,58 @@ def image_to_string(image: Image, ocr_config: str) -> str:
 
 
 # Take a screenshot of the given region and run the result through OCR
-def ocr_screenshot_region(x: int, y: int, w: int, h: int,
-                          image_ops: Optional[List[Tuple[ImageOperation, Optional[dict]]]] = None,
-                          crops: Optional[List[Tuple[int, int, int, int]]] = None,
-                          show: bool = False, ocr_config: str = r'--oem 3 --psm 7') -> Union[str, List[str]]:
-    screenshot = screenshot_region(x, y, w, h, image_ops, show)
+def ocr_screenshot_region(
+        region: Tuple[int, int, int, int],
+        image_ops: Optional[List[Tuple[ImageOperation, Optional[dict]]]] = None,
+        crops: Optional[List[Tuple[int, int, int, int]]] = None,
+        show: bool = False, ocr_config: str = r'--oem 3 --psm 7'
+) -> Union[str, List[str]]:
+    result, screenshot = screenshot_region(region, image_ops, crops, show)
 
-    if crops is None:
-        return image_to_string(screenshot, ocr_config)
+    if isinstance(result, Image.Image):
+        return image_to_string(result, ocr_config)
 
     ocr_results: List[str] = []
-    for crop in crops:
-        cropped = ImageOps.crop(screenshot, crop)
+    for cropped in result:
         ocr_results.append(image_to_string(cropped, ocr_config))
 
     return ocr_results
 
 
-def ocr_screenshot_game_window_region(game_window: Window, resolution: str, key: str,
-                                      image_ops: Optional[List[Tuple[ImageOperation, Optional[dict]]]] = None,
-                                      crops: Optional[List[Tuple[int, int, int, int]]] = None,
-                                      show: bool = False, ocr_config: str = r'--oem 3 --psm 7') -> Union[str, List[str]]:
+def ocr_screenshot_game_window_region(
+        game_window: Window, resolution: str, key: str,
+        image_ops: Optional[List[Tuple[ImageOperation, Optional[dict]]]] = None,
+        show: bool = False, ocr_config: str = r'--oem 3 --psm 7'
+) -> Union[str, List[str]]:
     """
     Run a region of a game window through OCR (wrapper for ocr_screenshot_region)
     :param game_window: game window to take screenshot of
     :param resolution: resolution to get/use coordinates for
     :param key: key of region in coordinates dict
     :param image_ops: List of image operation tuples, format: (operation, arguments)
-    :param crops: List of image crop tuples, format: (left, top, right, bottom)
     :param show: whether to show the screenshot
     :param ocr_config: config/parameters for Tesseract OCR (see https://guides.nyu.edu/tesseract/usage)
     :return:
     """
-
+    left, top, right, bottom = game_window.rect
     return ocr_screenshot_region(
-        game_window.rect[0] + constants.COORDINATES[resolution]['ocr'][key][0],
-        game_window.rect[1] + constants.COORDINATES[resolution]['ocr'][key][1],
-        constants.COORDINATES[resolution]['ocr'][key][2],
-        constants.COORDINATES[resolution]['ocr'][key][3],
+        (
+            left + constants.WINDOW_SHADOW_SIZE,
+            top + constants.WINDOW_TITLE_BAR_HEIGHT,
+            right - constants.WINDOW_SHADOW_SIZE - left - constants.WINDOW_SHADOW_SIZE,
+            bottom - constants.WINDOW_SHADOW_SIZE - top - constants.WINDOW_TITLE_BAR_HEIGHT
+        ),
         image_ops,
-        crops,
+        constants.COORDINATES[resolution]['ocr'][key],
         show,
         ocr_config
     )
 
 
-def histogram_screenshot_region(game_window: Window, x: int, y: int, w: int, h: int) -> ndarray:
-    screenshot = screenshot_game_window_region(game_window, x, y, w, h)
+def histogram_screenshot_region(game_window: Window, crop: Tuple[int, int, int, int]) -> ndarray:
+    result, screenshot = screenshot_game_window_region(game_window, crops=[crop])
 
-    return calc_cv2_hist_from_pil_image(screenshot)
+    return calc_cv2_hist_from_pil_image(result)
 
 
 def calc_cv2_hist_from_pil_image(pil_image: Image) -> ndarray:

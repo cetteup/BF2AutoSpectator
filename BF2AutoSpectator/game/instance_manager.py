@@ -213,7 +213,7 @@ class GameInstanceManager:
     def is_menu_item_active(self, menu_item: str) -> bool:
         histogram = histogram_screenshot_region(
             self.game_window,
-            *constants.COORDINATES[self.resolution]['hists']['menu'][menu_item]
+            constants.COORDINATES[self.resolution]['hists']['menu'][menu_item]
         )
         delta = calc_cv2_hist_delta(
             histogram,
@@ -259,8 +259,7 @@ class GameInstanceManager:
             self.game_window,
             self.resolution,
             'eor-header-items',
-            image_ops=[(ImageOperation.invert, None)],
-            crops=constants.COORDINATES[self.resolution]['crops']['eor-header-items']
+            image_ops=[(ImageOperation.invert, None)]
         )
 
         # Due to the eor header items being transparent, ocr is not going to always detect all items
@@ -270,7 +269,7 @@ class GameInstanceManager:
     def is_round_end_screen_item_active(self, round_end_screen_item: str) -> bool:
         histogram = histogram_screenshot_region(
             self.game_window,
-            *constants.COORDINATES[self.resolution]['hists']['eor'][round_end_screen_item]
+            constants.COORDINATES[self.resolution]['hists']['eor'][round_end_screen_item]
         )
         delta = calc_cv2_hist_delta(
             histogram,
@@ -318,7 +317,7 @@ class GameInstanceManager:
     def is_spawn_menu_visible(self) -> bool:
         histogram = histogram_screenshot_region(
             self.game_window,
-            *constants.COORDINATES[self.resolution]['hists']['spawn-menu']['close-button']
+            constants.COORDINATES[self.resolution]['hists']['spawn-menu']['close-button']
         )
         delta = calc_cv2_hist_delta(
             histogram,
@@ -404,7 +403,7 @@ class GameInstanceManager:
         for coord_set in constants.COORDINATES[self.resolution]['hists']['teams']:
             histogram = histogram_screenshot_region(
                 self.game_window,
-                *coord_set
+                coord_set
             )
             team_selection_histograms.append(histogram)
 
@@ -440,14 +439,14 @@ class GameInstanceManager:
         if map_name is None or map_name not in self.histograms[self.resolution]['maps']['default-camera-view']:
             return False
 
-        left, top, right, bottom = self.game_window.rect
-        # Offset the screenshot to not include the window's title bar
         histogram = histogram_screenshot_region(
             self.game_window,
-            168,
-            constants.WINDOW_TITLE_BAR_HEIGHT,
-            right - left - 336,
-            bottom - top - 40
+            (
+                168,
+                0,
+                168,
+                0
+            )
         )
         delta = calc_cv2_hist_delta(
             histogram,
@@ -460,17 +459,16 @@ class GameInstanceManager:
                                        min_delta: float = .022) -> bool:
         histograms = []
 
-        left, top, right, bottom = self.game_window.rect
-
         # Take screenshots and calculate histograms
         for i in range(0, screenshot_count):
-            # Offset the screenshot to not include the window's title bar
             histogram = histogram_screenshot_region(
                 self.game_window,
-                168,
-                constants.WINDOW_TITLE_BAR_HEIGHT,
-                right - left - 336,
-                bottom - top - 40
+                (
+                    168,
+                    0,
+                    168,
+                    0
+                )
             )
             histograms.append(histogram)
 
@@ -649,11 +647,20 @@ class GameInstanceManager:
         don't expect an exact match with the command that was put in)
         """
         # Set screenshot width based on command length (add 5px per character)
+        left, top, right, bottom = self.game_window.rect
         return ocr_screenshot_region(
-            self.game_window.rect[0] + constants.COORDINATES[self.resolution]['ocr']['console-command'][0],
-            self.game_window.rect[1] + constants.COORDINATES[self.resolution]['ocr']['console-command'][1],
-            constants.COORDINATES[self.resolution]['ocr']['console-command'][2] + characters * 6,
-            constants.COORDINATES[self.resolution]['ocr']['console-command'][3]
+            (
+                left + constants.WINDOW_SHADOW_SIZE,
+                top + constants.WINDOW_TITLE_BAR_HEIGHT,
+                right - constants.WINDOW_SHADOW_SIZE - left - constants.WINDOW_SHADOW_SIZE,
+                bottom - constants.WINDOW_SHADOW_SIZE - top - constants.WINDOW_TITLE_BAR_HEIGHT
+            ),
+            crops=[(
+                constants.COORDINATES[self.resolution]['ocr']['console-command'][0][0],
+                constants.COORDINATES[self.resolution]['ocr']['console-command'][0][1],
+                constants.COORDINATES[self.resolution]['ocr']['console-command'][0][2] - characters * 6,
+                constants.COORDINATES[self.resolution]['ocr']['console-command'][0][3]
+            )]
         )
 
     @staticmethod
@@ -816,7 +823,7 @@ class GameInstanceManager:
         for side in ['table-icons-left', 'table-icons-right']:
             histogram = histogram_screenshot_region(
                 self.game_window,
-                *constants.COORDINATES[self.resolution]['hists']['scoreboard'][side]
+                constants.COORDINATES[self.resolution]['hists']['scoreboard'][side]
             )
 
             delta = calc_cv2_hist_delta(
