@@ -1,3 +1,4 @@
+from datetime import datetime, timedelta
 from typing import Tuple
 
 
@@ -7,7 +8,7 @@ class GameInstanceState:
     __spectator_on_server: bool = False
     __hud_hidden: bool = False
     __map_loading: bool = False
-    __active_join_possible: bool = False
+    __active_join_possible_after: datetime = None
 
     # TTL details
     __round_num: int = 0
@@ -59,11 +60,11 @@ class GameInstanceState:
     def map_loading(self) -> bool:
         return self.__map_loading
 
-    def set_active_join_possible(self, active_join_possible: bool):
-        self.__active_join_possible = active_join_possible
+    def set_active_join_possible(self, after: float):
+        self.__active_join_possible_after = datetime.now() + timedelta(seconds=after)
 
     def active_join_possible(self) -> bool:
-        return self.__active_join_possible
+        return self.__active_join_possible_after is not None and datetime.now() > self.__active_join_possible_after
 
     def increase_round_num(self):
         self.__round_num += 1
@@ -193,7 +194,7 @@ class GameInstanceState:
 
     # Reset relevant fields after map rotation
     def map_rotation_reset(self):
-        self.__active_join_possible = False
+        self.__active_join_possible_after = None
         self.__rotation_map_name = None
         self.__rotation_map_size = -1
         self.__rotation_game_mode = None
@@ -207,7 +208,7 @@ class GameInstanceState:
 
     # Reset relevant fields when round ended
     def round_end_reset(self):
-        self.__active_join_possible = False
+        self.__active_join_possible_after = None
         self.__round_team = -1
         self.__round_spawned = False
         self.__round_spawn_randomize_coordinates = False
@@ -226,7 +227,7 @@ class GameInstanceState:
         self.__spectator_on_server = False
         self.__hud_hidden = False
         self.__map_loading = False
-        self.__active_join_possible = False
+        self.__active_join_possible_after = None
         self.__round_num = 0
         self.__rotation_map_name = None
         self.__rotation_map_size = -1

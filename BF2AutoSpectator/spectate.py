@@ -439,16 +439,11 @@ def run():
 
                 # Give go-ahead for active joining
                 logger.debug('Enabling active joining')
-                gis.set_active_join_possible(True)
+                gis.set_active_join_possible(after=10)
 
-            if gis.active_join_possible():
-                # Check if join game button is present
-                logger.debug('Could actively join, checking for button')
-                joinGameButtonPresent = gim.is_join_game_button_visible()
-
-                if joinGameButtonPresent:
-                    # TODO
-                    pass
+            # Try to join the game if active join is possible
+            if gis.active_join_possible() and gim.join_game():
+                logger.debug('Entered game by clicking "Join game" button')
 
             time.sleep(3)
         elif onRoundFinishScreen:

@@ -872,11 +872,18 @@ class GameInstanceManager:
     def rotate_to_next_player():
         auto_press_key(0x2e)
 
-    def join_game(self) -> None:
+    def join_game(self) -> bool:
+        if not self.is_join_game_button_visible():
+            return False
+
         # Move cursor onto join game button and click
         mouse_move_to_game_window_coord(self.game_window, self.resolution, 'join-game-button')
         time.sleep(.2)
-        mouse_click_in_game_window(self.game_window)
+        mouse_click_in_game_window(self.game_window, legacy=True)
+
+        time.sleep(.5)
+
+        return not self.is_join_game_button_visible()
 
     def close_game_message(self) -> None:
         # Move cursor onto ok button and click
