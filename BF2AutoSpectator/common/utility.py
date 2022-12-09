@@ -94,13 +94,13 @@ class ImageOperation(Enum):
 def is_responding_pid(pid: int) -> bool:
     """Check if a program (based on its PID) is responding"""
     cmd = 'tasklist /FI "PID eq %d" /FI "STATUS eq running"' % pid
-    status = subprocess.Popen(cmd, stdout=subprocess.PIPE).stdout.read()
+    status = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE).stdout.read()
     return str(pid) in str(status)
 
 
 def taskkill_pid(pid: int) -> bool:
     cmd = 'taskkill /F /PID %d' % pid
-    output = subprocess.Popen(cmd, stdout=subprocess.PIPE).stdout.read()
+    output = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE).stdout.read()
     return 'has been terminated' in str(output)
 
 
@@ -448,7 +448,7 @@ def get_mod_from_command_line(pid: int) -> Optional[str]:
 
 def run_conman(args: List[str]) -> None:
     command = [os.path.join(Config.ROOT_DIR, 'redist', 'bf2-conman.exe'), '--no-gui', *args]
-    p = subprocess.run(command, timeout=1.0)
+    p = subprocess.run(command, timeout=1.0, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     return p.check_returncode()
 
 
