@@ -422,22 +422,20 @@ def run():
             time.sleep(3)
         elif mapBriefingPresent:
             logger.info('Map briefing present, checking map')
-            currentMapName = gim.get_map_name()
-            currentGameMode = gim.get_game_mode()
-            currentMapSize = gim.get_map_size()
+            mapName, mapSize, gameMode = gim.get_map_details()
 
             # Update map state if relevant and required
             # Map size should always be != -1 even for unknown maps, only reason for it being -1 would be that the map
-            # briefing was no longer visible when map size was checked (which is why we run it last)
-            if currentMapSize != -1 and (
-                    currentMapName != gis.get_rotation_map_name() or
-                    currentMapSize != gis.get_rotation_map_size() or
-                    currentGameMode != gis.get_rotation_game_mode()
+            # briefing was no longer visible when map size was checked
+            if mapSize != -1 and (
+                    mapName != gis.get_rotation_map_name() or
+                    mapSize != gis.get_rotation_map_size() or
+                    gameMode != gis.get_rotation_game_mode()
             ):
-                logger.debug(f'Updating map state: {currentMapName}; {currentGameMode}; {currentMapSize}')
-                gis.set_rotation_map_name(currentMapName)
-                gis.set_rotation_map_size(currentMapSize)
-                gis.set_rotation_game_mode(currentGameMode)
+                logger.debug(f'Updating map state: {mapName}/{mapSize}/{gameMode}')
+                gis.set_rotation_map_name(mapName)
+                gis.set_rotation_map_size(mapSize)
+                gis.set_rotation_game_mode(gameMode)
 
                 # Give go-ahead for active joining
                 logger.debug('Enabling active joining')

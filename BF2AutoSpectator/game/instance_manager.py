@@ -349,15 +349,27 @@ class GameInstanceManager:
 
         return delta < constants.HISTCMP_MAX_DELTA
 
-    def get_map_name(self) -> str:
-        # Screenshot and OCR map name area
-        ocr_result = ocr_screenshot_game_window_region(
+    def get_map_details(self) -> Tuple[str, int, str]:
+        ocr_map_name, ocr_map_size, ocr_game_mode = ocr_screenshot_game_window_region(
             self.game_window,
             self.resolution,
-            'eor-map-name',
+            'eor-map-details',
             image_ops=[(ImageOperation.invert, None)]
         )
 
+        logger.debug(f'Detected map details: {ocr_map_name}/{ocr_map_size}/{ocr_game_mode}')
+
+        # Normalize raw OCR results
+        map_name = self.normalize_map_name(ocr_map_name)
+        map_size = self.normalize_map_size(ocr_map_size)
+        game_mode = ocr_game_mode
+
+        logger.debug(f'Normalized map details: {map_name}/{map_size}/{game_mode}')
+
+        return map_name, map_size, game_mode
+
+    @staticmethod
+    def normalize_map_name(ocr_result: str) -> str:
         # Make sure any weird OCR result for 2v2/NvN maps are turned into just NvN
         ocr_result = MAP_NAME_REGEX_NvN.sub('\\1v\\2', ocr_result)
         # Replace spaces/underscores/dots with dashes
@@ -369,8 +381,6 @@ class GameInstanceManager:
 
         # Convert to lower case
         ocr_result = ocr_result.lower()
-
-        logger.debug(f'Detected map name is "{ocr_result}"')
 
         # Check if map is known
         # Also check while replacing first g with q, second t with i and trailing colon with e
@@ -390,35 +400,14 @@ class GameInstanceManager:
         else:
             return ocr_result
 
-    def get_map_size(self) -> int:
-        # Screenshot and OCR map size region
-        ocr_result = ocr_screenshot_game_window_region(
-            self.game_window,
-            self.resolution,
-            'eor-map-size',
-            image_ops=[(ImageOperation.invert, None)]
-        )
-
+    @staticmethod
+    def normalize_map_size(ocr_result: str) -> int:
         map_size = -1
         # Make sure ocr result only contains numbers
         if re.match(r'^[0-9]+$', ocr_result):
             map_size = int(ocr_result)
 
-        logger.debug(f'Detected map size is {map_size}')
-
         return map_size
-
-    def get_game_mode(self) -> str:
-        ocr_result = ocr_screenshot_game_window_region(
-            self.game_window,
-            self.resolution,
-            'eor-game-mode',
-            image_ops=[(ImageOperation.invert, None)]
-        )
-
-        logger.debug(f'Detected game mode is {ocr_result.lower()}')
-
-        return ocr_result.lower()
 
     def get_player_team(self) -> Optional[int]:
         # Get histograms of team selection areas
