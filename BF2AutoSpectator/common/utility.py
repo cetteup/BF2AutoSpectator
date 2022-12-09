@@ -45,7 +45,9 @@ class Window:
     def get_size(self) -> Tuple[int, int]:
         # Size on Windows contains the window header and the halo/shadow around the window,
         # which needs to be subtracted to get the real size
-        return self.rect[2] - 21, self.rect[3] - 44
+        left, top, right, bottom = self.rect
+        return right - constants.WINDOW_SHADOW_SIZE - left - constants.WINDOW_SHADOW_SIZE, \
+            bottom - constants.WINDOW_SHADOW_SIZE - top - constants.WINDOW_TITLE_BAR_HEIGHT
 
 
 class KeyBdInput(ctypes.Structure):
@@ -190,9 +192,9 @@ def is_cursor_on_game_window(game_window: Window) -> bool:
     is currently not in the menu (meaning we are controlling the mouse movement by mickeys), the cursor position is of
     no use. However, Windows flags the cursor as hidden and returns the handle as 0.
     """
-    shadow_left, shadow_bottom, shadow_right = constants.WINDOW_SHADOW_SIZE
-    if flags == 0 and handle == 0 or left + shadow_left <= px <= right - shadow_right and \
-            top + constants.WINDOW_TITLE_BAR_HEIGHT <= py <= bottom - shadow_bottom:
+    if flags == 0 and handle == 0 or \
+            left + constants.WINDOW_SHADOW_SIZE <= px <= right - constants.WINDOW_SHADOW_SIZE and \
+            top + constants.WINDOW_TITLE_BAR_HEIGHT <= py <= bottom - constants.WINDOW_SHADOW_SIZE:
         return True
 
     return False
