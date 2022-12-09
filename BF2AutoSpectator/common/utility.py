@@ -230,7 +230,7 @@ def mouse_reset(game_window: Window) -> None:
     :return:
     """
     left, top, right, bottom = game_window.rect
-    pyautogui.moveTo((right - left)/2, (bottom - top - 40)/2)
+    pyautogui.moveTo((right - left)/2 + left, (bottom - top - 40)/2 + top)
 
 
 def screenshot_region(
