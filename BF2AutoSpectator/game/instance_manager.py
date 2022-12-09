@@ -101,7 +101,11 @@ class GameInstanceManager:
         ]
 
         # Run command
-        p = subprocess.Popen(command, close_fds=True, cwd=self.game_path)
+        try:
+            p = subprocess.Popen(command, close_fds=True, cwd=self.game_path)
+        except (FileNotFoundError, PermissionError, subprocess.SubprocessError) as e:
+            logger.error(f'Failed to launch game instance ({e})')
+            return False, False, None
 
         # Wait for game window to come up
         game_window_present, correct_params, running_mod = False, False, None
