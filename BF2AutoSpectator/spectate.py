@@ -309,6 +309,10 @@ def run():
                 logger.info('Error reading from GameSpy-ish backend, restart required')
                 # Set restart flag
                 gis.set_error_restart_required(True)
+            elif 'server has refused the connection' in gameMessage:
+                logger.info('Failed to connect to GameSpy-ish backend, restart required')
+                # Set restart flag
+                gis.set_error_restart_required(True)
             else:
                 logger.critical(f'Unhandled game message: {gameMessage}')
                 gis.set_spectator_on_server(False)
