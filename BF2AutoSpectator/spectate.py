@@ -279,13 +279,13 @@ def run():
             gameMessage = gim.ocr_game_message()
 
             if 'full' in gameMessage:
-                logger.info('Server full, trying to rejoin in 30 seconds')
+                logger.warning('Server full, trying to rejoin in 30 seconds')
                 # Update state
                 gis.set_spectator_on_server(False)
                 # Connect to server waits 10, wait another 20 = 30
                 time.sleep(20)
             elif 'kicked' in gameMessage:
-                logger.info('Got kicked, trying to rejoin')
+                logger.warning('Got kicked, trying to rejoin')
                 # Update state
                 gis.set_spectator_on_server(False)
             elif 'banned' in gameMessage:
@@ -294,23 +294,23 @@ def run():
                 gis.set_halted(True)
             elif 'connection' in gameMessage and 'lost' in gameMessage or \
                     'failed to connect' in gameMessage:
-                logger.info('Connection lost, trying to reconnect')
+                logger.error('Connection lost, trying to reconnect')
                 # Update state
                 gis.set_spectator_on_server(False)
             elif 'modified content' in gameMessage:
-                logger.info('Got kicked for modified content, trying to rejoin')
+                logger.warning('Got kicked for modified content, trying to rejoin')
                 # Update state
                 gis.set_spectator_on_server(False)
             elif 'invalid ip address' in gameMessage:
-                logger.info('Join by ip dialogue bugged, restart required')
+                logger.error('Join by ip dialogue bugged, restart required')
                 # Set restart flag
                 gis.set_error_restart_required(True)
             elif 'error reading from the server' in gameMessage:
-                logger.info('Error reading from GameSpy-ish backend, restart required')
+                logger.error('Error reading from GameSpy-ish backend, restart required')
                 # Set restart flag
                 gis.set_error_restart_required(True)
             elif 'server has refused the connection' in gameMessage:
-                logger.info('Failed to connect to GameSpy-ish backend, restart required')
+                logger.error('Failed to connect to GameSpy-ish backend, restart required')
                 # Set restart flag
                 gis.set_error_restart_required(True)
             else:
