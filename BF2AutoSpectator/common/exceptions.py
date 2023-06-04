@@ -4,3 +4,7 @@ class SpectatorException(Exception):
 
 class SpawnCoordinatesNotAvailableException(SpectatorException):
     pass
+
+
+class ClientNotConnectedException(SpectatorException):
+    pass

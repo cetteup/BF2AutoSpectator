@@ -18,6 +18,7 @@ The goal is to provide a fully automated, fire-and-forget spectator for the game
 - game freeze detection and handling
 - support for 720p (1280x720) and 900p (1600x900) game window size/resolution
 - (optional) remote control using [bf2-auto-spectator-controller](https://github.com/cetteup/bf2-auto-spectator-controller)
+- (optional) control live stream via [OBS WebSocket](https://obsproject.com/kb/remote-control-guide)
 
 ## Command line arguments
 | Argument                | Description                                                    | Default                                        | Required |
@@ -34,6 +35,8 @@ The goal is to provide a fully automated, fire-and-forget spectator for the game
 | `--tesseract-path`      | Path to Tesseract install folder                               | C:\Program Files\Tesseract-OCR\                | No       |
 | `--use-controller`      | Use a bf2-auto-spectator-controller instance                   |                                                |          |
 | `--controller-base-uri` | Base uri of controller instance (format: http[s]://[hostname]) |                                                |          |
+| `--control-obs`         | Control OBS via WebSocket                                      |                                                |          |
+| `--obs-url`             | OBS WebSocket URL  (format: ws://:password@hostname:port)      |                                                |          |
 | `--debug-log`           | Add debugging information to log output                        |                                                |          |
 | `--debug-screenshot`    | Write any screenshots to disk for debugging                    |                                                |          |
 

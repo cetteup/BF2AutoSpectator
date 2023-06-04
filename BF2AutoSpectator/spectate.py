@@ -13,7 +13,7 @@ from BF2AutoSpectator.common.exceptions import SpawnCoordinatesNotAvailableExcep
 from BF2AutoSpectator.common.logger import logger
 from BF2AutoSpectator.common.utility import is_responding_pid, find_window_by_title, taskkill_pid, init_pytesseract
 from BF2AutoSpectator.game import GameInstanceManager
-from BF2AutoSpectator.remote import ControllerClient
+from BF2AutoSpectator.remote import ControllerClient, OBSClient
 
 
 def run():
@@ -40,10 +40,12 @@ def run():
                         type=int, default=1)
     parser.add_argument('--use-controller', dest='use_controller', action='store_true')
     parser.add_argument('--controller-base-uri', help='Base uri of web controller', type=str)
+    parser.add_argument('--control-obs', dest='control_obs', action='store_true')
+    parser.add_argument('--obs-url', help='OBS WebSocket URL in format "ws://:password@hostname:port"', type=str)
     parser.add_argument('--no-rtl-limit', dest='limit_rtl', action='store_false')
     parser.add_argument('--debug-log', dest='debug_log', action='store_true')
     parser.add_argument('--debug-screenshot', dest='debug_screenshot', action='store_true')
-    parser.set_defaults(limit_rtl=True, debug_log=False, debug_screenshot=False, use_controller=False)
+    parser.set_defaults(limit_rtl=True, debug_log=False, debug_screenshot=False, use_controller=False, control_obs=False)
     args = parser.parse_args()
 
     logger.setLevel(logging.DEBUG if args.debug_log else logging.INFO)
@@ -63,6 +65,8 @@ def run():
         instance_rtl=args.instance_rtl,
         use_controller=args.use_controller,
         controller_base_uri=args.controller_base_uri,
+        control_obs=args.control_obs,
+        obs_url=args.obs_url,
         resolution=args.game_res,
         debug_screenshot=args.debug_screenshot,
         min_iterations_on_player=args.min_iterations_on_player,
@@ -103,10 +107,16 @@ def run():
     cc = ControllerClient(
         config.get_controller_base_uri()
     )
+    obsc = OBSClient(
+        config.get_obs_url()
+    )
     cs = CommandStore()
 
     if config.use_controller():
         cc.connect()
+
+    if config.control_obs():
+        obsc.connect()
 
     # Try to find any existing game instance
     logger.info('Looking for an existing game instance')
@@ -215,6 +225,33 @@ def run():
             if cs.pop('respawn'):
                 logger.info('Respawn requested via controller, queueing respawn')
                 gis.set_round_spawned(False)
+
+        if config.control_obs():
+            streaming = None
+            try:
+                streaming = obsc.is_stream_active()
+            except Exception as e:
+                logger.error('Failed to check OBS stream status')
+                logger.error(str(e))
+
+            if streaming is True and (stopped or gis.halted()):
+                # Stop stream when stopped or game instance is halted
+                logger.info('Stopping OBS stream')
+                try:
+                    obsc.stop_stream()
+                    time.sleep(5)
+                except Exception as e:
+                    logger.error('Failed to stop OBS stream')
+                    logger.error(str(e))
+            elif streaming is False and not (stopped or gis.halted()) and bf2_window is not None:
+                # Start stream when neither stopped nor halted and BF2 window is open
+                logger.info('Starting OBS stream')
+                try:
+                    obsc.start_stream()
+                    time.sleep(5)
+                except Exception as e:
+                    logger.error('Failed to start OBS stream')
+                    logger.error(str(e))
 
         # Stop existing (and start a new) game instance if required
         if stopped or gis.rtl_restart_required() or gis.error_restart_required():
