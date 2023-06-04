@@ -7,4 +7,4 @@ requests==2.31.0
 pywin32==306
 psutil==5.9.5
 python-socketio[client]==5.8.0
-jellyfish==0.11.1
+jellyfish==0.11.2
