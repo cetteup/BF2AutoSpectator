@@ -110,21 +110,21 @@ def run():
 
     # Try to find any existing game instance
     logger.info('Looking for an existing game instance')
-    gotInstance, correctParams, *_ = gim.find_instance(config.get_server_mod())
+    got_instance, correct_params, *_ = gim.find_instance(config.get_server_mod())
 
     # Schedule restart if no instance was started/found
-    if not gotInstance:
+    if not got_instance:
         logger.info('Did not find any existing game instance, will launch a new one')
         gis.set_error_restart_required(True)
-    elif not correctParams:
+    elif not correct_params:
         logger.warning('Found game instance is not running with correct parameters, restart required')
         gis.set_error_restart_required(True)
 
     # Start with max to switch away from dead spectator right away
-    iterationsOnPlayer = config.get_max_iterations_on_player()
-    iterationsOnDefaultCameraView = 0
+    iterations_on_player = config.get_max_iterations_on_player()
+    iterations_on_default_camera_view = 0
     while True:
-        bf2Window = gim.get_game_window()
+        bf2_window = gim.get_game_window()
         # Try to bring BF2 window to foreground
         if not gis.error_restart_required():
             try:
@@ -135,7 +135,7 @@ def run():
                 gis.set_error_restart_required(True)
 
         # Check if game froze
-        if not gis.error_restart_required() and not is_responding_pid(bf2Window.pid):
+        if not gis.error_restart_required() and not is_responding_pid(bf2_window.pid):
             logger.info('Game froze, checking unresponsive count')
             # Game will temporarily freeze when map load finishes or when joining server, so don't restart right away
             if gis.get_error_unresponsive_count() < 3:
@@ -161,7 +161,7 @@ def run():
             gis.set_error_restart_required(True)
 
         # Check if a game restart command was issued to the controller
-        forceNextPlayer = False
+        force_next_player = False
         if config.use_controller():
             if cs.pop('game_restart'):
                 logger.info('Game restart requested via controller, queueing game restart')
@@ -178,7 +178,7 @@ def run():
                 # Unpause via config
                 config.unpause_player_rotation()
                 # Set counter to max to rotate off current player right away
-                iterationsOnPlayer = config.get_max_iterations_on_player()
+                iterations_on_player = config.get_max_iterations_on_player()
 
             if cs.pop('next_player'):
                 """
@@ -188,9 +188,9 @@ def run():
                 a) we did not *just* to this one or
                 b) the player rotation is paused (eliminates the risk, since we don't switch automatically)
                 """
-                if iterationsOnPlayer + 1 > config.get_min_iterations_on_player() or config.player_rotation_paused():
+                if iterations_on_player + 1 > config.get_min_iterations_on_player() or config.player_rotation_paused():
                     logger.info('Manual switch to next player requested via controller, queueing switch')
-                    forceNextPlayer = True
+                    force_next_player = True
                 else:
                     logger.info('Minimum number of iterations on player is not reached, '
                                 'ignoring controller request to switch to next player')
@@ -201,7 +201,7 @@ def run():
 
         # Start a new game instance if required
         if gis.rtl_restart_required() or gis.error_restart_required():
-            if bf2Window is not None and gis.rtl_restart_required():
+            if bf2_window is not None and gis.rtl_restart_required():
                 # Quit out of current instance
                 logger.info('Quitting existing game instance')
                 gis.set_rtl_restart_required(False)
@@ -212,17 +212,17 @@ def run():
                     logger.error('Quitting existing game instance failed, switching to error restart')
                     gis.set_error_restart_required(True)
             # Don't use elif here so error restart can be executed right after a failed quit attempt
-            if bf2Window is not None and gis.error_restart_required():
+            if bf2_window is not None and gis.error_restart_required():
                 # Kill any remaining instance by pid
                 logger.info('Killing existing game instance')
-                killed = taskkill_pid(bf2Window.pid)
+                killed = taskkill_pid(bf2_window.pid)
                 logger.debug(f'Instance killed: {killed}')
                 # Give Windows time to actually close the window
                 time.sleep(3)
 
             # Init game new game instance
             logger.info('Starting new game instance')
-            gotInstance, correctParams, runningMod = gim.launch_instance(config.get_server_mod())
+            got_instance, correct_params, running_mod = gim.launch_instance(config.get_server_mod())
 
             """
             BF2 will "magically" restart the game in order switch mods if we join a server with a different mod. Meaning
@@ -235,14 +235,14 @@ def run():
             We will now need to restart again in order to restore the correct resolution, but we need to start with
             "+modPath" set to what the game set during the restart.
             """
-            if runningMod is not None and runningMod != config.get_server_mod():
+            if running_mod is not None and running_mod != config.get_server_mod():
                 logger.warning(f'Game restart itself with a different mod, updating config')
-                config.set_server_mod(runningMod)
+                config.set_server_mod(running_mod)
 
-            if not gotInstance:
+            if not got_instance:
                 logger.error('Game instance was not launched, retrying')
                 continue
-            elif not correctParams:
+            elif not correct_params:
                 logger.error('Game instance was not launched with correct parameters, restart required')
                 continue
 
@@ -262,59 +262,59 @@ def run():
 
             # Connect to server
             logger.info('Connecting to server')
-            serverIp, serverPort, serverPass, *_ = config.get_server()
-            connected = gim.connect_to_server(serverIp, serverPort, serverPass)
+            server_ip, server_port, server_pass, *_ = config.get_server()
+            connected = gim.connect_to_server(server_ip, server_port, server_pass)
             # Reset state
             gis.restart_reset()
             gis.set_spectator_on_server(connected)
             gis.set_map_loading(connected)
             if connected:
-                gis.set_server(serverIp, serverPort, serverPass)
+                gis.set_server(server_ip, server_port, server_pass)
 
             continue
 
         # Make sure we are still in the game
         if gim.is_game_message_visible():
             logger.debug('Game message present, ocr-ing message')
-            gameMessage = gim.ocr_game_message()
+            game_message = gim.ocr_game_message()
 
-            if 'full' in gameMessage:
+            if 'full' in game_message:
                 logger.warning('Server full, trying to rejoin in 30 seconds')
                 # Update state
                 gis.set_spectator_on_server(False)
                 # Connect to server waits 10, wait another 20 = 30
                 time.sleep(20)
-            elif 'kicked' in gameMessage:
+            elif 'kicked' in game_message:
                 logger.warning('Got kicked, trying to rejoin')
                 # Update state
                 gis.set_spectator_on_server(False)
-            elif 'banned' in gameMessage:
+            elif 'banned' in game_message:
                 logger.critical('Got banned, contact server admin')
                 gis.set_spectator_on_server(False)
                 gis.set_halted(True)
-            elif 'connection' in gameMessage and 'lost' in gameMessage or \
-                    'failed to connect' in gameMessage:
+            elif 'connection' in game_message and 'lost' in game_message or \
+                    'failed to connect' in game_message:
                 logger.error('Connection lost, trying to reconnect')
                 # Update state
                 gis.set_spectator_on_server(False)
-            elif 'modified content' in gameMessage:
+            elif 'modified content' in game_message:
                 logger.warning('Got kicked for modified content, trying to rejoin')
                 # Update state
                 gis.set_spectator_on_server(False)
-            elif 'invalid ip address' in gameMessage:
+            elif 'invalid ip address' in game_message:
                 logger.error('Join by ip dialogue bugged, restart required')
                 # Set restart flag
                 gis.set_error_restart_required(True)
-            elif 'error reading from the server' in gameMessage:
+            elif 'error reading from the server' in game_message:
                 logger.error('Error reading from GameSpy-ish backend, restart required')
                 # Set restart flag
                 gis.set_error_restart_required(True)
-            elif 'server has refused the connection' in gameMessage:
+            elif 'server has refused the connection' in game_message:
                 logger.error('Failed to connect to GameSpy-ish backend, restart required')
                 # Set restart flag
                 gis.set_error_restart_required(True)
             else:
-                logger.critical(f'Unhandled game message: {gameMessage}')
+                logger.critical(f'Unhandled game message: {game_message}')
                 gis.set_spectator_on_server(False)
                 gis.set_halted(True)
 
@@ -333,7 +333,7 @@ def run():
 
         # Regularly update current server in case controller is restarted or loses state another way
         if config.use_controller() and gis.spectator_on_server() and \
-                iterationsOnPlayer == config.get_max_iterations_on_player():
+                iterations_on_player == config.get_max_iterations_on_player():
             cc.update_current_server(
                 gis.get_server_ip(),
                 gis.get_server_port(),
@@ -388,62 +388,62 @@ def run():
 
             # (Re-)connect to server
             logger.info('(Re-)Connecting to server')
-            serverIp, serverPort, serverPass, *_ = config.get_server()
-            connected = gim.connect_to_server(serverIp, serverPort, serverPass)
+            server_ip, server_port, server_pass, *_ = config.get_server()
+            connected = gim.connect_to_server(server_ip, server_port, server_pass)
             # Treat re-connecting as map rotation (state wise)
             gis.map_rotation_reset()
             # Update state
             gis.set_spectator_on_server(connected)
             gis.set_map_loading(connected)
             if connected:
-                gis.set_server(serverIp, serverPort, serverPass)
+                gis.set_server(server_ip, server_port, server_pass)
             else:
                 logger.error('Failed to (re-)connect to server')
             # Update controller
             if connected and config.use_controller():
-                cc.update_current_server(serverIp, serverPort, serverPass)
+                cc.update_current_server(server_ip, server_port, server_pass)
             continue
 
-        onRoundFinishScreen = gim.is_round_end_screen_visible()
-        mapIsLoading = gim.is_map_loading()
-        mapBriefingPresent = gim.is_map_briefing_visible()
-        defaultCameraViewVisible = gim.is_default_camera_view_visible()
+        on_round_finish_screen = gim.is_round_end_screen_visible()
+        map_is_loading = gim.is_map_loading()
+        map_briefing_present = gim.is_map_briefing_visible()
+        default_camera_view_visible = gim.is_default_camera_view_visible()
 
         # Update instance state if any map load/eor screen is present
         # (only _set_ map loading state here, since it should only be _unset_ when attempting to spawn
-        if not gis.map_loading() and (onRoundFinishScreen or mapIsLoading or mapBriefingPresent):
+        if not gis.map_loading() and (on_round_finish_screen or map_is_loading or map_briefing_present):
             gis.set_map_loading(True)
 
         # Always reset iteration counter if default camera view is no longer visible
-        if not defaultCameraViewVisible and iterationsOnDefaultCameraView > 0:
+        if not default_camera_view_visible and iterations_on_default_camera_view > 0:
             logger.info('Game is no longer on default camera view, resetting counter')
-            iterationsOnDefaultCameraView = 0
-        if config.limit_rtl() and onRoundFinishScreen and gis.get_round_num() >= config.get_instance_trl():
+            iterations_on_default_camera_view = 0
+        if config.limit_rtl() and on_round_finish_screen and gis.get_round_num() >= config.get_instance_trl():
             logger.info('Game instance has reached rtl limit, restart required')
             gis.set_rtl_restart_required(True)
-        elif mapIsLoading:
+        elif map_is_loading:
             logger.info('Map is loading')
             # Reset state once if it still reflected to be on the (same) map
             if gis.rotation_on_map():
                 logger.info('Performing map rotation reset')
                 gis.map_rotation_reset()
             time.sleep(3)
-        elif mapBriefingPresent:
+        elif map_briefing_present:
             logger.info('Map briefing present, checking map')
-            mapName, mapSize, gameMode = gim.get_map_details()
+            map_name, map_size, game_mode = gim.get_map_details()
 
             # Update map state if relevant and required
             # Map size should always be != -1 even for unknown maps, only reason for it being -1 would be that the map
             # briefing was no longer visible when map size was checked
-            if mapSize != -1 and (
-                    mapName != gis.get_rotation_map_name() or
-                    mapSize != gis.get_rotation_map_size() or
-                    gameMode != gis.get_rotation_game_mode()
+            if map_size != -1 and (
+                    map_name != gis.get_rotation_map_name() or
+                    map_size != gis.get_rotation_map_size() or
+                    game_mode != gis.get_rotation_game_mode()
             ):
-                logger.debug(f'Updating map state: {mapName}/{mapSize}/{gameMode}')
-                gis.set_rotation_map_name(mapName)
-                gis.set_rotation_map_size(mapSize)
-                gis.set_rotation_game_mode(gameMode)
+                logger.debug(f'Updating map state: {map_name}/{map_size}/{game_mode}')
+                gis.set_rotation_map_name(map_name)
+                gis.set_rotation_map_size(map_size)
+                gis.set_rotation_game_mode(game_mode)
 
                 # Give go-ahead for active joining
                 logger.debug('Enabling active joining')
@@ -454,43 +454,43 @@ def run():
                 logger.debug('Entered game by clicking "Join game" button')
 
             time.sleep(3)
-        elif onRoundFinishScreen:
+        elif on_round_finish_screen:
             logger.info('Game is on round finish screen')
             # Reset state
             gis.round_end_reset()
             # Unpause player rotation
             config.unpause_player_rotation()
             time.sleep(3)
-        elif defaultCameraViewVisible and gis.round_spawned() and \
-                iterationsOnDefaultCameraView == 0:
+        elif default_camera_view_visible and gis.round_spawned() and \
+                iterations_on_default_camera_view == 0:
             # In rare cases, an AFK/dead player might be detected as the default camera view
             # => try to rotate to next player to "exit" what is detected as the default camera view
             logger.info('Game is on default camera view, trying to rotate to next player')
             gim.rotate_to_next_player()
-            iterationsOnDefaultCameraView += 1
+            iterations_on_default_camera_view += 1
             time.sleep(3)
-        elif defaultCameraViewVisible and gis.round_spawned() and \
-                iterationsOnDefaultCameraView < config.get_max_iterations_on_default_camera_view():
+        elif default_camera_view_visible and gis.round_spawned() and \
+                iterations_on_default_camera_view < config.get_max_iterations_on_default_camera_view():
             # Default camera view is visible after spawning once, either after a round restart or after the round ended
             logger.info('Game is still on default camera view, waiting to see if round ended')
-            iterationsOnDefaultCameraView += 1
+            iterations_on_default_camera_view += 1
             time.sleep(3)
-        elif defaultCameraViewVisible and gis.round_spawned() and \
-                iterationsOnDefaultCameraView == config.get_max_iterations_on_default_camera_view():
+        elif default_camera_view_visible and gis.round_spawned() and \
+                iterations_on_default_camera_view == config.get_max_iterations_on_default_camera_view():
             # Default camera view has been visible for a while, most likely due to a round restart
             # => try to restart spectating by pressing space (only works on freecam-enabled servers)
             logger.info('Game is still on default camera view, trying to (re-)start spectating via freecam toggle')
             gim.start_spectating_via_freecam_toggle()
-            iterationsOnDefaultCameraView += 1
+            iterations_on_default_camera_view += 1
             time.sleep(3)
-        elif defaultCameraViewVisible and gis.round_spawned() and \
-                iterationsOnDefaultCameraView > config.get_max_iterations_on_default_camera_view():
+        elif default_camera_view_visible and gis.round_spawned() and \
+                iterations_on_default_camera_view > config.get_max_iterations_on_default_camera_view():
             # Default camera view has been visible for a while, failed to restart spectating by pressing space
             # => spawn-suicide again to restart spectating
             logger.info('Game is still on default camera view, queueing another spawn-suicide to restart spectating')
             gis.set_round_spawned(False)
-            iterationsOnDefaultCameraView = 0
-        elif defaultCameraViewVisible and not gis.round_spawned() and not gis.round_freecam_toggle_spawn_attempted():
+            iterations_on_default_camera_view = 0
+        elif default_camera_view_visible and not gis.round_spawned() and not gis.round_freecam_toggle_spawn_attempted():
             # Try to restart spectating without suiciding on consecutive rounds (only works on freecam-enabled servers)
             logger.info('Game is on default camera view, trying to (re-)start spectating via freecam toggle')
             gis.set_map_loading(False)
@@ -508,11 +508,11 @@ def run():
                 gis.set_rotation_on_map(True)
                 # No need to immediately rotate to next player (usually done after spawn-suicide)
                 # => set iteration counter to 0
-                iterationsOnPlayer = 0
+                iterations_on_player = 0
             else:
                 # Don't log this as an error since it's totally normal
                 logger.info('Failed to start spectating via freecam toggle, continuing to spawn-suicide')
-        elif not onRoundFinishScreen and not gis.round_spawned():
+        elif not on_round_finish_screen and not gis.round_spawned():
             # Loaded into map, now trying to start spectating
             gis.set_map_loading(False)
             # Re-enable hud if required
@@ -537,9 +537,9 @@ def run():
                 continue
 
             logger.info('Determining team')
-            currentTeam = gim.get_player_team()
-            if currentTeam is not None:
-                gis.set_round_team(currentTeam)
+            current_team = gim.get_player_team()
+            if current_team is not None:
+                gis.set_round_team(current_team)
                 logger.debug(f'Current team index is {gis.get_round_team()} '
                              f'({"USMC/EU/..." if gis.get_round_team() == 0 else "MEC/CHINA/..."})')
             elif gim.spawn_coordinates_available():
@@ -567,10 +567,10 @@ def run():
                     continue
 
             logger.info('Spawning once')
-            spawnSucceeded = False
+            spawn_succeeded = False
             if not gis.get_round_spawn_randomize_coordinates():
                 try:
-                    spawnSucceeded = gim.spawn_suicide()
+                    spawn_succeeded = gim.spawn_suicide()
                 except SpawnCoordinatesNotAvailableException:
                     logger.warning(f'Spawn point coordinates not available current combination of map/size/game mode '
                                    f'({gis.get_rotation_map_name()}/'
@@ -580,57 +580,57 @@ def run():
 
             if gis.get_round_spawn_randomize_coordinates():
                 logger.info(f'Attempting to spawn by selecting randomly generated spawn point coordinates')
-                spawnSucceeded = gim.spawn_suicide(randomize=True)
+                spawn_succeeded = gim.spawn_suicide(randomize=True)
 
-            if spawnSucceeded:
+            if spawn_succeeded:
                 logger.info('Spawn succeeded')
                 gis.reset_iterations_on_spawn_menu()
             else:
                 logger.warning('Spawn failed, retrying')
                 gis.increase_iterations_on_spawn_menu()
-            gis.set_round_spawned(spawnSucceeded)
+            gis.set_round_spawned(spawn_succeeded)
 
             # Set counter to max to skip spectator
-            iterationsOnPlayer = config.get_max_iterations_on_player()
+            iterations_on_player = config.get_max_iterations_on_player()
             # Unpause in order to not stay on the spectator after suicide
             config.unpause_player_rotation()
-        elif not onRoundFinishScreen and not gis.hud_hidden():
+        elif not on_round_finish_screen and not gis.hud_hidden():
             logger.info('Hiding hud')
             if not gim.toggle_hud(0):
                 logger.error(f'Failed to toggle hud, restart required')
                 gis.set_error_restart_required(True)
                 continue
             gis.set_hud_hidden(True)
-        elif not onRoundFinishScreen and not gis.rotation_on_map():
+        elif not on_round_finish_screen and not gis.rotation_on_map():
             # Increase round number/counter
             gis.increase_round_num()
             logger.debug(f'Entering round #{gis.get_round_num()} using this instance')
             # Spectator has "entered" map, update state accordingly
             gis.set_rotation_on_map(True)
-        elif not onRoundFinishScreen and iterationsOnPlayer < config.get_max_iterations_on_player() and \
-                not config.player_rotation_paused() and not forceNextPlayer:
+        elif not on_round_finish_screen and iterations_on_player < config.get_max_iterations_on_player() and \
+                not config.player_rotation_paused() and not force_next_player:
             # Check if player is afk
             if not gim.is_sufficient_action_on_screen():
                 logger.info('Insufficient action on screen')
-                iterationsOnPlayer = config.get_max_iterations_on_player()
+                iterations_on_player = config.get_max_iterations_on_player()
             else:
                 logger.info('Nothing to do, stay on player')
-                iterationsOnPlayer += 1
+                iterations_on_player += 1
                 time.sleep(2)
-        elif not onRoundFinishScreen and config.player_rotation_paused() and not forceNextPlayer:
+        elif not on_round_finish_screen and config.player_rotation_paused() and not force_next_player:
             logger.info(f'Player rotation is paused until {config.get_player_rotation_paused_until().isoformat()}')
             # If rotation pause flag is still set even though the pause expired, remove the flag
             if config.get_player_rotation_paused_until() < datetime.now():
                 logger.info('Player rotation pause expired, re-enabling rotation')
                 config.unpause_player_rotation()
                 # Set counter to max to rotate off current player right away
-                iterationsOnPlayer = config.get_max_iterations_on_player()
+                iterations_on_player = config.get_max_iterations_on_player()
             else:
                 time.sleep(2)
-        elif not onRoundFinishScreen:
+        elif not on_round_finish_screen:
             logger.info('Rotating to next player')
             gim.rotate_to_next_player()
-            iterationsOnPlayer = 0
+            iterations_on_player = 0
 
 
 if __name__ == '__main__':
