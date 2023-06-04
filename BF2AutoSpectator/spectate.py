@@ -123,10 +123,11 @@ def run():
     # Start with max to switch away from dead spectator right away
     iterations_on_player = config.get_max_iterations_on_player()
     iterations_on_default_camera_view = 0
+    stopped = False
     while True:
         bf2_window = gim.get_game_window()
         # Try to bring BF2 window to foreground
-        if not gis.error_restart_required():
+        if bf2_window is not None and not gis.error_restart_required():
             try:
                 gim.bring_to_foreground()
             except Exception as e:
@@ -135,7 +136,7 @@ def run():
                 gis.set_error_restart_required(True)
 
         # Check if game froze
-        if not gis.error_restart_required() and not is_responding_pid(bf2_window.pid):
+        if bf2_window is not None and not gis.error_restart_required() and not is_responding_pid(bf2_window.pid):
             logger.info('Game froze, checking unresponsive count')
             # Game will temporarily freeze when map load finishes or when joining server, so don't restart right away
             if gis.get_error_unresponsive_count() < 3:
@@ -148,7 +149,7 @@ def run():
             else:
                 logger.error('Unresponsive count exceeded limit, scheduling restart')
                 gis.set_error_restart_required(True)
-        elif not gis.error_restart_required() and gis.get_error_unresponsive_count() > 0:
+        elif bf2_window is not None and not gis.error_restart_required() and gis.get_error_unresponsive_count() > 0:
             logger.info('Game recovered from temp freeze, resetting unresponsive count')
             # Game got it together, reset unresponsive count
             gis.reset_error_unresponsive_count()
@@ -163,6 +164,22 @@ def run():
         # Check if a game restart command was issued to the controller
         force_next_player = False
         if config.use_controller():
+            if cs.pop('start'):
+                if stopped:
+                    logger.info('Start command issued via controller, queueing game start')
+                    stopped = False
+                    # Set restart required flag
+                    gis.set_error_restart_required(True)
+                else:
+                    logger.info('Not currently stopped, ignoring start command issued via controller')
+
+            if cs.pop('stop'):
+                if not stopped:
+                    logger.info('Stop command issued via controller, queueing game stop')
+                    stopped = True
+                else:
+                    logger.info('Already stopped, ignoring stop command issued via controller')
+
             if cs.pop('game_restart'):
                 logger.info('Game restart requested via controller, queueing game restart')
                 # Set restart required flag
@@ -199,9 +216,9 @@ def run():
                 logger.info('Respawn requested via controller, queueing respawn')
                 gis.set_round_spawned(False)
 
-        # Start a new game instance if required
-        if gis.rtl_restart_required() or gis.error_restart_required():
-            if bf2_window is not None and gis.rtl_restart_required():
+        # Stop existing (and start a new) game instance if required
+        if stopped or gis.rtl_restart_required() or gis.error_restart_required():
+            if bf2_window is not None and (stopped or gis.rtl_restart_required()):
                 # Quit out of current instance
                 logger.info('Quitting existing game instance')
                 gis.set_rtl_restart_required(False)
@@ -209,7 +226,7 @@ def run():
                     logger.debug('Successfully quit game instance')
                 else:
                     # If quit was not successful, switch to error restart
-                    logger.error('Quitting existing game instance failed, switching to error restart')
+                    logger.error('Quitting existing game instance failed, switching to killing process')
                     gis.set_error_restart_required(True)
             # Don't use elif here so error restart can be executed right after a failed quit attempt
             if bf2_window is not None and gis.error_restart_required():
@@ -219,6 +236,18 @@ def run():
                 logger.debug(f'Instance killed: {killed}')
                 # Give Windows time to actually close the window
                 time.sleep(3)
+
+            # Run find instance to update (dispose of) current game window reference
+            found_instance, *_ = gim.find_instance(config.get_server_mod())
+            if found_instance:
+                logger.error('Found game window after quitting/killing existing game instance, retrying')
+                gis.set_error_restart_required(True)
+                continue
+
+            # Don't launch a new instance when stopped
+            if stopped:
+                time.sleep(30)
+                continue
 
             # Init game new game instance
             logger.info('Starting new game instance')

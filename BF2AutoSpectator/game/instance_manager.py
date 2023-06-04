@@ -38,7 +38,7 @@ class GameInstanceManager:
     resolution: str
     histograms: dict
 
-    game_window: Window = None
+    game_window: Optional[Window] = None
 
     state: GameInstanceState
 
@@ -58,7 +58,7 @@ class GameInstanceManager:
     def get_state(self) -> GameInstanceState:
         return self.state
 
-    def get_game_window(self) -> Window:
+    def get_game_window(self) -> Optional[Window]:
         return self.game_window
 
     """
