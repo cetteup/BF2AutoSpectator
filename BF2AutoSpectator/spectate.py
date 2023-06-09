@@ -275,11 +275,7 @@ def run():
                 time.sleep(3)
 
             # Run find instance to update (dispose of) current game window reference
-            found_instance, *_ = gim.find_instance(config.get_server_mod())
-            if found_instance:
-                logger.error('Found game window after quitting/killing existing game instance, retrying')
-                gis.set_error_restart_required(True)
-                continue
+            gim.find_instance(config.get_server_mod())
 
             # Don't launch a new instance when stopped
             if stopped:
