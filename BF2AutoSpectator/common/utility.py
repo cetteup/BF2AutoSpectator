@@ -453,4 +453,4 @@ def run_conman(args: List[str]) -> None:
 
 
 def is_similar_str(a: str, b: str, threshold: float = .8) -> bool:
-    return jellyfish.jaro_distance(a, b) >= threshold
+    return jellyfish.jaro_similarity(a, b) >= threshold
