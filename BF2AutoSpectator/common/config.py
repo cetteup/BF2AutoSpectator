@@ -1,6 +1,6 @@
 import os
 from datetime import datetime, timedelta
-from typing import Tuple
+from typing import Tuple, Optional
 
 from BF2AutoSpectator.common import constants
 from BF2AutoSpectator.common.classes import Singleton
@@ -15,7 +15,7 @@ class Config(metaclass=Singleton):
     __player_pass: str
     __server_ip: str
     __server_port: str
-    __server_pass: str
+    __server_pass: Optional[str]
     __server_mod: str
 
     __game_path: str
@@ -77,13 +77,13 @@ class Config(metaclass=Singleton):
     def get_player_pass(self) -> str:
         return self.__player_pass
 
-    def set_server(self, server_ip: str, server_port: str, server_pass: str, server_mod: str) -> None:
+    def set_server(self, server_ip: str, server_port: str, server_pass: Optional[str], server_mod: str) -> None:
         self.__server_ip = server_ip
         self.__server_port = server_port
         self.__server_pass = server_pass
         self.__server_mod = server_mod
 
-    def get_server(self) -> Tuple[str, str, str, str]:
+    def get_server(self) -> Tuple[str, str, Optional[str], str]:
         return self.__server_ip, self.__server_port, self.__server_pass, self.__server_mod
 
     def set_server_ip(self, server_ip: str) -> None:

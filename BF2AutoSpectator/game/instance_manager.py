@@ -515,7 +515,7 @@ class GameInstanceManager:
         win32gui.ShowWindow(self.game_window.handle, win32con.SW_SHOW)
         win32gui.SetForegroundWindow(self.game_window.handle)
 
-    def connect_to_server(self, server_ip: str, server_port: str, server_pass: str = None) -> bool:
+    def connect_to_server(self, server_ip: str, server_port: str, server_pass: Optional[str] = None) -> bool:
         if not self.is_multiplayer_menu_active():
             # Move cursor onto multiplayer menu item and click
             mouse_move_to_game_window_coord(self.game_window, self.resolution, 'multiplayer-menu-item')

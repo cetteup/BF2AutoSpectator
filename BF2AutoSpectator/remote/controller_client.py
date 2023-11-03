@@ -27,7 +27,7 @@ class ControllerClient:
         def on_join_server(join_server):
             logger.info(f'Controller sent a server to join ({join_server["ip"]}:{join_server["port"]})')
             config = Config()
-            config.set_server(join_server['ip'], join_server['port'], join_server['password'], 'bf2')
+            config.set_server(join_server['ip'], join_server['port'], join_server.get('password'), 'bf2')
 
         @self.sio.on('command')
         def on_command(command):
