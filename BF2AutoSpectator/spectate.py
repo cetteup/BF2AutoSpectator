@@ -226,6 +226,10 @@ def run():
                 logger.info('Respawn requested via controller, queueing respawn')
                 gis.set_round_spawned(False)
 
+            if cs.pop('rejoin'):
+                logger.info('Rejoin requested via controller, queuing disconnect')
+                gis.set_spectator_on_server(False)
+
         if config.control_obs():
             streaming = None
             try:
