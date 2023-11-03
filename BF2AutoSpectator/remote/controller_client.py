@@ -44,14 +44,12 @@ class ControllerClient:
     def __del__(self):
         self.sio.disconnect()
 
-    def update_current_server(self, server_ip: str, server_port: str, server_pass: str = None,
-                              in_rotation: bool = False) -> None:
+    def update_current_server(self, server_ip: str, server_port: str, server_pass: str = None) -> None:
         try:
             self.sio.emit('current', {
                 'ip': server_ip,
                 'port': server_port,
-                'password': server_pass,
-                'in_rotation': in_rotation
+                'password': server_pass
             }, namespace='/server')
         except socketio.client.exceptions.SocketIOError as e:
             logger.error(f'Failed to send current server to controller ({e})')
