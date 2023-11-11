@@ -638,7 +638,7 @@ def run():
                 try:
                     spawn_succeeded = gim.spawn_suicide()
                 except SpawnCoordinatesNotAvailableException:
-                    logger.warning(f'Spawn point coordinates not available current combination of map/size/game mode '
+                    logger.warning(f'Spawn point coordinates not available for current combination of map/size/game mode '
                                    f'({gis.get_rotation_map_name()}/'
                                    f'{gis.get_rotation_map_size()}/'
                                    f'{gis.get_rotation_game_mode()}), switching to spawn point coordinate randomization')
