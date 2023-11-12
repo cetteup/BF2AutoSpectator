@@ -89,8 +89,8 @@ def run():
     with open(os.path.join(config.ROOT_DIR, 'pickle', 'histograms.pickle'), 'rb') as histogramFile:
         histograms = pickle.load(histogramFile)
 
-    # Init debug directory if debugging is enabled
-    if config.debug_screenshot():
+    # Init debug directory if debugging is/could be enabled
+    if config.debug_screenshot() or config.use_controller():
         # Create debug output dir if needed
         if not os.path.isdir(config.DEBUG_DIR):
             os.mkdir(Config.DEBUG_DIR)
@@ -229,6 +229,16 @@ def run():
             if cs.pop('rejoin'):
                 logger.info('Rejoin requested via controller, queuing disconnect')
                 gis.set_spectator_on_server(False)
+
+            if cs.pop('debug'):
+                if logger.level != logging.DEBUG or not config.debug_screenshot():
+                    logger.info('Debug toggle issued via controller, enabling debug options')
+                    logger.setLevel(logging.DEBUG)
+                    config.set_debug_screenshot(True)
+                else:
+                    logger.info('Debug toggle issued via controller, disabling debug options')
+                    logger.setLevel(logging.INFO)
+                    config.set_debug_screenshot(False)
 
         if config.control_obs():
             streaming = None

@@ -140,6 +140,9 @@ class Config(metaclass=Singleton):
     def debug_screenshot(self) -> bool:
         return self.__debug_screenshot
 
+    def set_debug_screenshot(self, debug_screenshot: bool) -> None:
+        self.__debug_screenshot = debug_screenshot
+
     def get_min_iterations_on_player(self) -> int:
         return self.__min_iterations_on_player
 
