@@ -274,12 +274,15 @@ def screenshot_region(
         config = Config()
         if config.debug_screenshot():
             # Save screenshot
-            cropped.save(
-                os.path.join(
-                    Config.DEBUG_DIR,
-                    f'screenshot-{datetime.now().strftime("%Y-%m-%d-%H-%M-%S-%f")}.jpg'
+            try:
+                cropped.save(
+                    os.path.join(
+                        Config.DEBUG_DIR,
+                        f'screenshot-{datetime.now().strftime("%Y-%m-%d-%H-%M-%S-%f")}.jpg'
+                    )
                 )
-            )
+            except OSError as e:
+                logger.error(f'Failed to save screenshot to disk: {e}')
 
         results.append(cropped)
 
