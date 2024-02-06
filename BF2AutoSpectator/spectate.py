@@ -646,6 +646,7 @@ def run():
             current_team = gim.get_player_team()
             if current_team is not None:
                 gis.set_round_team(current_team)
+                gis.set_round_spawn_randomize_coordinates(False)
                 logger.debug(f'Current team index is {gis.get_round_team()} '
                              f'({"USMC/EU/..." if gis.get_round_team() == 0 else "MEC/CHINA/..."})')
             elif gim.spawn_coordinates_available():
