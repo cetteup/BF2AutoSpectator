@@ -8,4 +8,4 @@ pywin32==306
 psutil==5.9.6
 python-socketio[client]==5.10.0
 jellyfish==1.0.1
-obsws-python==1.6.2
+obsws-python==1.7.0
