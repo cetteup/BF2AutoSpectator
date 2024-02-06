@@ -7,5 +7,5 @@ requests==2.31.0
 pywin32==306
 psutil==5.9.6
 python-socketio[client]==5.11.1
-jellyfish==1.0.1
+jellyfish==1.0.3
 obsws-python==1.7.0
