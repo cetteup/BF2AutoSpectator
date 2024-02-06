@@ -1,8 +1,25 @@
+from enum import Enum
+
 import socketio
 
 from BF2AutoSpectator.common.commands import CommandStore
 from BF2AutoSpectator.common.config import Config
 from BF2AutoSpectator.common.logger import logger
+
+
+class GamePhase(str, Enum):
+    initial = 'initializing'
+    launching = 'launching'
+    inMenu = 'in-menu'
+    loading = 'loading'
+    spawning = 'spawning'
+    spectating = 'spectating'
+    betweenRounds = 'between-rounds'
+    closing = 'closing'
+    starting = 'starting'
+    stopping = 'stopping'
+    stopped = 'stopped'
+    halted = 'halted'
 
 
 class ControllerClient:
@@ -36,7 +53,7 @@ class ControllerClient:
             cs.set(command['key'], command['value'])
 
     def connect(self) -> None:
-        self.sio.connect(self.base_uri, namespaces=['/', '/server'])
+        self.sio.connect(self.base_uri, namespaces=['/', '/server', '/game'])
 
     def disconnect(self) -> None:
         self.sio.disconnect()
@@ -45,6 +62,9 @@ class ControllerClient:
         self.sio.disconnect()
 
     def update_current_server(self, server_ip: str, server_port: str, server_pass: str = None) -> None:
+        if not self.sio.connected:
+            return
+
         try:
             self.sio.emit('current', {
                 'ip': server_ip,
@@ -53,3 +73,12 @@ class ControllerClient:
             }, namespace='/server')
         except socketio.client.exceptions.SocketIOError as e:
             logger.error(f'Failed to send current server to controller ({e})')
+
+    def update_game_phase(self, phase: GamePhase) -> None:
+        if not self.sio.connected:
+            return
+
+        try:
+            self.sio.emit('phase', phase, namespace='/game')
+        except socketio.client.exceptions.SocketIOError as e:
+            logger.error(f'Failed to send game phase to controller ({e})')

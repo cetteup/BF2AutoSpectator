@@ -13,7 +13,7 @@ from BF2AutoSpectator.common.exceptions import SpawnCoordinatesNotAvailableExcep
 from BF2AutoSpectator.common.logger import logger
 from BF2AutoSpectator.common.utility import is_responding_pid, find_window_by_title, taskkill_pid, init_pytesseract
 from BF2AutoSpectator.game import GameInstanceManager
-from BF2AutoSpectator.remote import ControllerClient, OBSClient
+from BF2AutoSpectator.remote import ControllerClient, GamePhase, OBSClient
 
 
 def run():
@@ -114,6 +114,7 @@ def run():
 
     if config.use_controller():
         cc.connect()
+        cc.update_game_phase(GamePhase.initial)
 
     if config.control_obs():
         obsc.connect()
@@ -177,6 +178,7 @@ def run():
             if cs.pop('start'):
                 if stopped:
                     logger.info('Start command issued via controller, queueing game start')
+                    cc.update_game_phase(GamePhase.starting)
                     stopped = False
                     # Set restart required flag
                     gis.set_error_restart_required(True)
@@ -186,6 +188,7 @@ def run():
             if cs.pop('stop'):
                 if not stopped:
                     logger.info('Stop command issued via controller, queueing game stop')
+                    cc.update_game_phase(GamePhase.stopping)
                     stopped = True
                 else:
                     logger.info('Already stopped, ignoring stop command issued via controller')
@@ -270,6 +273,7 @@ def run():
         # Stop existing (and start a new) game instance if required
         if stopped or gis.rtl_restart_required() or gis.error_restart_required():
             if bf2_window is not None and (stopped or gis.rtl_restart_required()):
+                cc.update_game_phase(GamePhase.closing)
                 # Quit out of current instance
                 logger.info('Quitting existing game instance')
                 gis.set_rtl_restart_required(False)
@@ -279,8 +283,10 @@ def run():
                     # If quit was not successful, switch to error restart
                     logger.error('Quitting existing game instance failed, switching to killing process')
                     gis.set_error_restart_required(True)
+
             # Don't use elif here so error restart can be executed right after a failed quit attempt
             if bf2_window is not None and gis.error_restart_required():
+                cc.update_game_phase(GamePhase.closing)
                 # Kill any remaining instance by pid
                 logger.info('Killing existing game instance')
                 killed = taskkill_pid(bf2_window.pid)
@@ -293,11 +299,13 @@ def run():
 
             # Don't launch a new instance when stopped
             if stopped:
+                cc.update_game_phase(GamePhase.stopped)
                 time.sleep(30)
                 continue
 
             # Init game new game instance
             logger.info('Starting new game instance')
+            cc.update_game_phase(GamePhase.launching)
             got_instance, correct_params, running_mod = gim.launch_instance(config.get_server_mod())
 
             """
@@ -331,7 +339,9 @@ def run():
                 continue
 
             # Ensure game menu is open, try to open it if not
-            if not gim.is_in_menu() and not gim.open_menu():
+            if gim.is_in_menu() or gim.open_menu():
+                cc.update_game_phase(GamePhase.inMenu)
+            else:
                 logger.error('Game menu is not visible and could not be opened, restart required')
                 gis.set_error_restart_required(True)
                 continue
@@ -345,12 +355,14 @@ def run():
             gis.set_spectator_on_server(connected)
             gis.set_map_loading(connected)
             if connected:
+                cc.update_game_phase(GamePhase.loading)
                 gis.set_server(server_ip, server_port, server_pass)
 
             continue
 
         # Make sure we are still in the game
         if gim.is_game_message_visible():
+            cc.update_game_phase(GamePhase.inMenu)
             logger.debug('Game message present, ocr-ing message')
             game_message = gim.ocr_game_message()
 
@@ -400,6 +412,7 @@ def run():
             elif config.use_controller():
                 # The situation that caused us to halt can be rectified via the controller
                 # (game restart/switching servers)
+                cc.update_game_phase(GamePhase.halted)
                 time.sleep(20)
             else:
                 # There is no clear way to recover without a controller, so just exit
@@ -427,6 +440,7 @@ def run():
             iteration if menu does not open in time.
             """
             if (gim.is_in_menu() or gim.open_menu(max_attempts=1, sleep=3.0)) and gim.disconnect_from_server():
+                cc.update_game_phase(GamePhase.inMenu)
                 gis.set_spectator_on_server(False)
 
                 # If game instance is about to be replaced, add one more round on the new server
@@ -448,7 +462,9 @@ def run():
             Don't spam press ESC before (re-)joining. It can lead to the game opening the menu again after the map has
             loaded. Instead, press ESC once and wait a bit longer. Fail and restart game if menu does not open in time.
             """
-            if not gim.is_in_menu() and not gim.open_menu(max_attempts=1, sleep=3.0):
+            if gim.is_in_menu() or gim.open_menu(max_attempts=1, sleep=3.0):
+                cc.update_game_phase(GamePhase.inMenu)
+            else:
                 logger.error('Game menu is not visible and could not be opened, restart required')
                 gis.set_error_restart_required(True)
                 continue
@@ -472,6 +488,7 @@ def run():
             gis.set_spectator_on_server(connected)
             gis.set_map_loading(connected)
             if connected:
+                cc.update_game_phase(GamePhase.loading)
                 gis.set_server(server_ip, server_port, server_pass)
             else:
                 logger.error('Failed to (re-)connect to server')
@@ -502,8 +519,11 @@ def run():
             # Reset state once if it still reflected to be "in" the round
             if gis.round_entered():
                 logger.info('Performing map rotation reset')
+                cc.update_game_phase(GamePhase.betweenRounds)
                 gis.map_rotation_reset()
                 continue
+            # Set loading phase *after* between rounds phase to make sure we go spectating -> between rounds -> loading
+            cc.update_game_phase(GamePhase.loading)
             time.sleep(3)
         elif map_briefing_present:
             logger.info('Map briefing present, checking map')
@@ -536,6 +556,7 @@ def run():
             # Reset state once if it still reflected to be "in" the round
             if gis.round_entered():
                 logger.info('Performing round end reset')
+                cc.update_game_phase(GamePhase.betweenRounds)
                 gis.round_end_reset()
                 continue
             time.sleep(3)
@@ -578,6 +599,7 @@ def run():
             # Set round spawned to true of default camera view is no longer visible, else enable hud for spawn-suicide
             if not gim.is_default_camera_view_visible():
                 logger.info('Started spectating via freecam toggle, skipping spawn-suicide')
+                cc.update_game_phase(GamePhase.spectating)
                 gis.set_round_spawned(True)
                 # Increase round number/counter
                 gis.increase_round_num()
@@ -595,6 +617,7 @@ def run():
                 logger.info('Failed to start spectating via freecam toggle, continuing to spawn-suicide')
         elif not on_round_finish_screen and not gis.round_spawned():
             # Loaded into map, now trying to start spectating
+            cc.update_game_phase(GamePhase.spawning)
             gis.set_map_loading(False)
             # Re-enable hud if required
             if gis.hud_hidden():
@@ -681,6 +704,7 @@ def run():
                 logger.error(f'Failed to toggle hud, restart required')
                 gis.set_error_restart_required(True)
                 continue
+            cc.update_game_phase(GamePhase.spectating)
             gis.set_hud_hidden(True)
         elif not on_round_finish_screen and not gis.round_entered():
             # Increase round number/counter
