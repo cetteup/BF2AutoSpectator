@@ -1,4 +1,4 @@
-Pillow==10.1.0
+Pillow==10.2.0
 PyAutoGUI==0.9.54
 numpy==1.26.1
 opencv_python==4.8.1.78
