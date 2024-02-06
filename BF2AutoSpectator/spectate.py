@@ -164,6 +164,8 @@ def run():
             logger.info('Game recovered from temp freeze, resetting unresponsive count')
             # Game got it together, reset unresponsive count
             gis.reset_error_unresponsive_count()
+            # Wait for a few seconds to let game settle back in
+            time.sleep(3)
 
         # Check for (debug assertion and Visual C++ Runtime) error window
         if not gis.error_restart_required() and \
