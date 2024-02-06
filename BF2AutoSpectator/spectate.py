@@ -499,10 +499,11 @@ def run():
             gis.set_rtl_restart_required(True)
         elif map_is_loading:
             logger.info('Map is loading')
-            # Reset state once if it still reflected to be on the (same) map
-            if gis.rotation_on_map():
+            # Reset state once if it still reflected to be "in" the round
+            if gis.round_entered():
                 logger.info('Performing map rotation reset')
                 gis.map_rotation_reset()
+                continue
             time.sleep(3)
         elif map_briefing_present:
             logger.info('Map briefing present, checking map')
@@ -532,10 +533,11 @@ def run():
             time.sleep(3)
         elif on_round_finish_screen:
             logger.info('Game is on round finish screen')
-            # Reset state
-            gis.round_end_reset()
-            # Unpause player rotation
-            config.unpause_player_rotation()
+            # Reset state once if it still reflected to be "in" the round
+            if gis.round_entered():
+                logger.info('Performing round end reset')
+                gis.round_end_reset()
+                continue
             time.sleep(3)
         elif default_camera_view_visible and gis.round_spawned() and \
                 iterations_on_default_camera_view == 0:
@@ -580,8 +582,11 @@ def run():
                 # Increase round number/counter
                 gis.increase_round_num()
                 logger.debug(f'Entering round #{gis.get_round_num()} using this instance')
-                # Spectator has "entered" map, update state accordingly
-                gis.set_rotation_on_map(True)
+                # Spectator has "entered" round, update state accordingly
+                gis.set_round_entered(True)
+                # We entered a new round, so we most likely won't be on the player the rotation was originally paused on
+                # => unpause rotation
+                config.unpause_player_rotation()
                 # No need to immediately rotate to next player (usually done after spawn-suicide)
                 # => set iteration counter to 0
                 iterations_on_player = 0
@@ -677,12 +682,12 @@ def run():
                 gis.set_error_restart_required(True)
                 continue
             gis.set_hud_hidden(True)
-        elif not on_round_finish_screen and not gis.rotation_on_map():
+        elif not on_round_finish_screen and not gis.round_entered():
             # Increase round number/counter
             gis.increase_round_num()
             logger.debug(f'Entering round #{gis.get_round_num()} using this instance')
-            # Spectator has "entered" map, update state accordingly
-            gis.set_rotation_on_map(True)
+            # Spectator has "entered" round, update state accordingly
+            gis.set_round_entered(True)
         elif not on_round_finish_screen and iterations_on_player < config.get_max_iterations_on_player() and \
                 not config.player_rotation_paused() and not force_next_player:
             # Check if player is afk

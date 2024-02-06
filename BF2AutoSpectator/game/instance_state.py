@@ -27,7 +27,7 @@ class GameInstanceState:
     __round_spawned: bool = False
     __round_spawn_randomize_coordinates: bool = False
     __round_freecam_toggle_spawn_attempted: bool = False
-    __rotation_on_map: bool = False
+    __round_entered: bool = False
 
     # Round details
     __round_team: int = -1
@@ -132,11 +132,11 @@ class GameInstanceState:
     def get_rotation_game_mode(self) -> str:
         return self.__rotation_game_mode
 
-    def set_rotation_on_map(self, on_map: bool):
-        self.__rotation_on_map = on_map
+    def set_round_entered(self, entered: bool):
+        self.__round_entered = entered
 
-    def rotation_on_map(self) -> bool:
-        return self.__rotation_on_map
+    def round_entered(self) -> bool:
+        return self.__round_entered
 
     def set_round_team(self, team: int):
         self.__round_team = team
@@ -198,7 +198,7 @@ class GameInstanceState:
         self.__rotation_map_name = None
         self.__rotation_map_size = -1
         self.__rotation_game_mode = None
-        self.__rotation_on_map = False
+        self.__round_entered = False
         self.__round_team = -1
         self.__round_spawned = False
         self.__round_spawn_randomize_coordinates = False
@@ -209,6 +209,7 @@ class GameInstanceState:
     # Reset relevant fields when round ended
     def round_end_reset(self):
         self.__active_join_possible_after = None
+        self.__round_entered = False
         self.__round_team = -1
         self.__round_spawned = False
         self.__round_spawn_randomize_coordinates = False
@@ -232,7 +233,7 @@ class GameInstanceState:
         self.__rotation_map_name = None
         self.__rotation_map_size = -1
         self.__rotation_game_mode = None
-        self.__rotation_on_map = False
+        self.__round_entered = False
         self.__round_team = -1
         self.__round_spawned = False
         self.__round_spawn_randomize_coordinates = False
