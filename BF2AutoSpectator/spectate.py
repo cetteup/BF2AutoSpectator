@@ -261,7 +261,9 @@ def run():
                 logger.error('Failed to check OBS stream status')
                 logger.error(str(e))
 
-            if streaming is True and (stopped or gis.halted()):
+            # When halted, only stop stream after a 180-second grace period to make the reason (error message)
+            # visible for viewers and/or allow controller to initiate a server switch, resolving the halted state
+            if streaming is True and (stopped or gis.halted(grace_period=180)):
                 # Stop stream when stopped or game instance is halted
                 logger.info('Stopping OBS stream')
                 try:

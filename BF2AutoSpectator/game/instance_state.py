@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta
-from typing import Tuple
+from typing import Tuple, Optional
 
 
 class GameInstanceState:
@@ -39,7 +39,7 @@ class GameInstanceState:
     # Error details
     __error_unresponsive_count = 0
     __error_restart_required: bool = False
-    __halted: bool = False
+    __halted_since: Optional[datetime] = None
 
     # Global getter/setter functions
     def set_spectator_on_server(self, spectator_on_server: bool):
@@ -187,10 +187,15 @@ class GameInstanceState:
         return self.__error_restart_required
 
     def set_halted(self, halted: bool):
-        self.__halted = halted
+        # Don't overwrite any existing timestamp
+        if self.__halted_since is not None:
+            return
+        self.__halted_since = datetime.now() if halted else None
 
-    def halted(self) -> bool:
-        return self.__halted
+    def halted(self, grace_period: float = 0.0) -> bool:
+        if self.__halted_since is None:
+            return False
+        return datetime.now() >= self.__halted_since + timedelta(seconds=grace_period)
 
     # Reset relevant fields after map rotation
     def map_rotation_reset(self):
@@ -242,4 +247,4 @@ class GameInstanceState:
         self.__iterations_on_spawn_menu = 0
         self.__error_unresponsive_count = 0
         self.__error_restart_required = False
-        self.__halted = False
+        self.__halted_since = None
