@@ -135,6 +135,7 @@ def run():
     iterations_on_player = config.get_max_iterations_on_player()
     iterations_on_default_camera_view = 0
     stopped = False
+    release = False
     while True:
         bf2_window = gim.get_game_window()
         # Try to bring BF2 window to foreground
@@ -194,6 +195,13 @@ def run():
                     stopped = True
                 else:
                     logger.info('Already stopped, ignoring stop command issued via controller')
+
+            if cs.pop('release'):
+                if gis.halted():
+                    logger.info('Release command issued via controller, queuing release')
+                    release = True
+                else:
+                    logger.info('Not currently halted, ignoring release command issued via controller')
 
             if cs.pop('game_restart'):
                 logger.info('Game restart requested via controller, queueing game restart')
@@ -301,6 +309,7 @@ def run():
 
             # Don't launch a new instance when stopped
             if stopped:
+                cc.reset_current_server()
                 cc.update_game_phase(GamePhase.stopped)
                 time.sleep(30)
                 continue
@@ -364,7 +373,6 @@ def run():
 
         # Make sure we are still in the game
         if gim.is_game_message_visible():
-            cc.update_game_phase(GamePhase.inMenu)
             logger.debug('Game message present, ocr-ing message')
             game_message = gim.ocr_game_message()
 
@@ -378,7 +386,7 @@ def run():
                 logger.warning('Got kicked, trying to rejoin')
                 # Update state
                 gis.set_spectator_on_server(False)
-            elif 'banned' in game_message:
+            elif 'banned' in game_message and not (gis.halted() and release):
                 logger.critical('Got banned, contact server admin')
                 gis.set_spectator_on_server(False)
                 gis.set_halted(True)
@@ -403,18 +411,31 @@ def run():
                 logger.error('Failed to connect to GameSpy-ish backend, restart required')
                 # Set restart flag
                 gis.set_error_restart_required(True)
-            else:
+            elif not (gis.halted() and release):
                 logger.critical(f'Unhandled game message: {game_message}')
                 gis.set_spectator_on_server(False)
                 gis.set_halted(True)
 
             if not gis.halted():
+                cc.update_game_phase(GamePhase.inMenu)
                 # Close game message to enable actions
                 gim.close_game_message()
+            elif release:
+                cc.update_game_phase(GamePhase.inMenu)
+                # Close game message to release halted state
+                logger.info('Releasing halted state')
+                gim.close_game_message()
+                gis.set_halted(False)
+                release = False
             elif config.use_controller():
                 # The situation that caused us to halt can be rectified via the controller
                 # (game restart/switching servers)
-                cc.update_game_phase(GamePhase.halted)
+                cc.reset_current_server()
+                cc.update_game_phase(GamePhase.halted, server={
+                    'ip': config.get_server_ip(),
+                    'port': config.get_server_port(),
+                    'password': config.get_server_pass()
+                })
                 time.sleep(20)
             else:
                 # There is no clear way to recover without a controller, so just exit

@@ -1,4 +1,5 @@
 from enum import Enum
+from typing import Union
 
 import socketio
 
@@ -72,13 +73,25 @@ class ControllerClient:
                 'password': server_pass
             }, namespace='/server')
         except socketio.client.exceptions.SocketIOError as e:
-            logger.error(f'Failed to send current server to controller ({e})')
+            logger.error(f'Failed to send current server update to controller ({e})')
 
-    def update_game_phase(self, phase: GamePhase) -> None:
+    def reset_current_server(self) -> None:
         if not self.sio.connected:
             return
 
         try:
-            self.sio.emit('phase', phase, namespace='/game')
+            self.sio.emit('reset', namespace='/server')
+        except socketio.client.exceptions.SocketIOError as e:
+            logger.error(f'Failed to send current server reset to controller ({e})')
+
+    def update_game_phase(self, phase: GamePhase, **kwargs: Union[str, int, dict]) -> None:
+        if not self.sio.connected:
+            return
+
+        try:
+            self.sio.emit('phase', {
+                'phase': phase,
+                **kwargs
+            }, namespace='/game')
         except socketio.client.exceptions.SocketIOError as e:
             logger.error(f'Failed to send game phase to controller ({e})')
