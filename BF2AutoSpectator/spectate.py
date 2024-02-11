@@ -584,6 +584,21 @@ def run():
                 cc.update_game_phase(GamePhase.betweenRounds)
                 gis.round_end_reset()
                 continue
+
+            """
+            When server "rotates" on the same map, we enter the loading state and reset the map details.
+            However, the map briefing is not opened automatically. So unless we open it manually, we never see the
+            map briefing and thus cannot detect the map.
+            """
+            if gim.is_join_game_button_visible():
+                logger.info('Join game button is visible but map briefing is not, opening map briefing')
+                if not gim.open_map_briefing():
+                    logger.error('Failed to open map briefing, attempting to join game and queuing reconnect')
+                    # We need to join the game, else the ESC press to open the menu will join the game instead of
+                    # opening the menu
+                    gim.join_game()
+                    gis.set_spectator_on_server(False)
+                continue
             time.sleep(3)
         elif default_camera_view_visible and gis.round_spawned() and \
                 iterations_on_default_camera_view == 0:

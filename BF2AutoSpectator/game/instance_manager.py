@@ -345,6 +345,29 @@ class GameInstanceManager:
             image_ops=[(ImageOperation.invert, None)]
         )
 
+    def open_map_briefing(self) -> bool:
+        # Don't block any OCR regions
+        mouse_reset(self.game_window)
+
+        if self.is_map_briefing_visible():
+            return True
+
+        # Cannot open map briefing unless join game button is visible
+        if not self.is_join_game_button_visible():
+            return False
+
+        # Move cursor onto map briefing header and click
+        mouse_move_to_game_window_coord(self.game_window, self.resolution, 'map-briefing-eor-item')
+        time.sleep(.2)
+        mouse_click_in_game_window(self.game_window, legacy=True)
+
+        time.sleep(.5)
+
+        # Move cursor back to default position
+        mouse_reset(self.game_window)
+
+        return self.is_map_briefing_visible()
+
     def is_spawn_menu_visible(self) -> bool:
         histogram = histogram_screenshot_region(
             self.game_window,

@@ -26,6 +26,7 @@ COORDINATES = {
             'disconnect-prompt-yes-button': (706, 394),
             'disconnect-button': (1210, 725),
             'game-message-close-button': (806, 412),
+            'map-briefing-eor-item': (750, 85),
             'join-game-button': (1210, 725),
             'spawnpoint-deselect': (250, 50),
             'suicide-button': (469, 459)
@@ -82,6 +83,7 @@ COORDINATES = {
             'disconnect-prompt-yes-button': (885, 487),
             'disconnect-button': (1468, 906),
             'game-message-close-button': (1002, 501),
+            'map-briefing-eor-item': (938, 97),
             'join-game-button': (1468, 906),
             'spawnpoint-deselect': (250, 50),
             'suicide-button': (497, 455)
