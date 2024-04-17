@@ -38,6 +38,9 @@ def run():
     parser.add_argument('--min-iterations-on-player',
                         help='Number of iterations to stay on a player before allowing the next_player command',
                         type=int, default=1)
+    parser.add_argument('--map-load-delay',
+                        help='Number of seconds to delay map loading by (think: BF2mld)',
+                        type=int, default=5)
     parser.add_argument('--use-controller', dest='use_controller', action='store_true')
     parser.add_argument('--controller-base-uri', help='Base uri of web controller', type=str)
     parser.add_argument('--control-obs', dest='control_obs', action='store_true')
@@ -63,6 +66,7 @@ def run():
         tesseract_path=args.tesseract_path,
         limit_rtl=args.limit_rtl,
         instance_rtl=args.instance_rtl,
+        map_load_delay=args.map_load_delay,
         use_controller=args.use_controller,
         controller_base_uri=args.controller_base_uri,
         control_obs=args.control_obs,
@@ -547,6 +551,12 @@ def run():
                 cc.update_game_phase(GamePhase.betweenRounds)
                 gis.map_rotation_reset()
                 continue
+
+            # Suspend/delay map loading to avoid a modified content kick on map switches
+            delay = config.get_map_load_delay()
+            if delay > 0 and not gis.rotation_map_load_delayed() and gim.delay_map_load(delay):
+                gis.set_rotation_map_load_delayed(True)
+
             # Set loading phase *after* between rounds phase to make sure we go spectating -> between rounds -> loading
             cc.update_game_phase(GamePhase.loading)
             time.sleep(3)

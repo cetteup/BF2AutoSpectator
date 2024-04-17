@@ -59,7 +59,8 @@ COORDINATES = {
                 'score-list': (10, 42, 1071, 677),
                 'top-players': (221, 42, 860, 677),
                 'top-scores': (434, 42, 647, 677),
-                'map-briefing': (646, 42, 435, 677)
+                'map-briefing': (646, 42, 435, 677),
+                'loading-bar': (9, 685, 1220, 22)
             },
             'spawn-menu': {
                 'close-button': (1232, 38, 23, 664)
@@ -116,7 +117,8 @@ COORDINATES = {
                 'score-list': (12, 53, 1339, 846),
                 'top-players': (276, 53, 1075, 846),
                 'top-scores': (542, 53, 809, 846),
-                'map-briefing': (808, 53, 543, 846)
+                'map-briefing': (808, 53, 543, 846),
+                'loading-bar': (12, 858, 1525, 27)
             },
             'spawn-menu': {
                 'close-button': (1541, 47, 30, 830)

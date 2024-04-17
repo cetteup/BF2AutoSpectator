@@ -337,6 +337,19 @@ class GameInstanceManager:
         # Check if game is on round end screen
         return self.is_round_end_screen_visible() and not join_game_button_present
 
+    def is_loading_bar_visible(self) -> bool:
+        histogram = histogram_screenshot_region(
+            self.game_window,
+            constants.COORDINATES[self.resolution]['hists']['eor']['loading-bar']
+        )
+
+        delta = calc_cv2_hist_delta(
+            histogram,
+            self.histograms[self.resolution]['eor']['loading-bar']
+        )
+
+        return delta < constants.HISTCMP_MAX_DELTA
+
     def is_map_briefing_visible(self) -> bool:
         return 'map briefing' in ocr_screenshot_game_window_region(
             self.game_window,
@@ -642,6 +655,33 @@ class GameInstanceManager:
 
         # We should still be in the menu but see the "play now" button instead of the "disconnect" button
         return self.is_in_menu() and self.is_play_now_button_visible()
+
+    def delay_map_load(self, delay: int) -> bool:
+        if not self.state.map_loading():
+            return False
+
+        check_count = 0
+        check_limit = 5
+        started_loading = False
+        while not started_loading and check_count < check_limit:
+            started_loading = self.is_loading_bar_visible()
+            if not started_loading:
+                check_count += 1
+                time.sleep(1)
+
+        if not started_loading:
+            return False
+
+        # Toggling ALT somehow "pauses"/"resumes" the game while keeping the audio running
+        # In contrast, BF2mld's approach of suspending the process pauses the audio (not ideal with loading music on)
+        logger.debug('Suspending map load')
+        pyautogui.press('alt')
+        time.sleep(delay)
+
+        logger.debug('Resuming map load')
+        pyautogui.press('alt')
+
+        return True
 
     def toggle_hud(self, direction: int) -> bool:
         return self.issue_console_command(f'renderer.drawHud {str(direction)}')

@@ -22,6 +22,7 @@ class Config(metaclass=Singleton):
     __tesseract_path: str
     __limit_rtl: bool
     __instance_rtl: int
+    __map_load_delay: int
 
     __use_controller: bool
     __controller_base_uri: str
@@ -40,7 +41,7 @@ class Config(metaclass=Singleton):
     __player_rotation_paused_until: datetime = None
 
     def set_options(self, player_name: str, player_pass: str, server_ip: str, server_port: str, server_pass: str,
-                    server_mod: str, game_path: str, tesseract_path: str, limit_rtl: bool, instance_rtl: int,
+                    server_mod: str, game_path: str, tesseract_path: str, limit_rtl: bool, instance_rtl: int, map_load_delay: int,
                     use_controller: bool, controller_base_uri: str, control_obs: bool, obs_url: str,
                     resolution: str, debug_screenshot: bool,
                     min_iterations_on_player: int, max_iterations_on_player: int,
@@ -56,6 +57,7 @@ class Config(metaclass=Singleton):
         self.__tesseract_path = tesseract_path
         self.__limit_rtl = limit_rtl
         self.__instance_rtl = instance_rtl
+        self.__map_load_delay = map_load_delay
 
         self.__use_controller = use_controller
         self.__controller_base_uri = controller_base_uri
@@ -121,6 +123,9 @@ class Config(metaclass=Singleton):
 
     def get_instance_trl(self) -> int:
         return self.__instance_rtl
+
+    def get_map_load_delay(self) -> int:
+        return self.__map_load_delay
 
     def use_controller(self) -> bool:
         return self.__use_controller

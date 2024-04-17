@@ -21,6 +21,7 @@ class GameInstanceState:
     __server_player_count: int = -1
 
     # Map details (map is as in one entry in the map rotation)
+    __rotation_map_load_delayed: bool = False
     __rotation_map_name: str = None
     __rotation_map_size: int = -1
     __rotation_game_mode: str = None
@@ -114,6 +115,12 @@ class GameInstanceState:
     def get_server_player_count(self) -> int:
         return self.__server_player_count
 
+    def set_rotation_map_load_delayed(self, delayed: bool):
+        self.__rotation_map_load_delayed = delayed
+
+    def rotation_map_load_delayed(self) -> bool:
+        return self.__rotation_map_load_delayed
+
     def set_rotation_map_name(self, map_name: str):
         self.__rotation_map_name = map_name
 
@@ -200,6 +207,7 @@ class GameInstanceState:
     # Reset relevant fields after map rotation
     def map_rotation_reset(self):
         self.__active_join_possible_after = None
+        self.__rotation_map_load_delayed = False
         self.__rotation_map_name = None
         self.__rotation_map_size = -1
         self.__rotation_game_mode = None
@@ -235,6 +243,7 @@ class GameInstanceState:
         self.__map_loading = False
         self.__active_join_possible_after = None
         self.__round_num = 0
+        self.__rotation_map_load_delayed = False
         self.__rotation_map_name = None
         self.__rotation_map_size = -1
         self.__rotation_game_mode = None
