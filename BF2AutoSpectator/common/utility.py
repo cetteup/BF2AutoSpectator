@@ -92,16 +92,22 @@ class ImageOperation(Enum):
 
 
 def is_responding_pid(pid: int) -> bool:
-    """Check if a program (based on its PID) is responding"""
-    cmd = 'tasklist /FI "PID eq %d" /FI "STATUS eq running"' % pid
-    status = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE).stdout.read()
-    return str(pid) in str(status)
+    try:
+        return psutil.Process(pid=pid).status() == psutil.STATUS_RUNNING
+    except (psutil.NoSuchProcess, psutil.AccessDenied):
+        return False
 
 
 def taskkill_pid(pid: int) -> bool:
-    cmd = 'taskkill /F /PID %d' % pid
-    output = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE).stdout.read()
-    return 'has been terminated' in str(output)
+    try:
+        process = psutil.Process(pid=pid)
+        process.kill()
+        process.wait(5)
+        return not process.is_running()
+    except psutil.NoSuchProcess:
+        return True
+    except psutil.AccessDenied:
+        return False
 
 
 def press_key(key_code: int) -> None:
@@ -418,20 +424,9 @@ def get_resolution_window_size(resolution: str) -> Tuple[int, int]:
     return window_size
 
 
-def get_proc_by_pid(pid: int) -> Optional[psutil.Process]:
-    for proc in psutil.process_iter(attrs=['pid']):
-        if proc.pid == pid:
-            return proc
-
-
 def get_command_line_by_pid(pid: int) -> Optional[List[str]]:
-    proc = get_proc_by_pid(pid)
-
-    if proc is None:
-        return
-
     try:
-        return proc.cmdline()
+        return psutil.Process(pid=pid).cmdline()
     except (psutil.NoSuchProcess, psutil.AccessDenied):
         return
 
