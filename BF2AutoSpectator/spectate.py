@@ -550,16 +550,18 @@ def run():
                 logger.info('Performing map rotation reset')
                 cc.update_game_phase(GamePhase.betweenRounds)
                 gis.map_rotation_reset()
+                time.sleep(6)
                 continue
 
             # Suspend/delay map loading to avoid a modified content kick on map switches
             delay = config.get_map_load_delay()
             if delay > 0 and not gis.rotation_map_load_delayed() and gim.delay_map_load(delay):
                 gis.set_rotation_map_load_delayed(True)
+            elif delay == 0 or gis.rotation_map_load_delayed():
+                time.sleep(3)
 
             # Set loading phase *after* between rounds phase to make sure we go spectating -> between rounds -> loading
             cc.update_game_phase(GamePhase.loading)
-            time.sleep(3)
         elif map_briefing_present:
             logger.info('Map briefing present, checking map')
             map_name, map_size, game_mode = gim.get_map_details()

@@ -661,13 +661,13 @@ class GameInstanceManager:
             return False
 
         check_count = 0
-        check_limit = 5
+        check_limit = 18
         started_loading = False
         while not started_loading and check_count < check_limit:
             started_loading = self.is_loading_bar_visible()
             if not started_loading:
                 check_count += 1
-                time.sleep(1)
+                time.sleep(.25)
 
         if not started_loading:
             return False
