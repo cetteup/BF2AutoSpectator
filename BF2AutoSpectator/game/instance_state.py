@@ -64,6 +64,9 @@ class GameInstanceState:
     def set_active_join_possible(self, after: float):
         self.__active_join_possible_after = datetime.now() + timedelta(seconds=after)
 
+    def active_join_pending(self) -> bool:
+        return self.__active_join_possible_after is not None
+
     def active_join_possible(self) -> bool:
         return self.__active_join_possible_after is not None and datetime.now() > self.__active_join_possible_after
 

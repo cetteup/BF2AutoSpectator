@@ -579,7 +579,8 @@ def run():
                 gis.set_rotation_map_size(map_size)
                 gis.set_rotation_game_mode(game_mode)
 
-                # Give go-ahead for active joining
+            # Give go-ahead for active joining
+            if map_size != -1 and not gis.active_join_pending():
                 logger.debug('Enabling active joining')
                 gis.set_active_join_possible(after=10)
 
