@@ -136,7 +136,7 @@ def run():
         gis.set_error_restart_required(True)
 
     # Start with max to switch away from dead spectator right away
-    iterations_on_player = config.get_max_iterations_on_player()
+    gis.set_iterations_on_player(config.get_max_iterations_on_player())
     stopped = False
     release = False
     while True:
@@ -219,7 +219,7 @@ def run():
                 # Unpause via config
                 config.unpause_player_rotation()
                 # Set counter to max to rotate off current player right away
-                iterations_on_player = config.get_max_iterations_on_player()
+                gis.set_iterations_on_player(config.get_max_iterations_on_player())
 
             if cs.pop('next_player'):
                 """
@@ -229,7 +229,8 @@ def run():
                 a) we did not *just* to this one or
                 b) the player rotation is paused (eliminates the risk, since we don't switch automatically)
                 """
-                if iterations_on_player + 1 > config.get_min_iterations_on_player() or config.player_rotation_paused():
+                if (gis.get_iterations_on_player() + 1 > config.get_min_iterations_on_player() or
+                        config.player_rotation_paused()):
                     logger.info('Manual switch to next player requested via controller, queueing switch')
                     force_next_player = True
                 else:
@@ -448,7 +449,7 @@ def run():
 
         # Regularly update current server in case controller is restarted or loses state another way
         if config.use_controller() and gis.spectator_on_server() and \
-                iterations_on_player == config.get_max_iterations_on_player():
+                gis.get_iterations_on_player() == config.get_max_iterations_on_player():
             cc.update_current_server(
                 gis.get_server_ip(),
                 gis.get_server_port(),
@@ -657,7 +658,7 @@ def run():
                 config.unpause_player_rotation()
                 # No need to immediately rotate to next player (usually done after spawn-suicide)
                 # => set iteration counter to 0
-                iterations_on_player = 0
+                gis.reset_iterations_on_player()
             else:
                 # Don't log this as an error since it's totally normal
                 logger.info('Failed to start spectating via freecam toggle, continuing to spawn-suicide')
@@ -742,7 +743,7 @@ def run():
             gis.set_round_spawned(spawn_succeeded)
 
             # Set counter to max to skip spectator
-            iterations_on_player = config.get_max_iterations_on_player()
+            gis.set_iterations_on_player(config.get_max_iterations_on_player())
             # Unpause in order to not stay on the spectator after suicide
             config.unpause_player_rotation()
         elif not on_round_finish_screen and not gis.hud_hidden():
@@ -758,15 +759,15 @@ def run():
             logger.debug(f'Entering round #{gis.get_round_num()} using this instance')
             # Spectator has "entered" round, update state accordingly
             gis.set_round_entered(True)
-        elif not on_round_finish_screen and iterations_on_player < config.get_max_iterations_on_player() and \
+        elif not on_round_finish_screen and gis.get_iterations_on_player() < config.get_max_iterations_on_player() and \
                 not config.player_rotation_paused() and not force_next_player:
             # Check if player is afk
             if not gim.is_sufficient_action_on_screen():
                 logger.info('Insufficient action on screen')
-                iterations_on_player = config.get_max_iterations_on_player()
+                gis.set_iterations_on_player(config.get_max_iterations_on_player())
             else:
                 logger.info('Nothing to do, stay on player')
-                iterations_on_player += 1
+                gis.increment_iterations_on_player()
                 time.sleep(2)
         elif not on_round_finish_screen and config.player_rotation_paused() and not force_next_player:
             logger.info(f'Player rotation is paused until {config.get_player_rotation_paused_until().isoformat()}')
@@ -775,13 +776,13 @@ def run():
                 logger.info('Player rotation pause expired, re-enabling rotation')
                 config.unpause_player_rotation()
                 # Set counter to max to rotate off current player right away
-                iterations_on_player = config.get_max_iterations_on_player()
+                gis.set_iterations_on_player(config.get_max_iterations_on_player())
             else:
                 time.sleep(2)
         elif not on_round_finish_screen:
             logger.info('Rotating to next player')
             gim.rotate_to_next_player()
-            iterations_on_player = 0
+            gis.reset_iterations_on_player()
 
 
 if __name__ == '__main__':

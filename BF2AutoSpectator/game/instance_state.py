@@ -37,6 +37,7 @@ class GameInstanceState:
     # Counters
     __iterations_on_spawn_menu: int = 0
     __iterations_on_default_camera_view: int = 0
+    __iterations_on_player: int = 0
 
     # Error details
     __error_unresponsive_count = 0
@@ -191,6 +192,15 @@ class GameInstanceState:
     def get_iterations_on_default_camera_view(self) -> int:
         return self.__iterations_on_default_camera_view
 
+    def set_iterations_on_player(self, iterations: int):
+        self.__iterations_on_player = iterations
+
+    def increment_iterations_on_player(self):
+        self.__iterations_on_player += 1
+
+    def get_iterations_on_player(self) -> int:
+        return self.__iterations_on_player
+
     def increment_error_unresponsive_count(self):
         self.__error_unresponsive_count += 1
 
@@ -229,6 +239,7 @@ class GameInstanceState:
         self.__round_started_spectation = False
         self.__iterations_on_spawn_menu = 0
         self.__iterations_on_default_camera_view = 0
+        self.__iterations_on_player = 0
 
     # Reset relevant fields when round ended
     def round_end_reset(self):
@@ -241,12 +252,16 @@ class GameInstanceState:
         self.__round_started_spectation = False
         self.__iterations_on_spawn_menu = 0
         self.__iterations_on_default_camera_view = 0
+        self.__iterations_on_player = 0
 
     def reset_iterations_on_spawn_menu(self):
         self.__iterations_on_spawn_menu = 0
 
     def reset_iterations_on_default_camera_view(self):
         self.__iterations_on_default_camera_view = 0
+
+    def reset_iterations_on_player(self):
+        self.__iterations_on_player = 0
 
     def reset_error_unresponsive_count(self):
         self.__error_unresponsive_count = 0
@@ -270,6 +285,7 @@ class GameInstanceState:
         self.__round_started_spectation = False
         self.__iterations_on_spawn_menu = 0
         self.__iterations_on_default_camera_view = 0
+        self.__iterations_on_player = 0
         self.__error_unresponsive_count = 0
         self.__error_restart_required = False
         self.__halted_since = None
