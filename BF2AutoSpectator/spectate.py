@@ -369,10 +369,8 @@ def run():
             game_message = gim.ocr_game_message()
 
             if 'full' in game_message:
-                logger.warning('Server full, trying to rejoin in 30 seconds')
-                # Update state
+                logger.warning('Server full, trying to rejoin in 20 seconds')
                 gis.set_spectator_on_server(False)
-                # Connect to server waits 10, wait another 20 = 30
                 time.sleep(20)
             elif 'kicked' in game_message:
                 logger.warning('Got kicked, trying to rejoin')
