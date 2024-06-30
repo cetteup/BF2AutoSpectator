@@ -18,7 +18,6 @@ class GameInstanceState:
     __server_ip: str = None
     __server_port: str = None
     __server_password: str = None
-    __server_player_count: int = -1
 
     # Map details (map is as in one entry in the map rotation)
     __rotation_map_load_delayed: bool = False
@@ -32,7 +31,6 @@ class GameInstanceState:
 
     # Round details
     __round_team: int = -1
-    __round_started_spectation: bool = False
 
     # Counters
     __iterations_on_spawn_menu: int = 0
@@ -114,12 +112,6 @@ class GameInstanceState:
     def get_server_password(self) -> str:
         return self.__server_password
 
-    def set_server_player_count(self, player_count: int):
-        self.__server_player_count = player_count
-
-    def get_server_player_count(self) -> int:
-        return self.__server_player_count
-
     def set_rotation_map_load_delayed(self, delayed: bool):
         self.__rotation_map_load_delayed = delayed
 
@@ -173,12 +165,6 @@ class GameInstanceState:
 
     def round_freecam_toggle_spawn_attempted(self) -> bool:
         return self.__round_freecam_toggle_spawn_attempted
-
-    def set_round_started_spectation(self, started_spectation: bool):
-        self.__round_started_spectation = started_spectation
-
-    def round_started_spectation(self) -> bool:
-        return self.__round_started_spectation
 
     def increment_iterations_on_spawn_menu(self):
         self.__iterations_on_spawn_menu += 1
@@ -236,7 +222,6 @@ class GameInstanceState:
         self.__round_spawned = False
         self.__round_spawn_randomize_coordinates = False
         self.__round_freecam_toggle_spawn_attempted = False
-        self.__round_started_spectation = False
         self.__iterations_on_spawn_menu = 0
         self.__iterations_on_default_camera_view = 0
         self.__iterations_on_player = 0
@@ -249,7 +234,6 @@ class GameInstanceState:
         self.__round_spawned = False
         self.__round_spawn_randomize_coordinates = False
         self.__round_freecam_toggle_spawn_attempted = False
-        self.__round_started_spectation = False
         self.__iterations_on_spawn_menu = 0
         self.__iterations_on_default_camera_view = 0
         self.__iterations_on_player = 0
@@ -282,7 +266,6 @@ class GameInstanceState:
         self.__round_spawned = False
         self.__round_spawn_randomize_coordinates = False
         self.__round_freecam_toggle_spawn_attempted = False
-        self.__round_started_spectation = False
         self.__iterations_on_spawn_menu = 0
         self.__iterations_on_default_camera_view = 0
         self.__iterations_on_player = 0
