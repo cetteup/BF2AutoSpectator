@@ -5,20 +5,14 @@ class GlobalState:
     __stopped: bool = False
     __halted: bool = False
 
+    def set_stopped(self, stopped: bool) -> None:
+        self.__stopped = stopped
+
     def stopped(self) -> bool:
         return self.__stopped
 
-    def stop(self) -> None:
-        self.__stopped = True
-
-    def resume(self) -> None:
-        self.__stopped = False
+    def set_halted(self, halted: bool) -> None:
+        self.__halted = halted
 
     def halted(self) -> bool:
         return self.__halted
-
-    def halt(self) -> None:
-        self.__halted = True
-
-    def release(self) -> None:
-        self.__halted = False

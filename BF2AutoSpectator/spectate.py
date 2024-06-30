@@ -183,7 +183,7 @@ def run():
                 if gs.stopped():
                     logger.info('Start command issued via controller, queueing game start')
                     cc.update_game_phase(GamePhase.starting)
-                    gs.resume()
+                    gs.set_stopped(False)
                     # Set restart required flag
                     gis.set_error_restart_required(True)
                 else:
@@ -193,14 +193,14 @@ def run():
                 if not gs.stopped():
                     logger.info('Stop command issued via controller, queueing game stop')
                     cc.update_game_phase(GamePhase.stopping)
-                    gs.stop()
+                    gs.set_stopped(True)
                 else:
                     logger.info('Already stopped, ignoring stop command issued via controller')
 
             if cs.pop('release'):
                 if gis.halted():
                     logger.info('Release command issued via controller, queuing release')
-                    gs.release()
+                    gs.set_halted(False)
                 else:
                     logger.info('Not currently halted, ignoring release command issued via controller')
 
@@ -382,7 +382,7 @@ def run():
                 logger.critical('Got banned, contact server admin')
                 gis.set_spectator_on_server(False)
                 gis.set_halted(True)
-                gs.halt()
+                gs.set_halted(True)
             elif 'connection' in game_message and 'lost' in game_message or \
                     'failed to connect' in game_message:
                 logger.error('Connection lost, trying to reconnect')
@@ -408,7 +408,7 @@ def run():
                 logger.critical(f'Unhandled game message: {game_message}')
                 gis.set_spectator_on_server(False)
                 gis.set_halted(True)
-                gs.halt()
+                gs.set_halted(True)
 
             if not gis.halted():
                 cc.update_game_phase(GamePhase.inMenu)
