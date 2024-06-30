@@ -36,6 +36,7 @@ class GameInstanceState:
 
     # Counters
     __iterations_on_spawn_menu: int = 0
+    __iterations_on_default_camera_view: int = 0
 
     # Error details
     __error_unresponsive_count = 0
@@ -184,6 +185,12 @@ class GameInstanceState:
     def get_iterations_on_spawn_menu(self) -> int:
         return self.__iterations_on_spawn_menu
 
+    def increase_iterations_on_default_camera_view(self):
+        self.__iterations_on_default_camera_view += 1
+
+    def get_iterations_on_default_camera_view(self) -> int:
+        return self.__iterations_on_default_camera_view
+
     def increase_error_unresponsive_count(self):
         self.__error_unresponsive_count += 1
 
@@ -221,6 +228,7 @@ class GameInstanceState:
         self.__round_freecam_toggle_spawn_attempted = False
         self.__round_started_spectation = False
         self.__iterations_on_spawn_menu = 0
+        self.__iterations_on_default_camera_view = 0
 
     # Reset relevant fields when round ended
     def round_end_reset(self):
@@ -232,9 +240,13 @@ class GameInstanceState:
         self.__round_freecam_toggle_spawn_attempted = False
         self.__round_started_spectation = False
         self.__iterations_on_spawn_menu = 0
+        self.__iterations_on_default_camera_view = 0
 
     def reset_iterations_on_spawn_menu(self):
         self.__iterations_on_spawn_menu = 0
+
+    def reset_iterations_on_default_camera_view(self):
+        self.__iterations_on_default_camera_view = 0
 
     def reset_error_unresponsive_count(self):
         self.__error_unresponsive_count = 0
@@ -257,6 +269,7 @@ class GameInstanceState:
         self.__round_freecam_toggle_spawn_attempted = False
         self.__round_started_spectation = False
         self.__iterations_on_spawn_menu = 0
+        self.__iterations_on_default_camera_view = 0
         self.__error_unresponsive_count = 0
         self.__error_restart_required = False
         self.__halted_since = None

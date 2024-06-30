@@ -137,7 +137,6 @@ def run():
 
     # Start with max to switch away from dead spectator right away
     iterations_on_player = config.get_max_iterations_on_player()
-    iterations_on_default_camera_view = 0
     stopped = False
     release = False
     while True:
@@ -534,9 +533,9 @@ def run():
             gis.set_map_loading(True)
 
         # Always reset iteration counter if default camera view is no longer visible
-        if not default_camera_view_visible and iterations_on_default_camera_view > 0:
+        if not default_camera_view_visible and gis.get_iterations_on_default_camera_view() > 0:
             logger.info('Game is no longer on default camera view, resetting counter')
-            iterations_on_default_camera_view = 0
+            gis.reset_iterations_on_default_camera_view()
         if config.limit_rtl() and on_round_finish_screen and gis.get_round_num() >= config.get_instance_trl():
             logger.info('Game instance has reached rtl limit, restart required')
             gis.set_rtl_restart_required(True)
@@ -611,34 +610,34 @@ def run():
                 continue
             time.sleep(3)
         elif default_camera_view_visible and gis.round_spawned() and \
-                iterations_on_default_camera_view == 0:
+                gis.get_iterations_on_default_camera_view() == 0:
             # In rare cases, an AFK/dead player might be detected as the default camera view
             # => try to rotate to next player to "exit" what is detected as the default camera view
             logger.info('Game is on default camera view, trying to rotate to next player')
             gim.rotate_to_next_player()
-            iterations_on_default_camera_view += 1
+            gis.increase_iterations_on_default_camera_view()
             time.sleep(3)
         elif default_camera_view_visible and gis.round_spawned() and \
-                iterations_on_default_camera_view < config.get_max_iterations_on_default_camera_view():
+                gis.get_iterations_on_default_camera_view() < config.get_max_iterations_on_default_camera_view():
             # Default camera view is visible after spawning once, either after a round restart or after the round ended
             logger.info('Game is still on default camera view, waiting to see if round ended')
-            iterations_on_default_camera_view += 1
+            gis.increase_iterations_on_default_camera_view()
             time.sleep(3)
         elif default_camera_view_visible and gis.round_spawned() and \
-                iterations_on_default_camera_view == config.get_max_iterations_on_default_camera_view():
+                gis.get_iterations_on_default_camera_view() == config.get_max_iterations_on_default_camera_view():
             # Default camera view has been visible for a while, most likely due to a round restart
             # => try to restart spectating by pressing space (only works on freecam-enabled servers)
             logger.info('Game is still on default camera view, trying to (re-)start spectating via freecam toggle')
             gim.start_spectating_via_freecam_toggle()
-            iterations_on_default_camera_view += 1
+            gis.increase_iterations_on_default_camera_view()
             time.sleep(3)
         elif default_camera_view_visible and gis.round_spawned() and \
-                iterations_on_default_camera_view > config.get_max_iterations_on_default_camera_view():
+                gis.get_iterations_on_default_camera_view() > config.get_max_iterations_on_default_camera_view():
             # Default camera view has been visible for a while, failed to restart spectating by pressing space
             # => spawn-suicide again to restart spectating
             logger.info('Game is still on default camera view, queueing another spawn-suicide to restart spectating')
             gis.set_round_spawned(False)
-            iterations_on_default_camera_view = 0
+            gis.reset_iterations_on_default_camera_view()
         elif default_camera_view_visible and not gis.round_spawned() and not gis.round_freecam_toggle_spawn_attempted():
             # Try to restart spectating without suiciding on consecutive rounds (only works on freecam-enabled servers)
             logger.info('Game is on default camera view, trying to (re-)start spectating via freecam toggle')
