@@ -483,9 +483,6 @@ def run():
 
         # Player is not on server, check if rejoining is possible and makes sense
         if not gis.spectator_on_server():
-            # Check number of free slots
-            # TODO
-
             # Ensure game menu is open, try to open it if not
             """
             Don't spam press ESC before (re-)joining. It can lead to the game opening the menu again after the map has
