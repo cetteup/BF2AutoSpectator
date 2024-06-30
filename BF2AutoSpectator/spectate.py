@@ -356,22 +356,10 @@ def run():
             # Ensure game menu is open, try to open it if not
             if gim.is_in_menu() or gim.open_menu():
                 cc.update_game_phase(GamePhase.inMenu)
+                gis.restart_reset()
             else:
                 logger.error('Game menu is not visible and could not be opened, restart required')
                 gis.set_error_restart_required(True)
-                continue
-
-            # Connect to server
-            logger.info('Connecting to server')
-            server_ip, server_port, server_pass, *_ = config.get_server()
-            connected = gim.connect_to_server(server_ip, server_port, server_pass)
-            # Reset state
-            gis.restart_reset()
-            gis.set_spectator_on_server(connected)
-            gis.set_map_loading(connected)
-            if connected:
-                cc.update_game_phase(GamePhase.loading)
-                gis.set_server(server_ip, server_port, server_pass)
 
             continue
 
