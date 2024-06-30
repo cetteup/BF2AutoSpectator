@@ -71,10 +71,10 @@ class GameInstanceState:
     def active_join_possible(self) -> bool:
         return self.__active_join_possible_after is not None and datetime.now() > self.__active_join_possible_after
 
-    def increase_round_num(self):
+    def increment_round_num(self):
         self.__round_num += 1
 
-    def decrease_round_num(self):
+    def decrement_round_num(self):
         self.__round_num -= 1
 
     def get_round_num(self) -> int:
@@ -179,19 +179,19 @@ class GameInstanceState:
     def round_started_spectation(self) -> bool:
         return self.__round_started_spectation
 
-    def increase_iterations_on_spawn_menu(self):
+    def increment_iterations_on_spawn_menu(self):
         self.__iterations_on_spawn_menu += 1
 
     def get_iterations_on_spawn_menu(self) -> int:
         return self.__iterations_on_spawn_menu
 
-    def increase_iterations_on_default_camera_view(self):
+    def increment_iterations_on_default_camera_view(self):
         self.__iterations_on_default_camera_view += 1
 
     def get_iterations_on_default_camera_view(self) -> int:
         return self.__iterations_on_default_camera_view
 
-    def increase_error_unresponsive_count(self):
+    def increment_error_unresponsive_count(self):
         self.__error_unresponsive_count += 1
 
     def get_error_unresponsive_count(self) -> int:

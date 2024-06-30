@@ -156,9 +156,7 @@ def run():
             # Game will temporarily freeze when map load finishes or when joining server, so don't restart right away
             if gis.get_error_unresponsive_count() < 3:
                 logger.info('Unresponsive count below limit, giving time to recover')
-                # Increase unresponsive count
-                gis.increase_error_unresponsive_count()
-                # Check again in 2 seconds
+                gis.increment_error_unresponsive_count()
                 time.sleep(2)
                 continue
             else:
@@ -474,7 +472,7 @@ def run():
                 # If game instance is about to be replaced, add one more round on the new server
                 if gis.get_round_num() + 1 >= config.get_instance_trl():
                     logger.debug('Extending instance lifetime by one round on the new server')
-                    gis.decrease_round_num()
+                    gis.decrement_round_num()
             else:
                 logger.error('Failed to disconnect from server, restart required')
                 gis.set_error_restart_required(True)
@@ -615,13 +613,13 @@ def run():
             # => try to rotate to next player to "exit" what is detected as the default camera view
             logger.info('Game is on default camera view, trying to rotate to next player')
             gim.rotate_to_next_player()
-            gis.increase_iterations_on_default_camera_view()
+            gis.increment_iterations_on_default_camera_view()
             time.sleep(3)
         elif default_camera_view_visible and gis.round_spawned() and \
                 gis.get_iterations_on_default_camera_view() < config.get_max_iterations_on_default_camera_view():
             # Default camera view is visible after spawning once, either after a round restart or after the round ended
             logger.info('Game is still on default camera view, waiting to see if round ended')
-            gis.increase_iterations_on_default_camera_view()
+            gis.increment_iterations_on_default_camera_view()
             time.sleep(3)
         elif default_camera_view_visible and gis.round_spawned() and \
                 gis.get_iterations_on_default_camera_view() == config.get_max_iterations_on_default_camera_view():
@@ -629,7 +627,7 @@ def run():
             # => try to restart spectating by pressing space (only works on freecam-enabled servers)
             logger.info('Game is still on default camera view, trying to (re-)start spectating via freecam toggle')
             gim.start_spectating_via_freecam_toggle()
-            gis.increase_iterations_on_default_camera_view()
+            gis.increment_iterations_on_default_camera_view()
             time.sleep(3)
         elif default_camera_view_visible and gis.round_spawned() and \
                 gis.get_iterations_on_default_camera_view() > config.get_max_iterations_on_default_camera_view():
@@ -650,8 +648,7 @@ def run():
                 logger.info('Started spectating via freecam toggle, skipping spawn-suicide')
                 cc.update_game_phase(GamePhase.spectating)
                 gis.set_round_spawned(True)
-                # Increase round number/counter
-                gis.increase_round_num()
+                gis.increment_round_num()
                 logger.debug(f'Entering round #{gis.get_round_num()} using this instance')
                 # Spectator has "entered" round, update state accordingly
                 gis.set_round_entered(True)
@@ -741,7 +738,7 @@ def run():
                 gis.reset_iterations_on_spawn_menu()
             else:
                 logger.warning('Spawn failed, retrying')
-                gis.increase_iterations_on_spawn_menu()
+                gis.increment_iterations_on_spawn_menu()
             gis.set_round_spawned(spawn_succeeded)
 
             # Set counter to max to skip spectator
@@ -757,8 +754,7 @@ def run():
             cc.update_game_phase(GamePhase.spectating)
             gis.set_hud_hidden(True)
         elif not on_round_finish_screen and not gis.round_entered():
-            # Increase round number/counter
-            gis.increase_round_num()
+            gis.increment_round_num()
             logger.debug(f'Entering round #{gis.get_round_num()} using this instance')
             # Spectator has "entered" round, update state accordingly
             gis.set_round_entered(True)
