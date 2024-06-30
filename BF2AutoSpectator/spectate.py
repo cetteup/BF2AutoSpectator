@@ -374,7 +374,6 @@ def run():
                 time.sleep(20)
             elif 'kicked' in game_message:
                 logger.warning('Got kicked, trying to rejoin')
-                # Update state
                 gis.set_spectator_on_server(False)
             elif 'banned' in game_message and not (gis.halted() and not gs.halted()):
                 logger.critical('Got banned, contact server admin')
@@ -384,23 +383,18 @@ def run():
             elif 'connection' in game_message and 'lost' in game_message or \
                     'failed to connect' in game_message:
                 logger.error('Connection lost, trying to reconnect')
-                # Update state
                 gis.set_spectator_on_server(False)
             elif 'modified content' in game_message:
                 logger.warning('Got kicked for modified content, trying to rejoin')
-                # Update state
                 gis.set_spectator_on_server(False)
             elif 'invalid ip address' in game_message:
                 logger.error('Join by ip dialogue bugged, restart required')
-                # Set restart flag
                 gis.set_error_restart_required(True)
             elif 'error reading from the server' in game_message:
                 logger.error('Error reading from GameSpy-ish backend, restart required')
-                # Set restart flag
                 gis.set_error_restart_required(True)
             elif 'server has refused the connection' in game_message:
                 logger.error('Failed to connect to GameSpy-ish backend, restart required')
-                # Set restart flag
                 gis.set_error_restart_required(True)
             elif not (gis.halted() and not gs.halted()):
                 logger.critical(f'Unhandled game message: {game_message}')
