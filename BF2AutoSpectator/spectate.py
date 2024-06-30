@@ -177,83 +177,83 @@ def run():
             gis.set_error_restart_required(True)
 
         # Check if a game restart command was issued to the controller
+        # (command store will be empty when not using controller, making this a noop)
         force_next_player = False
-        if config.use_controller():
-            if cs.pop('start'):
-                if gs.stopped():
-                    logger.info('Start command issued via controller, queueing game start')
-                    cc.update_game_phase(GamePhase.starting)
-                    gs.set_stopped(False)
-                    # Set restart required flag
-                    gis.set_error_restart_required(True)
-                else:
-                    logger.info('Not currently stopped, ignoring start command issued via controller')
-
-            if cs.pop('stop'):
-                if not gs.stopped():
-                    logger.info('Stop command issued via controller, queueing game stop')
-                    cc.update_game_phase(GamePhase.stopping)
-                    gs.set_stopped(True)
-                else:
-                    logger.info('Already stopped, ignoring stop command issued via controller')
-
-            if cs.pop('release'):
-                if gis.halted():
-                    logger.info('Release command issued via controller, queuing release')
-                    gs.set_halted(False)
-                else:
-                    logger.info('Not currently halted, ignoring release command issued via controller')
-
-            if cs.pop('game_restart'):
-                logger.info('Game restart requested via controller, queueing game restart')
+        if cs.pop('start'):
+            if gs.stopped():
+                logger.info('Start command issued via controller, queueing game start')
+                cc.update_game_phase(GamePhase.starting)
+                gs.set_stopped(False)
                 # Set restart required flag
                 gis.set_error_restart_required(True)
+            else:
+                logger.info('Not currently stopped, ignoring start command issued via controller')
 
-            if cs.pop('rotation_pause'):
-                logger.info('Player rotation pause requested via controller, pausing rotation')
-                # Set pause via config
-                config.pause_player_rotation(constants.PLAYER_ROTATION_PAUSE_DURATION)
+        if cs.pop('stop'):
+            if not gs.stopped():
+                logger.info('Stop command issued via controller, queueing game stop')
+                cc.update_game_phase(GamePhase.stopping)
+                gs.set_stopped(True)
+            else:
+                logger.info('Already stopped, ignoring stop command issued via controller')
 
-            if cs.pop('rotation_resume'):
-                logger.info('Player rotation resume requested via controller, resuming rotation')
-                # Unpause via config
-                config.unpause_player_rotation()
-                # Set counter to max to rotate off current player right away
-                gis.set_iterations_on_player(config.get_max_iterations_on_player())
+        if cs.pop('release'):
+            if gis.halted():
+                logger.info('Release command issued via controller, queuing release')
+                gs.set_halted(False)
+            else:
+                logger.info('Not currently halted, ignoring release command issued via controller')
 
-            if cs.pop('next_player'):
-                """
-                A common issue with the next_player command is it being issued right before we switch to the next player
-                anyway, either because we reached the iteration limit or detected the player as being afk. So, only
-                act on command if
-                a) we did not *just* to this one or
-                b) the player rotation is paused (eliminates the risk, since we don't switch automatically)
-                """
-                if (gis.get_iterations_on_player() + 1 > config.get_min_iterations_on_player() or
-                        config.player_rotation_paused()):
-                    logger.info('Manual switch to next player requested via controller, queueing switch')
-                    force_next_player = True
-                else:
-                    logger.info('Minimum number of iterations on player is not reached, '
-                                'ignoring controller request to switch to next player')
+        if cs.pop('game_restart'):
+            logger.info('Game restart requested via controller, queueing game restart')
+            # Set restart required flag
+            gis.set_error_restart_required(True)
 
-            if cs.pop('respawn'):
-                logger.info('Respawn requested via controller, queueing respawn')
-                gis.set_round_spawned(False)
+        if cs.pop('rotation_pause'):
+            logger.info('Player rotation pause requested via controller, pausing rotation')
+            # Set pause via config
+            config.pause_player_rotation(constants.PLAYER_ROTATION_PAUSE_DURATION)
 
-            if cs.pop('rejoin'):
-                logger.info('Rejoin requested via controller, queuing disconnect')
-                gis.set_spectator_on_server(False)
+        if cs.pop('rotation_resume'):
+            logger.info('Player rotation resume requested via controller, resuming rotation')
+            # Unpause via config
+            config.unpause_player_rotation()
+            # Set counter to max to rotate off current player right away
+            gis.set_iterations_on_player(config.get_max_iterations_on_player())
 
-            if cs.pop('debug'):
-                if logger.level != logging.DEBUG or not config.debug_screenshot():
-                    logger.info('Debug toggle issued via controller, enabling debug options')
-                    logger.setLevel(logging.DEBUG)
-                    config.set_debug_screenshot(True)
-                else:
-                    logger.info('Debug toggle issued via controller, disabling debug options')
-                    logger.setLevel(logging.INFO)
-                    config.set_debug_screenshot(False)
+        if cs.pop('next_player'):
+            """
+            A common issue with the next_player command is it being issued right before we switch to the next player
+            anyway, either because we reached the iteration limit or detected the player as being afk. So, only
+            act on command if
+            a) we did not *just* to this one or
+            b) the player rotation is paused (eliminates the risk, since we don't switch automatically)
+            """
+            if (gis.get_iterations_on_player() + 1 > config.get_min_iterations_on_player() or
+                    config.player_rotation_paused()):
+                logger.info('Manual switch to next player requested via controller, queueing switch')
+                force_next_player = True
+            else:
+                logger.info('Minimum number of iterations on player is not reached, '
+                            'ignoring controller request to switch to next player')
+
+        if cs.pop('respawn'):
+            logger.info('Respawn requested via controller, queueing respawn')
+            gis.set_round_spawned(False)
+
+        if cs.pop('rejoin'):
+            logger.info('Rejoin requested via controller, queuing disconnect')
+            gis.set_spectator_on_server(False)
+
+        if cs.pop('debug'):
+            if logger.level != logging.DEBUG or not config.debug_screenshot():
+                logger.info('Debug toggle issued via controller, enabling debug options')
+                logger.setLevel(logging.DEBUG)
+                config.set_debug_screenshot(True)
+            else:
+                logger.info('Debug toggle issued via controller, disabling debug options')
+                logger.setLevel(logging.INFO)
+                config.set_debug_screenshot(False)
 
         if config.control_obs():
             streaming = None
@@ -429,8 +429,7 @@ def run():
             continue
 
         # Regularly update current server in case controller is restarted or loses state another way
-        if config.use_controller() and gis.spectator_on_server() and \
-                gis.get_iterations_on_player() == config.get_max_iterations_on_player():
+        if gis.spectator_on_server() and gis.get_iterations_on_player() == config.get_max_iterations_on_player():
             cc.update_current_server(
                 gis.get_server_ip(),
                 gis.get_server_port(),
@@ -493,13 +492,12 @@ def run():
             gis.set_spectator_on_server(connected)
             gis.set_map_loading(connected)
             if connected:
+                cc.update_current_server(server_ip, server_port, server_pass)
                 cc.update_game_phase(GamePhase.loading)
                 gis.set_server(server_ip, server_port, server_pass)
             else:
                 logger.error('Failed to (re-)connect to server')
-            # Update controller
-            if connected and config.use_controller():
-                cc.update_current_server(server_ip, server_port, server_pass)
+
             continue
 
         on_round_finish_screen = gim.is_round_end_screen_visible()
