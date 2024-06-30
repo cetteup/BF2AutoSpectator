@@ -54,7 +54,7 @@ class ControllerClient:
             cs.set(command['key'], command['value'])
 
     def connect(self) -> None:
-        self.sio.connect(self.base_uri, namespaces=['/', '/server', '/game'])
+        self.sio.connect(self.base_uri, namespaces=['/', '/server', '/game', '/player'])
 
     def disconnect(self) -> None:
         self.sio.disconnect()
@@ -95,3 +95,12 @@ class ControllerClient:
             }, namespace='/game')
         except socketio.client.exceptions.SocketIOError as e:
             logger.error(f'Failed to send game phase to controller ({e})')
+
+    def report_player_rotation(self) -> None:
+        if not self.sio.connected:
+            return
+
+        try:
+            self.sio.emit('rotate', namespace='/player')
+        except socketio.client.exceptions.SocketIOError as e:
+            logger.error(f'Failed to send player rotation report to controller ({e})')

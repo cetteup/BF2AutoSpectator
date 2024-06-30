@@ -782,6 +782,7 @@ def run():
         elif not on_round_finish_screen:
             logger.info('Rotating to next player')
             gim.rotate_to_next_player()
+            cc.report_player_rotation()
             gis.reset_iterations_on_player()
 
 
