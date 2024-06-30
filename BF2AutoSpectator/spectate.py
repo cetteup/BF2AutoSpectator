@@ -14,6 +14,7 @@ from BF2AutoSpectator.common.logger import logger
 from BF2AutoSpectator.common.utility import is_responding_pid, find_window_by_title, taskkill_pid, init_pytesseract
 from BF2AutoSpectator.game import GameInstanceManager
 from BF2AutoSpectator.remote import ControllerClient, GamePhase, OBSClient
+from BF2AutoSpectator.global_state import GlobalState
 
 
 def run():
@@ -137,8 +138,7 @@ def run():
 
     # Start with max to switch away from dead spectator right away
     gis.set_iterations_on_player(config.get_max_iterations_on_player())
-    stopped = False
-    release = False
+    gs = GlobalState()
     while True:
         bf2_window = gim.get_game_window()
         # Try to bring BF2 window to foreground
@@ -180,27 +180,27 @@ def run():
         force_next_player = False
         if config.use_controller():
             if cs.pop('start'):
-                if stopped:
+                if gs.stopped():
                     logger.info('Start command issued via controller, queueing game start')
                     cc.update_game_phase(GamePhase.starting)
-                    stopped = False
+                    gs.resume()
                     # Set restart required flag
                     gis.set_error_restart_required(True)
                 else:
                     logger.info('Not currently stopped, ignoring start command issued via controller')
 
             if cs.pop('stop'):
-                if not stopped:
+                if not gs.stopped():
                     logger.info('Stop command issued via controller, queueing game stop')
                     cc.update_game_phase(GamePhase.stopping)
-                    stopped = True
+                    gs.stop()
                 else:
                     logger.info('Already stopped, ignoring stop command issued via controller')
 
             if cs.pop('release'):
                 if gis.halted():
                     logger.info('Release command issued via controller, queuing release')
-                    release = True
+                    gs.release()
                 else:
                     logger.info('Not currently halted, ignoring release command issued via controller')
 
@@ -265,7 +265,7 @@ def run():
 
             # When halted, only stop stream after a 180-second grace period to make the reason (error message)
             # visible for viewers and/or allow controller to initiate a server switch, resolving the halted state
-            if streaming is True and (stopped or gis.halted(grace_period=180)):
+            if streaming is True and (gs.stopped() or gis.halted(grace_period=180)):
                 # Stop stream when stopped or game instance is halted
                 logger.info('Stopping OBS stream')
                 try:
@@ -274,7 +274,7 @@ def run():
                 except Exception as e:
                     logger.error('Failed to stop OBS stream')
                     logger.error(str(e))
-            elif streaming is False and not (stopped or gis.halted()) and bf2_window is not None:
+            elif streaming is False and not (gs.stopped() or gis.halted()) and bf2_window is not None:
                 # Start stream when neither stopped nor halted and BF2 window is open
                 logger.info('Starting OBS stream')
                 try:
@@ -285,8 +285,8 @@ def run():
                     logger.error(str(e))
 
         # Stop existing (and start a new) game instance if required
-        if stopped or gis.rtl_restart_required() or gis.error_restart_required():
-            if bf2_window is not None and (stopped or gis.rtl_restart_required()):
+        if gs.stopped() or gis.rtl_restart_required() or gis.error_restart_required():
+            if bf2_window is not None and (gs.stopped() or gis.rtl_restart_required()):
                 cc.update_game_phase(GamePhase.closing)
                 # Quit out of current instance
                 logger.info('Quitting existing game instance')
@@ -312,7 +312,7 @@ def run():
             gim.find_instance(config.get_server_mod())
 
             # Don't launch a new instance when stopped
-            if stopped:
+            if gs.stopped():
                 cc.reset_current_server()
                 cc.update_game_phase(GamePhase.stopped)
                 time.sleep(30)
@@ -390,10 +390,11 @@ def run():
                 logger.warning('Got kicked, trying to rejoin')
                 # Update state
                 gis.set_spectator_on_server(False)
-            elif 'banned' in game_message and not (gis.halted() and release):
+            elif 'banned' in game_message and not (gis.halted() and not gs.halted()):
                 logger.critical('Got banned, contact server admin')
                 gis.set_spectator_on_server(False)
                 gis.set_halted(True)
+                gs.halt()
             elif 'connection' in game_message and 'lost' in game_message or \
                     'failed to connect' in game_message:
                 logger.error('Connection lost, trying to reconnect')
@@ -415,22 +416,22 @@ def run():
                 logger.error('Failed to connect to GameSpy-ish backend, restart required')
                 # Set restart flag
                 gis.set_error_restart_required(True)
-            elif not (gis.halted() and release):
+            elif not (gis.halted() and not gs.halted()):
                 logger.critical(f'Unhandled game message: {game_message}')
                 gis.set_spectator_on_server(False)
                 gis.set_halted(True)
+                gs.halt()
 
             if not gis.halted():
                 cc.update_game_phase(GamePhase.inMenu)
                 # Close game message to enable actions
                 gim.close_game_message()
-            elif release:
+            elif not gs.halted():
                 cc.update_game_phase(GamePhase.inMenu)
                 # Close game message to release halted state
                 logger.info('Releasing halted state')
                 gim.close_game_message()
                 gis.set_halted(False)
-                release = False
             elif config.use_controller():
                 # The situation that caused us to halt can be rectified via the controller
                 # (game restart/switching servers)
