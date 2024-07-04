@@ -241,6 +241,10 @@ def run():
             logger.info('Respawn requested via controller, queueing respawn')
             gis.set_round_spawned(False)
 
+        if server := cs.pop('join'):
+            logger.info(f'Controller sent a server to join ({server["ip"]}:{server["port"]})')
+            config.set_server(server['ip'], server['port'], server.get('password'), 'bf2')
+
         if cs.pop('rejoin'):
             logger.info('Rejoin requested via controller, queuing disconnect')
             gis.set_spectator_on_server(False)
