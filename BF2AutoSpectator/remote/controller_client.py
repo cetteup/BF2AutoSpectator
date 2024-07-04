@@ -47,7 +47,7 @@ class ControllerClient:
             cs.set(dto['command'], dto['args'])
 
     def connect(self) -> None:
-        self.sio.connect(self.base_uri, namespaces=['/', '/server', '/game', '/player'])
+        self.sio.connect(self.base_uri, namespaces=['/'])
 
     def disconnect(self) -> None:
         self.sio.disconnect()
@@ -60,11 +60,11 @@ class ControllerClient:
             return
 
         try:
-            self.sio.emit('current', {
+            self.sio.emit('server', {
                 'ip': server_ip,
                 'port': server_port,
                 'password': server_pass
-            }, namespace='/server')
+            })
         except socketio.client.exceptions.SocketIOError as e:
             logger.error(f'Failed to send current server update to controller ({e})')
 
@@ -73,7 +73,7 @@ class ControllerClient:
             return
 
         try:
-            self.sio.emit('reset', namespace='/server')
+            self.sio.emit('reset')
         except socketio.client.exceptions.SocketIOError as e:
             logger.error(f'Failed to send current server reset to controller ({e})')
 
@@ -85,7 +85,7 @@ class ControllerClient:
             self.sio.emit('phase', {
                 'phase': phase,
                 **kwargs
-            }, namespace='/game')
+            })
         except socketio.client.exceptions.SocketIOError as e:
             logger.error(f'Failed to send game phase to controller ({e})')
 
@@ -94,6 +94,6 @@ class ControllerClient:
             return
 
         try:
-            self.sio.emit('rotate', namespace='/player')
+            self.sio.emit('rotate')
         except socketio.client.exceptions.SocketIOError as e:
             logger.error(f'Failed to send player rotation report to controller ({e})')
