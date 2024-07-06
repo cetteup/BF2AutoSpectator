@@ -3,6 +3,7 @@ import random
 import re
 import subprocess
 import time
+from enum import Enum
 from typing import Tuple, Optional
 
 import numpy as np
@@ -29,6 +30,19 @@ MAP_NAME_REGEX_NvN = re.compile(r'(\d+).?v.?(\d+)')
 MAP_NAME_REGEX_SEPARATORS = re.compile(r'[_.\s]')
 MAP_NAME_REGEX_EXTRA = re.compile(r'[\'()]')
 MAP_NAME_REGEX_MULTI = re.compile(r'[-]{2,}')
+
+
+class GameMessage(str, Enum):
+    ServerFull = 'server-full'
+    Kicked = 'kicked'
+    Banned = 'banned'
+    ConnectionLost = 'connection-lost'
+    ConnectionFailed = 'connection-failed'
+    ModifiedContent = 'modified-content'
+    InvalidIP = 'invalid-ip'
+    ReadError = 'read-error'
+    ConnectionRefused = 'connection-refused'
+    Unknown = 'unknown'
 
 
 class GameInstanceManager:
@@ -194,14 +208,35 @@ class GameInstanceManager:
             image_ops=[(ImageOperation.invert, None)]
         )
 
-    def ocr_game_message(self) -> str:
+    def get_game_message(self) -> Tuple[GameMessage, str]:
         # Get ocr result of game message content region
-        return ocr_screenshot_game_window_region(
+        game_message = ocr_screenshot_game_window_region(
             self.game_window,
             self.resolution,
             'game-message-text',
             image_ops=[(ImageOperation.invert, None)]
         )
+
+        if 'full' in game_message:
+            return GameMessage.ServerFull, game_message
+        elif 'kicked' in game_message:
+            return GameMessage.Kicked, game_message
+        elif 'banned' in game_message:
+            return GameMessage.Banned, game_message
+        elif 'connection' in game_message and 'lost' in game_message:
+            return GameMessage.ConnectionLost, game_message
+        elif 'failed to connect' in game_message:
+            return GameMessage.ConnectionFailed, game_message
+        elif 'modified content' in game_message:
+            return GameMessage.ModifiedContent, game_message
+        elif 'invalid ip address' in game_message:
+            return GameMessage.InvalidIP, game_message
+        elif 'error reading from the server' in game_message:
+            return GameMessage.ReadError, game_message
+        elif 'server has refused the connection' in game_message:
+            return GameMessage.ConnectionRefused, game_message
+
+        return GameMessage.Unknown, game_message
 
     def is_in_menu(self) -> bool:
         # Get ocr result of quit menu item area

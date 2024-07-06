@@ -12,7 +12,7 @@ from BF2AutoSpectator.common.config import Config
 from BF2AutoSpectator.common.exceptions import SpawnCoordinatesNotAvailableException
 from BF2AutoSpectator.common.logger import logger
 from BF2AutoSpectator.common.utility import is_responding_pid, find_window_by_title, taskkill_pid, init_pytesseract
-from BF2AutoSpectator.game import GameInstanceManager
+from BF2AutoSpectator.game import GameInstanceManager, GameMessage
 from BF2AutoSpectator.remote import ControllerClient, GamePhase, OBSClient
 from BF2AutoSpectator.global_state import GlobalState
 
@@ -367,41 +367,39 @@ def run():
 
             continue
 
-        # Make sure we are still in the game
         if gim.is_game_message_visible():
             logger.debug('Game message present, ocr-ing message')
-            game_message = gim.ocr_game_message()
+            game_message, raw_message = gim.get_game_message()
 
-            if 'full' in game_message:
+            if game_message is GameMessage.ServerFull:
                 logger.warning('Server full, trying to rejoin in 20 seconds')
                 gis.set_spectator_on_server(False)
                 time.sleep(20)
-            elif 'kicked' in game_message:
+            elif game_message is GameMessage.Kicked:
                 logger.warning('Got kicked, trying to rejoin')
                 gis.set_spectator_on_server(False)
-            elif 'banned' in game_message and not (gis.halted() and not gs.halted()):
+            elif game_message is GameMessage.Banned and not (gis.halted() and not gs.halted()):
                 logger.critical('Got banned, contact server admin')
                 gis.set_spectator_on_server(False)
                 gis.set_halted(True)
                 gs.set_halted(True)
-            elif 'connection' in game_message and 'lost' in game_message or \
-                    'failed to connect' in game_message:
-                logger.error('Connection lost, trying to reconnect')
+            elif game_message is GameMessage.ConnectionLost or game_message is GameMessage.ConnectionFailed:
+                logger.error('Connection lost/failed, trying to reconnect')
                 gis.set_spectator_on_server(False)
-            elif 'modified content' in game_message:
+            elif game_message is GameMessage.ModifiedContent:
                 logger.warning('Got kicked for modified content, trying to rejoin')
                 gis.set_spectator_on_server(False)
-            elif 'invalid ip address' in game_message:
+            elif game_message is GameMessage.InvalidIP:
                 logger.error('Join by ip dialogue bugged, restart required')
                 gis.set_error_restart_required(True)
-            elif 'error reading from the server' in game_message:
+            elif game_message is GameMessage.ReadError:
                 logger.error('Error reading from GameSpy-ish backend, restart required')
                 gis.set_error_restart_required(True)
-            elif 'server has refused the connection' in game_message:
+            elif game_message is GameMessage.ConnectionRefused:
                 logger.error('Failed to connect to GameSpy-ish backend, restart required')
                 gis.set_error_restart_required(True)
             elif not (gis.halted() and not gs.halted()):
-                logger.critical(f'Unhandled game message: {game_message}')
+                logger.critical(f'Unhandled game message: {raw_message}')
                 gis.set_spectator_on_server(False)
                 gis.set_halted(True)
                 gs.set_halted(True)
