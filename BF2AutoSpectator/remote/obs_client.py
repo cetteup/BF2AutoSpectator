@@ -1,9 +1,11 @@
+from dataclasses import dataclass
 from typing import Optional
 from urllib.parse import urlparse
 
 import obsws_python as obs
 
 from BF2AutoSpectator.common.exceptions import ClientNotConnectedException
+from BF2AutoSpectator.common.logger import logger
 
 
 class OBSClient:
@@ -46,6 +48,26 @@ class OBSClient:
 
         self.obs.stop_stream()
 
+    def set_capture_window(self, input_name: str, executable: str, title: str) -> None:
+        self.__ensure_connected()
+
+        resp = self.__try_get_input_settings(input_name)
+        if resp is not None and resp.input_settings.get('capture_mode') == 'window':
+            self.obs.set_input_settings(input_name, {
+                'window': self.__format_window_title(executable, title)
+            }, True)
+
+    def __try_get_input_settings(self, input_name: str) -> Optional[dataclass]:
+        try:
+            return self.obs.get_input_settings(input_name)
+        except obs.reqs.OBSSDKRequestError as e:
+            logger.error(f'Failed to get input settings: {e}')
+
     def __ensure_connected(self) -> None:
         if not hasattr(self, 'obs'):
             raise ClientNotConnectedException('OBSClient is not connected')
+
+    @staticmethod
+    def __format_window_title(executable: str, title: str) -> str:
+        escaped = title.replace(':', '#3A')
+        return f'{escaped}:{escaped}:{executable}'

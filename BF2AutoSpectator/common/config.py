@@ -28,6 +28,7 @@ class Config(metaclass=Singleton):
     __controller_base_uri: str
     __control_obs: bool
     __obs_url: str
+    __obs_source_name: str
 
     __resolution: str
     __debug_screenshot: bool
@@ -42,7 +43,7 @@ class Config(metaclass=Singleton):
 
     def set_options(self, player_name: str, player_pass: str, server_ip: str, server_port: str, server_pass: str,
                     server_mod: str, game_path: str, tesseract_path: str, limit_rtl: bool, instance_rtl: int, map_load_delay: int,
-                    use_controller: bool, controller_base_uri: str, control_obs: bool, obs_url: str,
+                    use_controller: bool, controller_base_uri: str, control_obs: bool, obs_url: str, obs_source_name: str,
                     resolution: str, debug_screenshot: bool,
                     min_iterations_on_player: int, max_iterations_on_player: int,
                     max_iterations_on_default_camera_view: int, lockup_iterations_on_spawn_menu: int):
@@ -63,6 +64,7 @@ class Config(metaclass=Singleton):
         self.__controller_base_uri = controller_base_uri
         self.__control_obs = control_obs
         self.__obs_url = obs_url
+        self.__obs_source_name = obs_source_name
 
         self.__resolution = resolution
 
@@ -138,6 +140,9 @@ class Config(metaclass=Singleton):
 
     def get_obs_url(self) -> str:
         return self.__obs_url
+
+    def get_obs_source_name(self) -> str:
+        return self.__obs_source_name
 
     def get_resolution(self) -> str:
         return self.__resolution

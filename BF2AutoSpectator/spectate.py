@@ -46,6 +46,7 @@ def run():
     parser.add_argument('--controller-base-uri', help='Base uri of web controller', type=str)
     parser.add_argument('--control-obs', dest='control_obs', action='store_true')
     parser.add_argument('--obs-url', help='OBS WebSocket URL in format "ws://:password@hostname:port"', type=str)
+    parser.add_argument('--obs-source-name', help='OBS game source name', type=str, default='Battlefield 2')
     parser.add_argument('--no-rtl-limit', dest='limit_rtl', action='store_false')
     parser.add_argument('--debug-log', dest='debug_log', action='store_true')
     parser.add_argument('--debug-screenshot', dest='debug_screenshot', action='store_true')
@@ -72,6 +73,7 @@ def run():
         controller_base_uri=args.controller_base_uri,
         control_obs=args.control_obs,
         obs_url=args.obs_url,
+        obs_source_name=args.obs_source_name,
         resolution=args.game_res,
         debug_screenshot=args.debug_screenshot,
         min_iterations_on_player=args.min_iterations_on_player,
@@ -128,8 +130,10 @@ def run():
     logger.info('Looking for an existing game instance')
     got_instance, correct_params, *_ = gim.find_instance(config.get_server_mod())
 
-    # Schedule restart if no instance was started/found
-    if not got_instance:
+    if got_instance and config.control_obs():
+        logger.debug('Found existing game window, updating OBS capture window')
+        obsc.set_capture_window(config.get_obs_source_name(), constants.BF2_EXE, gim.game_window.title)
+    elif not got_instance:
         logger.info('Did not find any existing game instance, will launch a new one')
         gis.set_error_restart_required(True)
     elif not correct_params:
@@ -342,7 +346,10 @@ def run():
                 logger.warning(f'Game restart itself with a different mod, updating config')
                 config.set_server_mod(running_mod)
 
-            if not got_instance:
+            if got_instance and correct_params and config.control_obs():
+                logger.debug('Game instance launched, updating OBS capture window')
+                obsc.set_capture_window(config.get_obs_source_name(), constants.BF2_EXE, gim.game_window.title)
+            elif not got_instance:
                 logger.error('Game instance was not launched, retrying')
                 continue
             elif not correct_params:
