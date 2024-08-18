@@ -132,7 +132,10 @@ def run():
 
     if got_instance and config.control_obs():
         logger.debug('Found existing game window, updating OBS capture window')
-        obsc.set_capture_window(config.get_obs_source_name(), constants.BF2_EXE, gim.game_window.title)
+        try:
+            obsc.set_capture_window(config.get_obs_source_name(), constants.BF2_EXE, gim.game_window.title)
+        except Exception as e:
+            logger.error(f'Failed to update OBS capture window: {e}')
     elif not got_instance:
         logger.info('Did not find any existing game instance, will launch a new one')
         gis.set_error_restart_required(True)
@@ -344,7 +347,10 @@ def run():
 
             if got_instance and correct_params and config.control_obs():
                 logger.debug('Game instance launched, updating OBS capture window')
-                obsc.set_capture_window(config.get_obs_source_name(), constants.BF2_EXE, gim.game_window.title)
+                try:
+                    obsc.set_capture_window(config.get_obs_source_name(), constants.BF2_EXE, gim.game_window.title)
+                except Exception as e:
+                    logger.error(f'Failed to update OBS capture window: {e}')
             elif not got_instance:
                 logger.error('Game instance was not launched, retrying')
                 continue
