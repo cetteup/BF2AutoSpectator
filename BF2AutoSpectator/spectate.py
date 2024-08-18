@@ -150,8 +150,7 @@ def run():
             try:
                 gim.bring_to_foreground()
             except Exception as e:
-                logger.error('BF2 window is gone, restart required')
-                logger.error(str(e))
+                logger.error(f'Failed to bring BF2 window to foreground ({str(e)}), restart required')
                 gis.set_error_restart_required(True)
 
         # Check if game froze
@@ -268,8 +267,7 @@ def run():
             try:
                 streaming = obsc.is_stream_active()
             except Exception as e:
-                logger.error('Failed to check OBS stream status')
-                logger.error(str(e))
+                logger.error(f'Failed to check OBS stream status: {str(e)}')
 
             # When halted, only stop stream after a 180-second grace period to make the reason (error message)
             # visible for viewers and/or allow controller to initiate a server switch, resolving the halted state
@@ -280,8 +278,7 @@ def run():
                     obsc.stop_stream()
                     time.sleep(5)
                 except Exception as e:
-                    logger.error('Failed to stop OBS stream')
-                    logger.error(str(e))
+                    logger.error(f'Failed to stop OBS stream: {str(e)}')
             elif streaming is False and not (gs.stopped() or gis.halted()) and bf2_window is not None:
                 # Start stream when neither stopped nor halted and BF2 window is open
                 logger.info('Starting OBS stream')
@@ -289,8 +286,7 @@ def run():
                     obsc.start_stream()
                     time.sleep(5)
                 except Exception as e:
-                    logger.error('Failed to start OBS stream')
-                    logger.error(str(e))
+                    logger.error(f'Failed to start OBS stream: {str(e)}')
 
         # Stop existing (and start a new) game instance if required
         if gs.stopped() or gis.rtl_restart_required() or gis.error_restart_required():
@@ -360,8 +356,7 @@ def run():
             try:
                 gim.bring_to_foreground()
             except Exception as e:
-                logger.error('BF2 window is gone, restart required')
-                logger.error(str(e))
+                logger.error(f'Failed to bring BF2 window to foreground ({str(e)}), restart required')
                 continue
 
             # Ensure game menu is open, try to open it if not
