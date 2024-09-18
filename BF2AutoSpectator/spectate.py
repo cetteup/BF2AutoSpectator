@@ -185,6 +185,7 @@ def run():
         # Check if a game restart command was issued to the controller
         # (command store will be empty when not using controller, making this a noop)
         force_next_player = False
+        force_previous_player = False
         if cs.pop('start'):
             if gs.stopped():
                 logger.info('Start command issued via controller, queueing game start')
@@ -242,6 +243,15 @@ def run():
             else:
                 logger.info('Minimum number of iterations on player is not reached, '
                             'ignoring controller request to switch to next player')
+
+        if cs.pop('previous_player'):
+            if (gis.get_iterations_on_player() + 1 > config.get_min_iterations_on_player() or
+                    config.player_rotation_paused()):
+                logger.info('Manual switch to previous player requested via controller, queueing switch')
+                force_previous_player = True
+            else:
+                logger.info('Minimum number of iterations on player is not reached, '
+                            'ignoring controller request to switch to previous player')
 
         if cs.pop('respawn'):
             logger.info('Respawn requested via controller, queueing respawn')
@@ -768,6 +778,11 @@ def run():
                 gis.set_iterations_on_player(config.get_max_iterations_on_player())
             else:
                 time.sleep(2)
+        elif not on_round_finish_screen and force_previous_player:
+            logger.info('Rotating to previous player')
+            gim.rotate_to_previous_player()
+            cc.report_player_rotation()
+            gis.reset_iterations_on_player()
         elif not on_round_finish_screen:
             logger.info('Rotating to next player')
             gim.rotate_to_next_player()

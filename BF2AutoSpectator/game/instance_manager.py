@@ -970,6 +970,10 @@ class GameInstanceManager:
     def rotate_to_next_player():
         auto_press_key(0x2e)
 
+    @staticmethod
+    def rotate_to_previous_player():
+        auto_press_key(0x2c)
+
     def join_game(self) -> bool:
         if not self.is_join_game_button_visible():
             return False
