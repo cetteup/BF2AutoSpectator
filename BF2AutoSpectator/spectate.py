@@ -291,7 +291,7 @@ def run():
                     logger.error(f'Failed to start OBS stream: {str(e)}')
 
         # Stop existing (and start a new) game instance if required
-        if gs.stopped() or gis.rtl_restart_required() or gis.error_restart_required():
+        if not gim.has_instance() or gs.stopped() or gis.rtl_restart_required() or gis.error_restart_required():
             if gim.has_instance() and (gs.stopped() or gis.rtl_restart_required()):
                 cc.update_game_phase(GamePhase.closing)
                 # Quit out of current instance
