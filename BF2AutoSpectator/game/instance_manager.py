@@ -16,9 +16,9 @@ from BF2AutoSpectator.common.exceptions import SpawnCoordinatesNotAvailableExcep
 from BF2AutoSpectator.common.logger import logger
 from BF2AutoSpectator.common.utility import Window, find_window_by_title, get_resolution_window_size, \
     mouse_move_to_game_window_coord, mouse_click_in_game_window, ocr_screenshot_game_window_region, auto_press_key, \
-    mouse_reset_legacy, mouse_move_legacy, is_responding_pid, histogram_screenshot_region, calc_cv2_hist_delta, \
+    mouse_reset_legacy, mouse_move_legacy, is_running_process, histogram_screenshot_region, calc_cv2_hist_delta, \
     ImageOperation, mouse_reset, get_mod_from_command_line, run_conman, ocr_screenshot_region, is_similar_str, \
-    press_key, release_key
+    press_key, release_key, kill_process
 from .instance_state import GameInstanceState
 
 # Remove the top left corner from pyautogui failsafe points
@@ -72,12 +72,18 @@ class GameInstanceManager:
     def get_state(self) -> GameInstanceState:
         return self.state
 
-    def get_game_window(self) -> Optional[Window]:
-        return self.game_window
-
     """
     Functions for launching, finding and destroying/quitting a game instance
     """
+    def has_instance(self) -> bool:
+        return self.game_window is not None
+
+    def is_instance_running(self) -> bool:
+        if not self.has_instance():
+            return False
+
+        return is_running_process(self.game_window.pid)
+
     @staticmethod
     def prepare_game_launch() -> None:
         """
@@ -169,7 +175,7 @@ class GameInstanceManager:
         return True, as_expected, running_mod
 
     def quit_instance(self) -> bool:
-        if not self.open_menu():
+        if not self.has_instance() or not self.open_menu():
             return False
 
         # Click quit menu item
@@ -179,7 +185,13 @@ class GameInstanceManager:
 
         time.sleep(2)
 
-        return not is_responding_pid(self.game_window.pid)
+        return not is_running_process(self.game_window.pid)
+
+    def kill_instance(self) -> bool:
+        if not self.has_instance():
+            return False
+
+        return kill_process(self.game_window.pid)
 
     def open_menu(self, max_attempts: int = 5, sleep: float = 1.0) -> bool:
         # Spam press ESC if menu is not already visible

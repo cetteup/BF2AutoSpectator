@@ -11,10 +11,10 @@ from BF2AutoSpectator.common.commands import CommandStore
 from BF2AutoSpectator.common.config import Config
 from BF2AutoSpectator.common.exceptions import SpawnCoordinatesNotAvailableException
 from BF2AutoSpectator.common.logger import logger
-from BF2AutoSpectator.common.utility import is_responding_pid, find_window_by_title, taskkill_pid, init_pytesseract
+from BF2AutoSpectator.common.utility import find_window_by_title, init_pytesseract
 from BF2AutoSpectator.game import GameInstanceManager, GameMessage
-from BF2AutoSpectator.remote import ControllerClient, GamePhase, OBSClient
 from BF2AutoSpectator.global_state import GlobalState
+from BF2AutoSpectator.remote import ControllerClient, GamePhase, OBSClient
 
 
 def run():
@@ -147,9 +147,8 @@ def run():
     gis.set_iterations_on_player(config.get_max_iterations_on_player())
     gs = GlobalState()
     while True:
-        bf2_window = gim.get_game_window()
         # Try to bring BF2 window to foreground
-        if bf2_window is not None and not gis.error_restart_required():
+        if gim.has_instance() and not gis.error_restart_required():
             try:
                 gim.bring_to_foreground()
             except Exception as e:
@@ -157,7 +156,7 @@ def run():
                 gis.set_error_restart_required(True)
 
         # Check if game froze
-        if bf2_window is not None and not gis.error_restart_required() and not is_responding_pid(bf2_window.pid):
+        if gim.has_instance() and not gis.error_restart_required() and not gim.is_instance_running():
             logger.info('Game froze, checking unresponsive count')
             # Game will temporarily freeze when map load finishes or when joining server, so don't restart right away
             if gis.get_error_unresponsive_count() < 3:
@@ -168,7 +167,7 @@ def run():
             else:
                 logger.error('Unresponsive count exceeded limit, scheduling restart')
                 gis.set_error_restart_required(True)
-        elif bf2_window is not None and not gis.error_restart_required() and gis.get_error_unresponsive_count() > 0:
+        elif gim.has_instance() and not gis.error_restart_required() and gis.get_error_unresponsive_count() > 0:
             logger.info('Game recovered from temp freeze, resetting unresponsive count')
             # Game got it together, reset unresponsive count
             gis.reset_error_unresponsive_count()
@@ -282,7 +281,7 @@ def run():
                     time.sleep(5)
                 except Exception as e:
                     logger.error(f'Failed to stop OBS stream: {str(e)}')
-            elif streaming is False and not (gs.stopped() or gis.halted()) and bf2_window is not None:
+            elif streaming is False and not (gs.stopped() or gis.halted()) and gim.has_instance():
                 # Start stream when neither stopped nor halted and BF2 window is open
                 logger.info('Starting OBS stream')
                 try:
@@ -293,7 +292,7 @@ def run():
 
         # Stop existing (and start a new) game instance if required
         if gs.stopped() or gis.rtl_restart_required() or gis.error_restart_required():
-            if bf2_window is not None and (gs.stopped() or gis.rtl_restart_required()):
+            if gim.has_instance() and (gs.stopped() or gis.rtl_restart_required()):
                 cc.update_game_phase(GamePhase.closing)
                 # Quit out of current instance
                 logger.info('Quitting existing game instance')
@@ -306,11 +305,11 @@ def run():
                     gis.set_error_restart_required(True)
 
             # Don't use elif here so error restart can be executed right after a failed quit attempt
-            if bf2_window is not None and gis.error_restart_required():
+            if gim.has_instance() and gis.error_restart_required():
                 cc.update_game_phase(GamePhase.closing)
                 # Kill any remaining instance by pid
                 logger.info('Killing existing game instance')
-                killed = taskkill_pid(bf2_window.pid)
+                killed = gim.kill_instance()
                 logger.debug(f'Instance killed: {killed}')
                 # Give Windows time to actually close the window
                 time.sleep(3)

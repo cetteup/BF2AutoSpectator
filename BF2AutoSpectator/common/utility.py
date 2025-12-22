@@ -91,14 +91,14 @@ class ImageOperation(Enum):
     colorize = 4
 
 
-def is_responding_pid(pid: int) -> bool:
+def is_running_process(pid: int) -> bool:
     try:
         return psutil.Process(pid=pid).status() == psutil.STATUS_RUNNING
     except (psutil.NoSuchProcess, psutil.AccessDenied):
         return False
 
 
-def taskkill_pid(pid: int) -> bool:
+def kill_process(pid: int) -> bool:
     try:
         process = psutil.Process(pid=pid)
         process.kill()
