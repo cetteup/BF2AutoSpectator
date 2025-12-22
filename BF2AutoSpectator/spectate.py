@@ -296,12 +296,12 @@ def run():
                 cc.update_game_phase(GamePhase.closing)
                 # Quit out of current instance
                 logger.info('Quitting existing game instance')
-                gis.set_rtl_restart_required(False)
                 if gim.quit_instance():
                     logger.debug('Successfully quit game instance')
                 else:
                     # If quit was not successful, switch to error restart
                     logger.error('Quitting existing game instance failed, switching to killing process')
+                    gis.set_rtl_restart_required(False)
                     gis.set_error_restart_required(True)
 
             # Don't use elif here so error restart can be executed right after a failed quit attempt

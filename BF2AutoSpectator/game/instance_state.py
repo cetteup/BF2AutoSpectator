@@ -257,6 +257,7 @@ class GameInstanceState:
         self.__map_loading = False
         self.__active_join_possible_after = None
         self.__round_num = 0
+        self.__rtl_restart_required = False
         self.__rotation_map_load_delayed = False
         self.__rotation_map_name = None
         self.__rotation_map_size = -1
