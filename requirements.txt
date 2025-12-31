@@ -6,6 +6,6 @@ pytesseract==0.3.13
 requests==2.32.5
 pywin32==311
 psutil==7.2.1
-python-socketio[client]==5.15.1
+python-socketio[client]==5.16.0
 jellyfish==1.2.1
 obsws-python==1.8.0
