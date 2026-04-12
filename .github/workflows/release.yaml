@@ -39,7 +39,7 @@ jobs:
           Compress-Archive -Path "dist\BF2AutoSpectator.exe","overrides" -DestinationPath BF2AutoSpectator-${{ github.ref_name }}.zip
 
       - name: Create release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           files: BF2AutoSpectator-${{ github.ref_name }}.zip*
           draft: true
