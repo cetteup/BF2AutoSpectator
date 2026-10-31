@@ -410,6 +410,10 @@ def calc_cv2_hist_from_pil_image(pil_image: Image) -> ndarray:
 
 
 def calc_cv2_hist_delta(a: ndarray, b: ndarray) -> float:
+    # OpenCV 5 returns 1D histograms (256,) while stored ones are 2D (256, 1); compareHist requires matching shapes
+    a = np.ascontiguousarray(a, dtype=np.float32).reshape(-1, 1)
+    b = np.ascontiguousarray(b, dtype=np.float32).reshape(-1, 1)
+
     return cv2.compareHist(a, b, cv2.HISTCMP_BHATTACHARYYA)
 
 
