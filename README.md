@@ -122,7 +122,7 @@ You can always get these details locally by providing the `--help` argument.
 | Stranded                       | Yes     | Yes     | Yes     |
 | Stranded - CTF                 | n/a     | n/a     | Yes     |
 | Strike At Pegville             | Yes     | Yes     | Yes     |
-| Strike At Pegville  - Zombie ¹ | n/a     | n/a     | Yes     |
+| Strike At Pegville - Zombie ¹   | n/a     | n/a     | Yes     |
 | Wake Island 1707               | Yes     | Yes     | Yes     |
 
 ¹ spawning on zombie versions of maps may fail if the spectator happens to be a zombie, since the zombie class is not always selected by default
