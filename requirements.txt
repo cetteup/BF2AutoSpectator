@@ -3,7 +3,7 @@ PyAutoGUI==0.9.54
 numpy==2.2.6
 opencv_python==5.0.0.93
 pytesseract==0.3.13
-requests==2.32.5
+requests==2.33.0
 pywin32==312
 psutil==7.2.1
 python-socketio[client]==5.16.2
