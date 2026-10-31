@@ -298,6 +298,11 @@ COORDINATES = {
             '32': [(425, 354), (503, 102)],
             '64': [(425, 354), (503, 102)]
         },
+        'aces-high': {
+            '16': [(430, 360), (420, 100)],
+            # 32 size does not exist
+            '64': [(430, 360), (420, 100)]
+        },
         'black-beards-atol': {
             '16': [(308, 238), (560, 230)],
             '32': [(444, 360), (440, 120)],
@@ -336,6 +341,14 @@ COORDINATES = {
             '32': [(274, 355), (600, 90)],
             '64': [(274, 355), (600, 90)]
         },
+        'dead-mans-reef': {
+            # 64 is the only available size
+            '64': [(545, 375), (280, 75)]
+        },
+        'dead-mans-reef-ctf': {
+            # 64 is the only available size
+            '64': [(545, 375), (280, 75)]
+        },
         'frylar': {
             '16': [(500, 240), (366, 200)],
             '32': [(500, 240), (366, 200)],
@@ -349,6 +362,20 @@ COORDINATES = {
             # 64 is the only available size and primary team spawns currently do not work reliably because
             # you sometimes need to select the zombie class first
             '64': [(539, 246), (457, 230)]
+        },
+        'harbor': {
+            '16': [(315, 225), (550, 215)],
+            # 32 size does not exist
+            '64': [(315, 225), (550, 215)]
+        },
+        'harbor-ctf': {
+            # 64 is the only available size
+            '64': [(315, 225), (550, 215)]
+        },
+        'harbor-zombie': {
+            # 64 is the only available size and primary team spawns currently do not work reliably because
+            # you sometimes need to select the zombie class first
+            '64': [(315, 215), (545, 213)]
         },
         'lost-at-sea': {
             '16': [(565, 356), (327, 118)],
@@ -373,6 +400,10 @@ COORDINATES = {
         'pelican-point-ctf': {
             # 64 is the only available size
             '64': [(462, 117), (385, 340)]
+        },
+        'plunders-island': {
+            # 64 is the only available size
+            '64': [(510, 110), (500, 360)]
         },
         'pressgang-port': {
             '16': [(428, 80), (452, 385)],
@@ -415,6 +446,10 @@ COORDINATES = {
             # 64 is the only available size
             '64': [(540, 272), (315, 110)]
         },
+        'sleepy-valley': {
+            # 64 is the only available size
+            '64': [(435, 75), (570, 380)]
+        },
         'storm-the-bastion': {
             '16': [(501, 348), (345, 158)],
             '32': [(510, 98), (370, 180)],
@@ -434,6 +469,16 @@ COORDINATES = {
         'stranded-ctf': {
             # 64 is the only available size
             '64': [(353, 290), (507, 178)]
+        },
+        'strike-at-pegville': {
+            '16': [(427, 367), (473, 148)],
+            '32': [(427, 367), (473, 148)],
+            '64': [(427, 367), (473, 148)],
+        },
+        'strike-at-pegville-zombie': {
+            # 64 is the only available size and primary team spawns currently do not work reliably because
+            # you sometimes need to select the zombie class first
+            '64': [(427, 367), (463, 145)],
         },
         'wake-island-1707': {
             '16': [(390, 304), (521, 157)],
